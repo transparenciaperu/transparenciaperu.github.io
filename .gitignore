@@ -1,0 +1,96 @@
+# Archivos compilados y paquetes
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Directorios de compilación
+/target/
+*/target/
+/bin/
+*/bin/
+/build/
+*/build/
+/out/
+*/out/
+
+# Archivos de configuración de IDE
+## IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+atlassian-ide-plugin.xml
+
+## Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+.loadpath
+.recommenders/
+.externalToolBuilders/
+*.launch
+
+## NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/nbactions.xml
+/nb-configuration.xml
+
+## VS Code
+.vscode/
+.factorypath
+.history
+
+# Archivos del sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archivos específicos de Java
+hs_err_pid*
+.mtj.tmp/
+
+# Archivos específicos de Maven
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+log/
+logs/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Archivos de configuración local
+application-local.properties
+application-dev.properties
+application-dev.yml
+application-local.yml
+
+# Directorios de logs
+/logs/
+/log/
+*.log
+
+# Archivos temporales
+*~
+*.swp
+*.swo
+
+# Otros
+.env
+*.db
