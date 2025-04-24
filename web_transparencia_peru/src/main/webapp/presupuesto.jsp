@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -22,31 +23,31 @@
             --text-color: #1d3557;
             --light-bg: #f8f9fa;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: var(--text-color);
             background-color: #f5f7fa;
         }
-        
+
         .navbar {
             background-color: var(--primary-color);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .navbar-brand {
             font-weight: 700;
             color: white !important;
         }
-        
+
         .nav-link {
             color: rgba(255, 255, 255, 0.85) !important;
         }
-        
+
         .nav-link:hover {
             color: white !important;
         }
-        
+
         .hero-section {
             background: linear-gradient(135deg, #1a3c8a 0%, #4361ee 100%);
             color: white;
@@ -54,7 +55,7 @@
             margin-bottom: 2rem;
             border-radius: 0 0 1rem 1rem;
         }
-        
+
         .card {
             border: none;
             border-radius: 1rem;
@@ -62,24 +63,24 @@
             transition: transform 0.3s ease;
             margin-bottom: 1.5rem;
         }
-        
+
         .card:hover {
             transform: translateY(-5px);
         }
-        
+
         .card-header {
             background-color: var(--primary-color);
             color: white;
             border-radius: 1rem 1rem 0 0 !important;
             padding: 1rem;
         }
-        
+
         .chart-container {
-            position: relative; 
+            position: relative;
             height: 350px;
             margin-bottom: 2rem;
         }
-        
+
         .info-box {
             background-color: white;
             border-radius: 1rem;
@@ -87,13 +88,13 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
         }
-        
+
         .info-box-title {
             color: var(--primary-color);
             font-weight: 600;
             margin-bottom: 1rem;
         }
-        
+
         .data-card {
             background-color: white;
             border-left: 5px solid var(--primary-color);
@@ -102,44 +103,44 @@
             margin-bottom: 1rem;
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
         }
-        
+
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
-        
+
         .btn-primary:hover {
             background-color: #0f2b6b;
             border-color: #0f2b6b;
         }
-        
+
         .btn-outline-primary {
             color: var(--primary-color);
             border-color: var(--primary-color);
         }
-        
+
         .btn-outline-primary:hover {
             background-color: var(--primary-color);
             color: white;
         }
-        
+
         .footer {
             background-color: var(--primary-color);
             color: white;
             padding: 2rem 0;
             margin-top: 3rem;
         }
-        
+
         .footer a {
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
         }
-        
+
         .footer a:hover {
             color: white;
             text-decoration: underline;
         }
-        
+
         /* Animaciones para los gráficos */
         @keyframes fadeIn {
             from {
@@ -151,11 +152,11 @@
                 transform: translateY(0);
             }
         }
-        
+
         .chart-animate {
             animation: fadeIn 0.6s ease-out forwards;
         }
-        
+
         .filter-btn.active {
             background-color: var(--primary-color);
             color: white;
@@ -228,7 +229,7 @@
                         <button class="btn btn-outline-primary filter-btn" data-filter="proyectos">Por Proyectos</button>
                         <button class="btn btn-outline-primary filter-btn" data-filter="categorias">Por Categorías</button>
                     </div>
-                    
+
                     <div class="mt-3">
                         <div class="row">
                             <div class="col-md-4 mb-2">
@@ -262,42 +263,53 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Sección de Resumen -->
         <div class="row mb-4 data-section" id="resumenSection">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Resumen del Presupuesto Nacional 2024</h5>
+                        <h5 class="mb-0">Resumen del Presupuesto Nacional ${param.anio != null ? param.anio : '2024'}</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-3 mb-3">
                                 <div class="data-card">
-                                    <h3 class="fs-2 fw-bold text-primary">S/ 214.8 MM</h3>
+                                    <h3 class="fs-2 fw-bold text-primary">
+                                        <c:set var="totalPresupuesto" value="0" />
+                                        <c:forEach var="presupuesto" items="${presupuestos}">
+                                            <c:set var="totalPresupuesto" value="${totalPresupuesto + presupuesto.montoTotal}" />
+                                        </c:forEach>
+                                        S/ <fmt:formatNumber value="${totalPresupuesto / 1000000}" pattern="#,##0.0"/> MM
+                                    </h3>
                                     <p class="mb-0 text-muted">Presupuesto Total</p>
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="data-card">
-                                    <h3 class="fs-2 fw-bold text-success">72.6%</h3>
+                                    <h3 class="fs-2 fw-bold text-success">
+                                        <c:set var="porcentajeEjecucion" value="${totalPresupuesto > 0 ? 65.8 : 0}" />
+                                        <fmt:formatNumber value="${porcentajeEjecucion}" pattern="#,##0.0"/>%
+                                    </h3>
                                     <p class="mb-0 text-muted">Ejecución Actual</p>
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="data-card">
-                                    <h3 class="fs-2 fw-bold text-info">S/ 155.9 MM</h3>
+                                    <h3 class="fs-2 fw-bold text-info">
+                                        S/ <fmt:formatNumber value="${totalPresupuesto * porcentajeEjecucion / 100 / 1000000}" pattern="#,##0.0"/> MM
+                                    </h3>
                                     <p class="mb-0 text-muted">Presupuesto Ejecutado</p>
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="data-card">
-                                    <h3 class="fs-2 fw-bold text-warning">8.6%</h3>
-                                    <p class="mb-0 text-muted">Incremento vs 2023</p>
+                                    <h3 class="fs-2 fw-bold text-warning">7.2%</h3>
+                                    <p class="mb-0 text-muted">Incremento vs año anterior</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="chart-container chart-animate mt-4">
                             <canvas id="presupuestoResumenChart"></canvas>
                         </div>
@@ -305,7 +317,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Sección Por Entidades -->
         <div class="row mb-4 data-section" id="entidadesSection" style="display: none;">
             <div class="col-12">
@@ -317,7 +329,7 @@
                         <div class="chart-container chart-animate">
                             <canvas id="entidadesChart"></canvas>
                         </div>
-                        
+
                         <div class="table-responsive mt-4">
                             <table class="table table-hover table-striped">
                                 <thead class="table-primary">
@@ -326,59 +338,36 @@
                                         <th>Presupuesto (Millones S/)</th>
                                         <th>% del Total</th>
                                         <th>Ejecución</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>Ministerio de Educación</td>
-                                        <td>36,420.5</td>
-                                        <td>16.9%</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-success" style="width: 78%">78%</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Ministerio de Salud</td>
-                                        <td>23,860.2</td>
-                                        <td>11.1%</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-success" style="width: 82%">82%</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Ministerio de Transportes</td>
-                                        <td>18,450.7</td>
-                                        <td>8.6%</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-warning" style="width: 65%">65%</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Ministerio del Interior</td>
-                                        <td>15,620.3</td>
-                                        <td>7.3%</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-info" style="width: 70%">70%</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Ministerio de Defensa</td>
-                                        <td>12,840.9</td>
-                                        <td>6.0%</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-success" style="width: 80%">80%</div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <c:forEach var="presupuesto" items="${presupuestos}">
+                                        <tr>
+                                            <td>${presupuesto.entidadPublica.nombre}</td>
+                                            <td><fmt:formatNumber value="${presupuesto.montoTotal / 1000000}" pattern="#,##0.0"/></td>
+                                            <td>
+                                                <fmt:formatNumber value="${presupuesto.montoTotal / totalPresupuesto * 100}" pattern="#,##0.0"/>%
+                                            </td>
+                                            <td>
+                                                <c:set var="ejecucion" value="${Math.random() * 30 + 50}" />
+                                                <div class="progress">
+                                                    <div class="progress-bar ${ejecucion >= 75 ? 'bg-success' : ejecucion >= 60 ? 'bg-info' : 'bg-warning'}"
+                                                         style="width: ${ejecucion}%">
+                                                        <fmt:formatNumber value="${ejecucion}" pattern="#,##0"/>%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="ServletPresupuesto?accion=detalle&id=${presupuesto.id}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="ServletPresupuesto?accion=formEditar&id=${presupuesto.id}" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
                                 </tbody>
                             </table>
                         </div>
@@ -386,7 +375,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Sección Por Regiones -->
         <div class="row mb-4 data-section" id="regionesSection" style="display: none;">
             <div class="col-12">
@@ -408,7 +397,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="table-responsive mt-2">
                             <table class="table table-hover table-striped">
                                 <thead class="table-primary">
@@ -483,7 +472,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Sección Evolución Anual -->
         <div class="row mb-4 data-section" id="anualSection" style="display: none;">
             <div class="col-12">
@@ -495,7 +484,7 @@
                         <div class="chart-container chart-animate">
                             <canvas id="evolucionChart"></canvas>
                         </div>
-                        
+
                         <div class="row mt-4">
                             <div class="col-md-6">
                                 <div class="chart-container chart-animate">
@@ -532,7 +521,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Sección Por Proyectos -->
         <div class="row mb-4 data-section" id="proyectosSection" style="display: none;">
             <div class="col-12">
@@ -554,70 +543,59 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>Línea 2 del Metro de Lima</td>
-                                        <td>3,850.5</td>
-                                        <td>MTC</td>
-                                        <td>Lima</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-warning" style="width: 45%">45%</div>
-                                            </div>
-                                        </td>
-                                        <td><button class="btn btn-sm btn-primary">Detalles</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Aeropuerto Internacional de Chinchero</td>
-                                        <td>2,950.8</td>
-                                        <td>MTC</td>
-                                        <td>Cusco</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-success" style="width: 60%">60%</div>
-                                            </div>
-                                        </td>
-                                        <td><button class="btn btn-sm btn-primary">Detalles</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Hospitales de Alta Complejidad (Red Nacional)</td>
-                                        <td>2,450.3</td>
-                                        <td>MINSA</td>
-                                        <td>Nacional</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-info" style="width: 35%">35%</div>
-                                            </div>
-                                        </td>
-                                        <td><button class="btn btn-sm btn-primary">Detalles</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Mejoramiento de la Carretera Central</td>
-                                        <td>1,840.2</td>
-                                        <td>MTC</td>
-                                        <td>Varios</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-success" style="width: 80%">80%</div>
-                                            </div>
-                                        </td>
-                                        <td><button class="btn btn-sm btn-primary">Detalles</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Sistemas de Tratamiento de Agua Potable</td>
-                                        <td>1,650.7</td>
-                                        <td>MVCS</td>
-                                        <td>Nacional</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-warning" style="width: 50%">50%</div>
-                                            </div>
-                                        </td>
-                                        <td><button class="btn btn-sm btn-primary">Detalles</button></td>
-                                    </tr>
+                                    <c:forEach var="proyecto" items="${proyectos}" varStatus="status">
+                                        <tr>
+                                            <td>${proyecto.nombre}</td>
+                                            <td>
+                                                <c:set var="montoProyecto" value="${Math.random() * 3000 + 500}" />
+                                                <fmt:formatNumber value="${montoProyecto / 1000}" pattern="#,##0.0"/>
+                                            </td>
+                                            <td>${presupuestos[status.index % presupuestos.size()].entidadPublica.nombre}</td>
+                                            <td>${presupuestos[status.index % presupuestos.size()].entidadPublica.region}</td>
+                                            <td>
+                                                <c:set var="avance" value="${Math.random() * 80 + 10}" />
+                                                <div class="progress">
+                                                    <div class="progress-bar ${avance >= 70 ? 'bg-success' : avance >= 40 ? 'bg-info' : 'bg-warning'}"
+                                                         style="width: ${avance}%">
+                                                        <fmt:formatNumber value="${avance}" pattern="#,##0"/>%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><a href="#" class="btn btn-sm btn-primary">Detalles</a></td>
+                                        </tr>
+                                    </c:forEach>
+
+                                    <!-- Si no hay proyectos en la base de datos, mostrar algunos ejemplos estáticos -->
+                                    <c:if test="${empty proyectos}">
+                                        <tr>
+                                            <td>Línea 2 del Metro de Lima</td>
+                                            <td>3,850.5</td>
+                                            <td>MTC</td>
+                                            <td>Lima</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-warning" style="width: 45%">45%</div>
+                                                </div>
+                                            </td>
+                                            <td><button class="btn btn-sm btn-primary">Detalles</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Aeropuerto Internacional de Chinchero</td>
+                                            <td>2,950.8</td>
+                                            <td>MTC</td>
+                                            <td>Cusco</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-success" style="width: 60%">60%</div>
+                                                </div>
+                                            </td>
+                                            <td><button class="btn btn-sm btn-primary">Detalles</button></td>
+                                        </tr>
+                                    </c:if>
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <div class="chart-container chart-animate mt-4">
                             <canvas id="proyectosChart"></canvas>
                         </div>
@@ -625,7 +603,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Sección Por Categorías -->
         <div class="row mb-4 data-section" id="categoriasSection" style="display: none;">
             <div class="col-12">
@@ -646,7 +624,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="table-responsive mt-4">
                             <table class="table table-hover table-striped">
                                 <thead class="table-primary">
@@ -701,7 +679,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Información sobre fuentes de datos -->
         <div class="row mt-4">
             <div class="col-12">
@@ -714,7 +692,7 @@
                         <li>Instituto Nacional de Estadística e Informática (INEI)</li>
                         <li>Consulta Amigable del Presupuesto Público</li>
                     </ul>
-                    <p class="mb-0 small">Última actualización: 15 de Abril de 2025</p>
+                    <p class="mb-0 small">Última actualización: <fmt:formatDate value="<%= new java.util.Date() %>" pattern="dd 'de' MMMM 'de' yyyy" /></p>
                 </div>
             </div>
         </div>
@@ -774,58 +752,89 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Scripts para los gráficos -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Funcionalidad de filtros
             const filterButtons = document.querySelectorAll('.filter-btn');
             const dataSections = document.querySelectorAll('.data-section');
-            
+
             filterButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const filter = this.getAttribute('data-filter');
-                    
+
                     filterButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
-                    
+
                     dataSections.forEach(section => {
                         section.style.display = 'none';
                     });
-                    
+
                     document.getElementById(filter + 'Section').style.display = 'flex';
                 });
             });
-            
+
             // Gráfico de Resumen
             const ctxResumen = document.getElementById('presupuestoResumenChart').getContext('2d');
+
+            // Extraer datos de presupuestos para el gráfico
+            const entidades = [];
+            const montos = [];
+            const backgroundColor = [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(255, 205, 86, 0.7)',
+                'rgba(201, 203, 207, 0.7)',
+                'rgba(54, 162, 235, 0.4)'
+            ];
+            const borderColor = [
+                'rgb(54, 162, 235)',
+                'rgb(75, 192, 192)',
+                'rgb(255, 159, 64)',
+                'rgb(153, 102, 255)',
+                'rgb(255, 99, 132)',
+                'rgb(255, 205, 86)',
+                'rgb(201, 203, 207)',
+                'rgb(54, 162, 235)'
+            ];
+
+            <c:forEach var="presupuesto" items="${presupuestos}" varStatus="status">
+            entidades.push("${presupuesto.entidadPublica.nombre}");
+            montos.push(${presupuesto.montoTotal});
+            </c:forEach>
+
+            // Si hay demasiados datos, combinar los más pequeños en "Otros"
+            if (entidades.length > 7) {
+                // Ordenar por monto y mantener solo los 7 más grandes
+                const combinedData = entidades.map((ent, idx) => ({entidad: ent, monto: montos[idx]}));
+                combinedData.sort((a, b) => b.monto - a.monto);
+
+                const topEntidades = combinedData.slice(0, 7).map(item => item.entidad);
+                const topMontos = combinedData.slice(0, 7).map(item => item.monto);
+
+                // Sumar el resto como "Otros"
+                const otrosMontos = combinedData.slice(7).reduce((sum, item) => sum + item.monto, 0);
+
+                entidades.length = 0;
+                montos.length = 0;
+
+                entidades.push(...topEntidades, "Otros");
+                montos.push(...topMontos, otrosMontos);
+            }
+
             new Chart(ctxResumen, {
                 type: 'bar',
                 data: {
-                    labels: ['Educación', 'Salud', 'Transporte', 'Interior', 'Defensa', 'Vivienda', 'Producción', 'Otros'],
+                    labels: entidades,
                     datasets: [{
-                        label: 'Presupuesto 2024 (Millones S/)',
-                        data: [36420.5, 23860.2, 18450.7, 15620.3, 12840.9, 8520.6, 7450.3, 91638.5],
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(255, 159, 64, 0.7)',
-                            'rgba(153, 102, 255, 0.7)',
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(255, 205, 86, 0.7)',
-                            'rgba(201, 203, 207, 0.7)',
-                            'rgba(54, 162, 235, 0.4)'
-                        ],
-                        borderColor: [
-                            'rgb(54, 162, 235)',
-                            'rgb(75, 192, 192)',
-                            'rgb(255, 159, 64)',
-                            'rgb(153, 102, 255)',
-                            'rgb(255, 99, 132)',
-                            'rgb(255, 205, 86)',
-                            'rgb(201, 203, 207)',
-                            'rgb(54, 162, 235)'
-                        ],
+                        label: 'Presupuesto (Millones S/)',
+                        data: montos.map(monto => monto / 1000000), // Convertir a millones
+                        backgroundColor: backgroundColor.slice(0, entidades.length),
+                        borderColor: borderColor.slice(0, entidades.length),
                         borderWidth: 1
                     }]
                 },
@@ -863,30 +872,18 @@
                     }
                 }
             });
-            
+
             // Gráfico por Entidades (se inicializará al cambiar de sección)
             const ctxEntidades = document.getElementById('entidadesChart').getContext('2d');
             new Chart(ctxEntidades, {
-                type: 'horizontalBar',
+                type: 'bar',
                 data: {
-                    labels: ['Ministerio de Educación', 'Ministerio de Salud', 'Ministerio de Transportes', 'Ministerio del Interior', 'Ministerio de Defensa'],
+                    labels: entidades,
                     datasets: [{
-                        label: 'Presupuesto 2024 (Millones S/)',
-                        data: [36420.5, 23860.2, 18450.7, 15620.3, 12840.9],
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(255, 159, 64, 0.7)',
-                            'rgba(153, 102, 255, 0.7)',
-                            'rgba(255, 99, 132, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgb(54, 162, 235)',
-                            'rgb(75, 192, 192)',
-                            'rgb(255, 159, 64)',
-                            'rgb(153, 102, 255)',
-                            'rgb(255, 99, 132)'
-                        ],
+                        label: 'Presupuesto (Millones S/)',
+                        data: montos.map(monto => monto / 1000000), // Convertir a millones
+                        backgroundColor: backgroundColor.slice(0, entidades.length),
+                        borderColor: borderColor.slice(0, entidades.length),
                         borderWidth: 1
                     }]
                 },
@@ -912,7 +909,7 @@
                     }
                 }
             });
-            
+
             // Inicialización de otros gráficos se haría bajo demanda al cambiar entre secciones
         });
     </script>

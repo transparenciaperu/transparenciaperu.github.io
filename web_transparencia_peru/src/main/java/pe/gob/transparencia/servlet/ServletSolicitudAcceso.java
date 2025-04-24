@@ -7,8 +7,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import pe.gob.transparencia.entidades.SolicitudAccesoEntidad;
 import pe.gob.transparencia.modelo.SolicitudAccesoModelo;
+import pe.gob.transparencia.db.MySQLConexion;
 
 import java.io.IOException;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -68,6 +74,62 @@ public class ServletSolicitudAcceso extends HttpServlet {
             throws ServletException, IOException {
         List<SolicitudAccesoEntidad> solicitudes = modelo.listarSolicitudes();
         request.setAttribute("solicitudes", solicitudes);
+        request.setAttribute("solicitudesTotal", solicitudes);
+
+        // Calcular tiempo promedio de atención
+        Connection cn = null;
+        CallableStatement cstm = null;
+        ResultSet rs = null;
+        double tiempoPromedio = 0.0;
+
+        try {
+            cn = MySQLConexion.getConexion();
+            cstm = cn.prepareCall("{CALL sp_obtener_tiempo_promedio_atencion()}");
+            rs = cstm.executeQuery();
+
+            if (rs.next()) {
+                tiempoPromedio = rs.getDouble("diasPromedio");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (cstm != null) cstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        request.setAttribute("tiempoPromedioAtencion", tiempoPromedio);
+
+        // Calcular total de entidades participantes
+        int totalEntidades = 0;
+        try {
+            cn = MySQLConexion.getConexion();
+            String sql = "SELECT COUNT(DISTINCT entidadPublicaId) AS totalEntidades FROM SolicitudAcceso";
+            PreparedStatement pstm = cn.prepareStatement(sql);
+            rs = pstm.executeQuery();
+
+            if (rs.next()) {
+                totalEntidades = rs.getInt("totalEntidades");
+            }
+
+            if (rs != null) rs.close();
+            if (pstm != null) pstm.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        request.setAttribute("totalEntidadesParticipantes", totalEntidades);
+
         request.getRequestDispatcher("solicitud-acceso.jsp").forward(request, response);
     }
     

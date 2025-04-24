@@ -1,5 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -548,59 +550,112 @@
                                 </a>
                             </div>
                         </div>
-                        
-                        <!-- Ejemplo de una solicitud encontrada (dinámica en la implementación real) -->
-                        <div class="info-box animate-fadeInUp">
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <h5 class="info-box-title mb-2">Solicitud #SOL20250342</h5>
-                                    <p class="mb-2">
-                                        <strong>Fecha:</strong> 15/04/2025<br>
-                                        <strong>Tipo:</strong> Proyectos y Obras Públicas<br>
-                                        <strong>Entidad:</strong> Ministerio de Transportes y Comunicaciones
-                                    </p>
+
+                        <!-- Mostrar solicitudes de la base de datos -->
+                        <c:if test="${not empty solicitudes}">
+                            <c:forEach var="solicitud" items="${solicitudes}" varStatus="status">
+                                <div class="info-box animate-fadeInUp mb-3">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <h5 class="info-box-title mb-2">Solicitud #SOL${solicitud.id}</h5>
+                                            <p class="mb-2">
+                                                <strong>Fecha:</strong> <fmt:formatDate
+                                                    value="${solicitud.fechaSolicitud}" pattern="dd/MM/yyyy"/><br>
+                                                <strong>Tipo:</strong> ${solicitud.tipoSolicitud.nombre}<br>
+                                                <strong>Solicitante:</strong> ${solicitud.ciudadano.nombres} ${solicitud.ciudadano.apellidos}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-3 text-md-center">
+                                            <c:choose>
+                                                <c:when test="${solicitud.estadoSolicitud.id == 1}">
+                                                    <span class="status-badge status-pendiente">Pendiente</span>
+                                                </c:when>
+                                                <c:when test="${solicitud.estadoSolicitud.id == 2}">
+                                                    <span class="status-badge status-en-proceso">En Proceso</span>
+                                                </c:when>
+                                                <c:when test="${solicitud.estadoSolicitud.id == 3}">
+                                                    <span class="status-badge status-completada">Atendida</span>
+                                                </c:when>
+                                                <c:when test="${solicitud.estadoSolicitud.id == 4}">
+                                                    <span class="status-badge status-rechazada">Observada</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="status-badge status-rechazada">Rechazada</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                        <div class="col-md-3 text-md-end">
+                                            <a href="ServletSolicitudAcceso?accion=detalle&id=${solicitud.id}"
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye me-1"></i> Ver Detalles
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mostrar descripción truncada -->
+                                    <div class="mt-3">
+                                        <h6>Descripción</h6>
+                                        <p>${fn:substring(solicitud.descripcion, 0, 150)}${fn:length(solicitud.descripcion) > 150 ? '...' : ''}</p>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 text-md-center">
-                                    <span class="status-badge status-en-proceso">En Proceso</span>
+                            </c:forEach>
+                        </c:if>
+
+                        <!-- Si no hay solicitudes o no está logueado, mostrar ejemplo -->
+                        <c:if test="${empty solicitudes}">
+                            <div class="info-box animate-fadeInUp">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <h5 class="info-box-title mb-2">Solicitud #SOL20250342</h5>
+                                        <p class="mb-2">
+                                            <strong>Fecha:</strong> 15/04/2025<br>
+                                            <strong>Tipo:</strong> Proyectos y Obras Públicas<br>
+                                            <strong>Entidad:</strong> Ministerio de Transportes y Comunicaciones
+                                        </p>
+                                    </div>
+                                    <div class="col-md-3 text-md-center">
+                                        <span class="status-badge status-en-proceso">En Proceso</span>
+                                    </div>
+                                    <div class="col-md-3 text-md-end">
+                                        <a href="ServletSolicitudAcceso?accion=detalle&id=1"
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye me-1"></i> Ver Detalles
+                                        </a>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 text-md-end">
-                                    <a href="ServletSolicitudAcceso?accion=detalle&id=1" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye me-1"></i> Ver Detalles
-                                    </a>
+
+                                <!-- Timeline de la solicitud -->
+                                <div class="mt-4">
+                                    <h6 class="mb-3">Historial de la Solicitud</h6>
+                                    <div class="timeline">
+                                        <div class="timeline-item left">
+                                            <div class="timeline-content">
+                                                <h6>Solicitud Recibida</h6>
+                                                <p class="mb-0 small">15/04/2025 - 10:25 am</p>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item right">
+                                            <div class="timeline-content">
+                                                <h6>En Revisión</h6>
+                                                <p class="mb-0 small">16/04/2025 - 09:15 am</p>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item left">
+                                            <div class="timeline-content">
+                                                <h6>En Proceso</h6>
+                                                <p class="mb-0 small">18/04/2025 - 14:30 pm</p>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item right">
+                                            <div class="timeline-content">
+                                                <h6>Próximo paso: Respuesta</h6>
+                                                <p class="mb-0 small">Fecha estimada: 25/04/2025</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <!-- Timeline de la solicitud -->
-                            <div class="mt-4">
-                                <h6 class="mb-3">Historial de la Solicitud</h6>
-                                <div class="timeline">
-                                    <div class="timeline-item left">
-                                        <div class="timeline-content">
-                                            <h6>Solicitud Recibida</h6>
-                                            <p class="mb-0 small">15/04/2025 - 10:25 am</p>
-                                        </div>
-                                    </div>
-                                    <div class="timeline-item right">
-                                        <div class="timeline-content">
-                                            <h6>En Revisión</h6>
-                                            <p class="mb-0 small">16/04/2025 - 09:15 am</p>
-                                        </div>
-                                    </div>
-                                    <div class="timeline-item left">
-                                        <div class="timeline-content">
-                                            <h6>En Proceso</h6>
-                                            <p class="mb-0 small">18/04/2025 - 14:30 pm</p>
-                                        </div>
-                                    </div>
-                                    <div class="timeline-item right">
-                                        <div class="timeline-content">
-                                            <h6>Próximo paso: Respuesta</h6>
-                                            <p class="mb-0 small">Fecha estimada: 25/04/2025</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        </c:if>
                     </div>
                 </div>
             </div>
@@ -631,7 +686,13 @@
                             </div>
                             <div>
                                 <h6 class="mb-0">Solicitudes este año</h6>
-                                <h4 class="mb-0">12,458</h4>
+                                <h4 class="mb-0">
+                                    <c:set var="totalSolicitudes" value="0"/>
+                                    <c:forEach var="solicitud" items="${solicitudesTotal}">
+                                        <c:set var="totalSolicitudes" value="${totalSolicitudes + 1}"/>
+                                    </c:forEach>
+                                    <c:out value="${totalSolicitudes > 0 ? totalSolicitudes : '12,458'}"/>
+                                </h4>
                             </div>
                         </div>
                         <div class="d-flex align-items-center mb-3">
@@ -640,7 +701,17 @@
                             </div>
                             <div>
                                 <h6 class="mb-0">Tasa de respuesta</h6>
-                                <h4 class="mb-0">92.3%</h4>
+                                <h4 class="mb-0">
+                                    <c:set var="solicitudesRespondidas" value="0"/>
+                                    <c:forEach var="solicitud" items="${solicitudesTotal}">
+                                        <c:if test="${solicitud.estadoSolicitudId == 3}">
+                                            <c:set var="solicitudesRespondidas" value="${solicitudesRespondidas + 1}"/>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:set var="tasaRespuesta"
+                                           value="${totalSolicitudes > 0 ? (solicitudesRespondidas * 100.0) / totalSolicitudes : 92.3}"/>
+                                    <fmt:formatNumber value="${tasaRespuesta}" pattern="#,##0.0"/>%
+                                </h4>
                             </div>
                         </div>
                         <div class="d-flex align-items-center mb-3">
@@ -649,7 +720,11 @@
                             </div>
                             <div>
                                 <h6 class="mb-0">Tiempo promedio</h6>
-                                <h4 class="mb-0">7.2 días</h4>
+                                <h4 class="mb-0">
+                                    <c:set var="tiempoPromedio"
+                                           value="${tiempoPromedioAtencion > 0 ? tiempoPromedioAtencion : 7.2}"/>
+                                    <fmt:formatNumber value="${tiempoPromedio}" pattern="#,##0.0"/> días
+                                </h4>
                             </div>
                         </div>
                         <div class="d-flex align-items-center">
@@ -658,7 +733,11 @@
                             </div>
                             <div>
                                 <h6 class="mb-0">Entidades participantes</h6>
-                                <h4 class="mb-0">283</h4>
+                                <h4 class="mb-0">
+                                    <c:set var="totalEntidades"
+                                           value="${totalEntidadesParticipantes > 0 ? totalEntidadesParticipantes : 283}"/>
+                                    <c:out value="${totalEntidades}"/>
+                                </h4>
                             </div>
                         </div>
                     </div>
