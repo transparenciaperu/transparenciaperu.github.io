@@ -229,7 +229,7 @@
             <!-- Menú de navegación con Ciudadano integrado como un elemento más del menú -->
             <ul class="navbar-nav w-100 justify-content-center">
                 <li class="nav-item mx-1">
-                    <a class="nav-link active fw-bold px-3 py-2 rounded-3 d-flex align-items-center" href="#">
+                    <a class="nav-link active fw-bold px-3 py-2 rounded-3 d-flex align-items-center" href="index.jsp">
                         <i class="fas fa-home me-2"></i><span>Inicio</span>
                     </a>
                 </li>
@@ -239,13 +239,13 @@
                         <i class="fas fa-chart-pie me-2"></i><span>Presupuesto</span>
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="presupuestoDropdown">
-                        <li><a class="dropdown-item" href="#presupuesto">Ver Presupuesto Público</a></li>
+                        <li><a class="dropdown-item" href="ServletPresupuesto">Ver Presupuesto Público</a></li>
                         <li><a class="dropdown-item" href="#">Ejecución Presupuestal</a></li>
                         <li><a class="dropdown-item" href="#">Proyectos de Inversión</a></li>
                     </ul>
                 </li>
                 <li class="nav-item mx-1">
-                    <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center" href="#acceso">
+                    <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center" href="ServletSolicitudAcceso">
                         <i class="fas fa-file-alt me-2"></i><span>Información</span>
                     </a>
                 </li>
@@ -369,8 +369,8 @@
                     información pública y la rendición de cuentas, fortaleciendo la democracia y el derecho a saber de
                     todos los peruanos.</p>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="#presupuesto" class="btn btn-primary btn-lg px-4 me-md-2">Ver Presupuesto Público</a>
-                    <a href="#acceso" class="btn btn-outline-light btn-lg px-4">Solicitar Información</a>
+                    <a href="ServletPresupuesto" class="btn btn-primary btn-lg px-4 me-md-2">Ver Presupuesto Público</a>
+                    <a href="ServletSolicitudAcceso" class="btn btn-outline-light btn-lg px-4">Solicitar Información</a>
                 </div>
             </div>
         </div>
@@ -441,7 +441,7 @@
                                     Desglose por proyectos y categorías
                                 </li>
                             </ul>
-                            <a href="#" class="btn btn-primary">Explorar Presupuesto <i
+                            <a href="ServletPresupuesto" class="btn btn-primary">Explorar Presupuesto <i
                                     class="fas fa-arrow-right ms-2"></i></a>
                         </div>
                     </div>
@@ -474,7 +474,7 @@
                                     Respuestas digitales seguras
                                 </li>
                             </ul>
-                            <a href="#" class="btn btn-primary">Solicitar Información <i
+                            <a href="ServletSolicitudAcceso" class="btn btn-primary">Solicitar Información <i
                                     class="fas fa-arrow-right ms-2"></i></a>
                         </div>
                     </div>
