@@ -4,11 +4,11 @@ import pe.gob.transparencia.entidades.PresupuestoEntidad;
 import java.util.List;
 
 public interface PresupuestoInterface {
-    public List<PresupuestoEntidad> listarPresupuestos();
-    public List<PresupuestoEntidad> listarPresupuestosPorEntidad(int entidadId);
-    public List<PresupuestoEntidad> listarPresupuestosPorAnio(int anio);
-    public PresupuestoEntidad obtenerPresupuesto(int id);
-    public int registrarPresupuesto(PresupuestoEntidad presupuesto);
-    public int actualizarPresupuesto(PresupuestoEntidad presupuesto);
-    public int eliminarPresupuesto(int id);
+    List<PresupuestoEntidad> listarPresupuestos();
+    List<PresupuestoEntidad> listarPresupuestosPorEntidad(int entidadId);
+    List<PresupuestoEntidad> listarPresupuestosPorAnio(int anio);
+    PresupuestoEntidad obtenerPresupuesto(int id);
+    int registrarPresupuesto(PresupuestoEntidad presupuesto);
+    int actualizarPresupuesto(PresupuestoEntidad presupuesto);
+    int eliminarPresupuesto(int id);
 }
