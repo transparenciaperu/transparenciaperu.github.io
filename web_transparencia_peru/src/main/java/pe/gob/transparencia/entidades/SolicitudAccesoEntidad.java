@@ -9,9 +9,14 @@ public class SolicitudAccesoEntidad {
     private int ciudadanoId;
     private int tipoSolicitudId;
     private int estadoSolicitudId;
+    private int entidadPublicaId;
+    private Date fechaRespuesta;
+    private String observaciones;
+
     private CiudadanoEntidad ciudadano;
     private TipoSolicitudEntidad tipoSolicitud;
     private EstadoSolicitudEntidad estadoSolicitud;
+    private EntidadPublicaEntidad entidadPublica;
 
     public SolicitudAccesoEntidad() {
     }
@@ -23,6 +28,19 @@ public class SolicitudAccesoEntidad {
         this.ciudadanoId = ciudadanoId;
         this.tipoSolicitudId = tipoSolicitudId;
         this.estadoSolicitudId = estadoSolicitudId;
+    }
+
+    public SolicitudAccesoEntidad(int id, Date fechaSolicitud, String descripcion, int ciudadanoId, int tipoSolicitudId,
+                                  int estadoSolicitudId, int entidadPublicaId, Date fechaRespuesta, String observaciones) {
+        this.id = id;
+        this.fechaSolicitud = fechaSolicitud;
+        this.descripcion = descripcion;
+        this.ciudadanoId = ciudadanoId;
+        this.tipoSolicitudId = tipoSolicitudId;
+        this.estadoSolicitudId = estadoSolicitudId;
+        this.entidadPublicaId = entidadPublicaId;
+        this.fechaRespuesta = fechaRespuesta;
+        this.observaciones = observaciones;
     }
 
     public int getId() {
@@ -73,6 +91,30 @@ public class SolicitudAccesoEntidad {
         this.estadoSolicitudId = estadoSolicitudId;
     }
 
+    public int getEntidadPublicaId() {
+        return entidadPublicaId;
+    }
+
+    public void setEntidadPublicaId(int entidadPublicaId) {
+        this.entidadPublicaId = entidadPublicaId;
+    }
+
+    public Date getFechaRespuesta() {
+        return fechaRespuesta;
+    }
+
+    public void setFechaRespuesta(Date fechaRespuesta) {
+        this.fechaRespuesta = fechaRespuesta;
+    }
+
+    public String getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
+    }
+
     public CiudadanoEntidad getCiudadano() {
         return ciudadano;
     }
@@ -95,5 +137,13 @@ public class SolicitudAccesoEntidad {
 
     public void setEstadoSolicitud(EstadoSolicitudEntidad estadoSolicitud) {
         this.estadoSolicitud = estadoSolicitud;
+    }
+
+    public EntidadPublicaEntidad getEntidadPublica() {
+        return entidadPublica;
+    }
+
+    public void setEntidadPublica(EntidadPublicaEntidad entidadPublica) {
+        this.entidadPublica = entidadPublica;
     }
 }

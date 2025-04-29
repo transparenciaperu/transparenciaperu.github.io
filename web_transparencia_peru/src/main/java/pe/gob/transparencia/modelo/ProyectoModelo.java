@@ -19,12 +19,25 @@ public class ProyectoModelo implements ProyectoInterface {
     @Override
     public List<ProyectoEntidad> listarProyectos() {
         List<ProyectoEntidad> lista = new ArrayList<>();
+
+        // Si la base de datos no está disponible, retorna una lista vacía
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de proyectos.");
+            return lista;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         ResultSet rs = null;
         
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar lista vacía
+            if (cn == null) {
+                return lista;
+            }
+
             String sql = "SELECT p.*, pr.anio, cg.nombre AS categoria_nombre " +
                          "FROM Proyecto p " +
                          "INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id " +
@@ -54,12 +67,25 @@ public class ProyectoModelo implements ProyectoInterface {
     @Override
     public List<ProyectoEntidad> listarProyectosPorPresupuesto(int presupuestoId) {
         List<ProyectoEntidad> lista = new ArrayList<>();
+
+        // Si la base de datos no está disponible, retorna una lista vacía
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de proyectos por presupuesto.");
+            return lista;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         ResultSet rs = null;
         
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar lista vacía
+            if (cn == null) {
+                return lista;
+            }
+
             String sql = "SELECT p.*, pr.anio, cg.nombre AS categoria_nombre " +
                          "FROM Proyecto p " +
                          "INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id " +
@@ -91,12 +117,25 @@ public class ProyectoModelo implements ProyectoInterface {
     @Override
     public List<ProyectoEntidad> listarProyectosPorCategoria(int categoriaId) {
         List<ProyectoEntidad> lista = new ArrayList<>();
+
+        // Si la base de datos no está disponible, retorna una lista vacía
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de proyectos por categoría.");
+            return lista;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         ResultSet rs = null;
         
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar lista vacía
+            if (cn == null) {
+                return lista;
+            }
+
             String sql = "SELECT p.*, pr.anio, cg.nombre AS categoria_nombre " +
                          "FROM Proyecto p " +
                          "INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id " +
@@ -128,12 +167,25 @@ public class ProyectoModelo implements ProyectoInterface {
     @Override
     public ProyectoEntidad obtenerProyecto(int id) {
         ProyectoEntidad proyecto = null;
+
+        // Si la base de datos no está disponible, retorna null
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando null para proyecto.");
+            return null;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         ResultSet rs = null;
         
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar null
+            if (cn == null) {
+                return null;
+            }
+
             String sql = "SELECT p.*, pr.anio, cg.nombre AS categoria_nombre " +
                          "FROM Proyecto p " +
                          "INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id " +
@@ -164,11 +216,24 @@ public class ProyectoModelo implements ProyectoInterface {
     @Override
     public int registrarProyecto(ProyectoEntidad proyecto) {
         int resultado = 0;
+
+        // Si la base de datos no está disponible, retorna 0 (sin éxito)
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. No se puede registrar proyecto.");
+            return resultado;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar 0
+            if (cn == null) {
+                return resultado;
+            }
+
             String sql = "INSERT INTO Proyecto (nombre, descripcion, presupuestoId, categoriaGastoId) " +
                          "VALUES (?, ?, ?, ?)";
             pstm = cn.prepareStatement(sql);
@@ -195,11 +260,24 @@ public class ProyectoModelo implements ProyectoInterface {
     @Override
     public int actualizarProyecto(ProyectoEntidad proyecto) {
         int resultado = 0;
+
+        // Si la base de datos no está disponible, retorna 0 (sin éxito)
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. No se puede actualizar proyecto.");
+            return resultado;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar 0
+            if (cn == null) {
+                return resultado;
+            }
+
             String sql = "UPDATE Proyecto SET nombre = ?, descripcion = ?, presupuestoId = ?, categoriaGastoId = ? " +
                          "WHERE id = ?";
             pstm = cn.prepareStatement(sql);
@@ -227,11 +305,24 @@ public class ProyectoModelo implements ProyectoInterface {
     @Override
     public int eliminarProyecto(int id) {
         int resultado = 0;
+
+        // Si la base de datos no está disponible, retorna 0 (sin éxito)
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. No se puede eliminar proyecto.");
+            return resultado;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar 0
+            if (cn == null) {
+                return resultado;
+            }
+
             String sql = "DELETE FROM Proyecto WHERE id = ?";
             pstm = cn.prepareStatement(sql);
             pstm.setInt(1, id);

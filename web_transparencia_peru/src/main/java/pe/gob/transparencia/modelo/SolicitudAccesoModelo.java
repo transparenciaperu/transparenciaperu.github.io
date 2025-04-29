@@ -20,12 +20,25 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
     @Override
     public List<SolicitudAccesoEntidad> listarSolicitudes() {
         List<SolicitudAccesoEntidad> lista = new ArrayList<>();
+
+        // Si la base de datos no está disponible, retorna una lista vacía
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de solicitudes.");
+            return lista;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         ResultSet rs = null;
 
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar lista vacía
+            if (cn == null) {
+                return lista;
+            }
+
             String sql = "SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, " +
                     "t.nombre AS tipo_nombre, e.nombre AS estado_nombre " +
                     "FROM SolicitudAcceso s " +
@@ -44,6 +57,9 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
                 solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
                 solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
+                solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
+                solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
+                solicitud.setObservaciones(rs.getString("observaciones"));
 
                 CiudadanoEntidad ciudadano = new CiudadanoEntidad();
                 ciudadano.setId(rs.getInt("ciudadanoId"));
@@ -84,12 +100,25 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
     @Override
     public List<SolicitudAccesoEntidad> listarSolicitudesPorCiudadano(int ciudadanoId) {
         List<SolicitudAccesoEntidad> lista = new ArrayList<>();
+
+        // Si la base de datos no está disponible, retorna una lista vacía
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de solicitudes por ciudadano.");
+            return lista;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         ResultSet rs = null;
 
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar lista vacía
+            if (cn == null) {
+                return lista;
+            }
+
             String sql = "SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, " +
                     "t.nombre AS tipo_nombre, e.nombre AS estado_nombre " +
                     "FROM SolicitudAcceso s " +
@@ -110,6 +139,9 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
                 solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
                 solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
+                solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
+                solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
+                solicitud.setObservaciones(rs.getString("observaciones"));
 
                 CiudadanoEntidad ciudadano = new CiudadanoEntidad();
                 ciudadano.setId(rs.getInt("ciudadanoId"));
@@ -150,12 +182,25 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
     @Override
     public List<SolicitudAccesoEntidad> listarSolicitudesPorEstado(int estadoId) {
         List<SolicitudAccesoEntidad> lista = new ArrayList<>();
+
+        // Si la base de datos no está disponible, retorna una lista vacía
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de solicitudes por estado.");
+            return lista;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         ResultSet rs = null;
 
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar lista vacía
+            if (cn == null) {
+                return lista;
+            }
+
             String sql = "SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, " +
                     "t.nombre AS tipo_nombre, e.nombre AS estado_nombre " +
                     "FROM SolicitudAcceso s " +
@@ -176,6 +221,9 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
                 solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
                 solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
+                solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
+                solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
+                solicitud.setObservaciones(rs.getString("observaciones"));
 
                 CiudadanoEntidad ciudadano = new CiudadanoEntidad();
                 ciudadano.setId(rs.getInt("ciudadanoId"));
@@ -216,12 +264,25 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
     @Override
     public SolicitudAccesoEntidad obtenerSolicitud(int id) {
         SolicitudAccesoEntidad solicitud = null;
+
+        // Si la base de datos no está disponible, retorna null
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando null para solicitud.");
+            return null;
+        }
+
         Connection cn = null;
         PreparedStatement pstm = null;
         ResultSet rs = null;
 
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar null
+            if (cn == null) {
+                return null;
+            }
+
             String sql = "SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, " +
                     "t.nombre AS tipo_nombre, e.nombre AS estado_nombre " +
                     "FROM SolicitudAcceso s " +
@@ -241,6 +302,9 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
                 solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
                 solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
+                solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
+                solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
+                solicitud.setObservaciones(rs.getString("observaciones"));
 
                 CiudadanoEntidad ciudadano = new CiudadanoEntidad();
                 ciudadano.setId(rs.getInt("ciudadanoId"));
@@ -279,25 +343,46 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
     @Override
     public int registrarSolicitud(SolicitudAccesoEntidad solicitud) {
         int resultado = 0;
+
+        // Si la base de datos no está disponible, retorna 0 (sin éxito)
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. No se puede registrar solicitud.");
+            return resultado;
+        }
+
         Connection cn = null;
-        CallableStatement cstm = null;
+        PreparedStatement pstm = null;
 
         try {
             cn = MySQLConexion.getConexion();
-            String sql = "{CALL sp_registrar_solicitud(?, ?, ?, ?, ?)}";
-            cstm = cn.prepareCall(sql);
-            cstm.setDate(1, new java.sql.Date(solicitud.getFechaSolicitud().getTime()));
-            cstm.setString(2, solicitud.getDescripcion());
-            cstm.setInt(3, solicitud.getCiudadanoId());
-            cstm.setInt(4, solicitud.getTipoSolicitudId());
-            cstm.setInt(5, solicitud.getEstadoSolicitudId());
 
-            resultado = cstm.executeUpdate();
+            // Si no se pudo establecer la conexión, retornar 0
+            if (cn == null) {
+                return resultado;
+            }
+
+            String sql = "INSERT INTO SolicitudAcceso (fechaSolicitud, descripcion, ciudadanoId, tipoSolicitudId, estadoSolicitudId, entidadPublicaId, fechaRespuesta, observaciones) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            pstm = cn.prepareStatement(sql);
+            pstm.setDate(1, new java.sql.Date(solicitud.getFechaSolicitud().getTime()));
+            pstm.setString(2, solicitud.getDescripcion());
+            pstm.setInt(3, solicitud.getCiudadanoId());
+            pstm.setInt(4, solicitud.getTipoSolicitudId());
+            pstm.setInt(5, solicitud.getEstadoSolicitudId());
+            pstm.setInt(6, solicitud.getEntidadPublicaId());
+            if (solicitud.getFechaRespuesta() != null) {
+                pstm.setDate(7, new java.sql.Date(solicitud.getFechaRespuesta().getTime()));
+            } else {
+                pstm.setNull(7, java.sql.Types.DATE);
+            }
+            pstm.setString(8, solicitud.getObservaciones());
+
+            resultado = pstm.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             try {
-                if (cstm != null) cstm.close();
+                if (pstm != null) pstm.close();
                 if (cn != null) cn.close();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -310,25 +395,46 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
     @Override
     public int actualizarSolicitud(SolicitudAccesoEntidad solicitud) {
         int resultado = 0;
+
+        // Si la base de datos no está disponible, retorna 0 (sin éxito)
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. No se puede actualizar solicitud.");
+            return resultado;
+        }
+
         Connection cn = null;
-        CallableStatement cstm = null;
+        PreparedStatement pstm = null;
 
         try {
             cn = MySQLConexion.getConexion();
-            String sql = "{CALL sp_actualizar_solicitud(?, ?, ?, ?, ?)}";
-            cstm = cn.prepareCall(sql);
-            cstm.setInt(1, solicitud.getId());
-            cstm.setString(2, solicitud.getDescripcion());
-            cstm.setInt(3, solicitud.getCiudadanoId());
-            cstm.setInt(4, solicitud.getTipoSolicitudId());
-            cstm.setInt(5, solicitud.getEstadoSolicitudId());
 
-            resultado = cstm.executeUpdate();
+            // Si no se pudo establecer la conexión, retornar 0
+            if (cn == null) {
+                return resultado;
+            }
+
+            String sql = "UPDATE SolicitudAcceso SET descripcion = ?, ciudadanoId = ?, tipoSolicitudId = ?, " +
+                    "estadoSolicitudId = ?, entidadPublicaId = ?, fechaRespuesta = ?, observaciones = ? WHERE id = ?";
+            pstm = cn.prepareStatement(sql);
+            pstm.setString(1, solicitud.getDescripcion());
+            pstm.setInt(2, solicitud.getCiudadanoId());
+            pstm.setInt(3, solicitud.getTipoSolicitudId());
+            pstm.setInt(4, solicitud.getEstadoSolicitudId());
+            pstm.setInt(5, solicitud.getEntidadPublicaId());
+            if (solicitud.getFechaRespuesta() != null) {
+                pstm.setDate(6, new java.sql.Date(solicitud.getFechaRespuesta().getTime()));
+            } else {
+                pstm.setNull(6, java.sql.Types.DATE);
+            }
+            pstm.setString(7, solicitud.getObservaciones());
+            pstm.setInt(8, solicitud.getId());
+
+            resultado = pstm.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             try {
-                if (cstm != null) cstm.close();
+                if (pstm != null) pstm.close();
                 if (cn != null) cn.close();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -341,11 +447,24 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
     @Override
     public int actualizarEstadoSolicitud(int solicitudId, int nuevoEstadoId) {
         int resultado = 0;
+
+        // Si la base de datos no está disponible, retorna 0 (sin éxito)
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. No se puede actualizar estado de solicitud.");
+            return resultado;
+        }
+
         Connection cn = null;
         CallableStatement cstm = null;
 
         try {
             cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar 0
+            if (cn == null) {
+                return resultado;
+            }
+
             String sql = "{CALL sp_actualizar_estado_solicitud(?, ?)}";
             cstm = cn.prepareCall(sql);
             cstm.setInt(1, solicitudId);

@@ -12,15 +12,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
     <!-- Animate.css para animaciones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
         :root {
-            --primary-color: #1a3c8a;
-            --secondary-color: #e63946;
-            --accent-color: #f1faee;
-            --text-color: #1d3557;
-            --light-bg: #f8f9fa;
+            --primary-red: #D91023;
+            --primary-white: #FFFFFF;
+            --dark-text: #333333;
+            --secondary-blue: #1e3d59;
+            --accent-gold: #FFD166;
+            --light-gray: #f8f9fa;
             --success-color: #2ecc71;
             --warning-color: #f39c12;
             --danger-color: #e74c3c;
@@ -28,41 +32,64 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--text-color);
+            font-family: 'Roboto', sans-serif;
+            color: var(--dark-text);
             background-color: #f5f7fa;
         }
-        
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+        }
+
         .navbar {
-            background-color: var(--primary-color);
+            background-color: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
         .navbar-brand {
+            font-family: 'Montserrat', sans-serif;
             font-weight: 700;
-            color: white !important;
+            color: var(--dark-text) !important;
         }
         
         .nav-link {
-            color: rgba(255, 255, 255, 0.85) !important;
+            font-weight: 500;
+            color: var(--dark-text) !important;
         }
         
         .nav-link:hover {
-            color: white !important;
+            color: var(--primary-red) !important;
+        }
+
+        .nav-link.active {
+            font-weight: bold;
         }
         
         .hero-section {
-            background: linear-gradient(135deg, #1a3c8a 0%, #4361ee 100%);
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://cdn.www.gob.pe/uploads/document/file/217267/TRANSPARENCIA.jpg');
+            background-position: center;
+            background-size: cover;
             color: white;
-            padding: 2.5rem 0;
+            padding: 8rem 0;
+            position: relative;
             margin-bottom: 2rem;
             border-radius: 0 0 1rem 1rem;
         }
-        
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(217, 16, 35, 0.8) 0%, rgba(30, 61, 89, 0.8) 100%);
+            opacity: 0.7;
+        }
+
         .card {
             border: none;
-            border-radius: 1rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             margin-bottom: 1.5rem;
             overflow: hidden;
@@ -70,35 +97,38 @@
         
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
         
         .card-header {
-            background-color: var(--primary-color);
+            background-color: var(--primary-red);
             color: white;
-            border-radius: 1rem 1rem 0 0 !important;
+            border-radius: 10px 10px 0 0 !important;
             padding: 1rem 1.5rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
         }
         
         .info-box {
             background-color: white;
-            border-radius: 1rem;
+            border-radius: 10px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
         
         .info-box-title {
-            color: var(--primary-color);
+            color: var(--primary-red);
             font-weight: 600;
             margin-bottom: 1rem;
+            font-family: 'Montserrat', sans-serif;
         }
         
         .step-box {
             position: relative;
             padding: 1.5rem;
             background: white;
-            border-radius: 1rem;
+            border-radius: 10px;
             box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
             margin-bottom: 2rem;
             transition: transform 0.3s;
@@ -114,7 +144,7 @@
             left: 20px;
             width: 40px;
             height: 40px;
-            background: var(--primary-color);
+            background: var(--primary-red);
             color: white;
             font-weight: bold;
             border-radius: 50%;
@@ -127,8 +157,8 @@
         .step-icon {
             width: 60px;
             height: 60px;
-            background: rgba(26, 60, 138, 0.1);
-            color: var(--primary-color);
+            background: rgba(217, 16, 35, 0.1);
+            color: var(--primary-red);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -138,36 +168,36 @@
         }
         
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            box-shadow: 0 4px 6px rgba(26, 60, 138, 0.2);
+            background-color: var(--primary-red);
+            border-color: var(--primary-red);
+            box-shadow: 0 4px 6px rgba(217, 16, 35, 0.2);
             transition: all 0.3s;
         }
         
         .btn-primary:hover {
-            background-color: #0f2b6b;
-            border-color: #0f2b6b;
+            background-color: #b80d1e;
+            border-color: #b80d1e;
             transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(26, 60, 138, 0.3);
+            box-shadow: 0 6px 8px rgba(217, 16, 35, 0.3);
         }
         
         .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
+            color: var(--primary-red);
+            border-color: var(--primary-red);
         }
         
         .btn-outline-primary:hover {
-            background-color: var(--primary-color);
+            background-color: var(--primary-red);
             color: white;
         }
         
         .form-control:focus {
-            border-color: #4d70d9;
-            box-shadow: 0 0 0 0.25rem rgba(26, 60, 138, 0.25);
+            border-color: #e03c47;
+            box-shadow: 0 0 0 0.25rem rgba(217, 16, 35, 0.25);
         }
         
         .footer {
-            background-color: var(--primary-color);
+            background-color: var(--secondary-blue);
             color: white;
             padding: 2rem 0;
             margin-top: 3rem;
@@ -216,7 +246,7 @@
             height: 25px;
             right: -12px;
             background-color: white;
-            border: 4px solid var(--primary-color);
+            border: 4px solid var(--primary-red);
             top: 15px;
             border-radius: 50%;
             z-index: 1;
@@ -308,7 +338,52 @@
         .animate-fadeInUp {
             animation: fadeInUp 0.6s ease-out forwards;
         }
-        
+
+        .section-title {
+            position: relative;
+            margin-bottom: 3rem;
+            font-weight: 700;
+        }
+
+        .section-title:after {
+            content: '';
+            position: absolute;
+            width: 70px;
+            height: 4px;
+            background-color: var(--primary-red);
+            bottom: -15px;
+            left: 0;
+        }
+
+        .section-title.text-center:after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .social-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-5px);
+            color: var(--accent-gold);
+        }
+
+        .escudo-peru {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .ribbon {
+            background-color: var(--primary-red);
+            color: white;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
         /* Ajustes para dispositivos pequeños */
         @media screen and (max-width: 768px) {
             .timeline::after {
@@ -336,44 +411,141 @@
     </style>
 </head>
 <body>
-    <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+<!-- Ribbon -->
+<div class="ribbon">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-calendar-alt me-2"></i> Portal actualizado: Abril 2025
+            </div>
+            <div>
+                <a href="#" class="text-white me-3 text-decoration-none"><i class="fas fa-question-circle me-1"></i>
+                    Ayuda</a>
+                <a href="#" class="text-white text-decoration-none"><i class="fas fa-universal-access me-1"></i>
+                    Accesibilidad</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3">
         <div class="container">
-            <a class="navbar-brand" href="index.jsp">
-                <i class="fas fa-landmark me-2"></i>
-                Portal de Transparencia Perú
+            <!-- Logo y marca -->
+            <a class="navbar-brand d-flex align-items-center" href="index.jsp">
+                <img src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/1845b901-cb25-481e-b9ec-c74e9a76936c/d5p73lk-f9b20a75-359d-49d3-8aaa-216d1e2cee27.jpg/v1/fill/w_888,h_900,q_70,strp/escudo_nacional_del_peru_by_esantillansalas_d5p73lk-pre.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9OTEyIiwicGF0aCI6IlwvZlwvMTg0NWI5MDEtY2IyNS00ODFlLWI5ZWMtYzc0ZTlhNzY5MzZjXC9kNXA3M2xrLWY5YjIwYTc1LTM1OWQtNDlkMy04YWFhLTIxNmQxZTJjZWUyNy5qcGciLCJ3aWR0aCI6Ijw9OTAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.rMjvedadAetkHJWCNFhhwRyFLJ9Gz7XCxAZ9hVRVAs8"
+                     alt="Escudo de Perú" class="escudo-peru">
+                <span class="d-flex flex-column">
+                    <strong class="fs-4">Portal de Transparencia</strong>
+                    <small class="text-danger fs-6">Gobierno del Perú</small>
+                </span>
             </a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.jsp">Inicio</a>
+                <ul class="navbar-nav w-100 justify-content-center">
+                    <li class="nav-item mx-1">
+                        <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center" href="index.jsp">
+                            <i class="fas fa-home me-2"></i><span>Inicio</span>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="ServletPresupuesto">Presupuesto Público</a>
+                    <li class="nav-item mx-1 dropdown">
+                        <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center" href="#"
+                           id="presupuestoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-chart-pie me-2"></i><span>Presupuesto</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="presupuestoDropdown">
+                            <li><a class="dropdown-item" href="ServletPresupuesto">Ver Presupuesto Público</a></li>
+                            <li><a class="dropdown-item" href="#">Ejecución Presupuestal</a></li>
+                            <li><a class="dropdown-item" href="#">Proyectos de Inversión</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="ServletSolicitudAcceso">Acceso a la Información</a>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link active fw-bold px-3 py-2 rounded-3 d-flex align-items-center"
+                           href="ServletSolicitudAcceso">
+                            <i class="fas fa-file-alt me-2"></i><span>Información</span>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Datos Abiertos</a>
+                    <li class="nav-item mx-1 dropdown">
+                        <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center" href="#"
+                           id="entidadesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-building me-2"></i><span>Entidades</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="entidadesDropdown">
+                            <li><a class="dropdown-item" href="#">Directorio</a></li>
+                            <li><a class="dropdown-item" href="#">Ministerios</a></li>
+                            <li><a class="dropdown-item" href="#">Gobiernos Regionales</a></li>
+                            <li><a class="dropdown-item" href="#">Municipalidades</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Entidades</a>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center" href="#">
+                            <i class="fas fa-database me-2"></i><span>Datos</span>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Contacto</a>
+                    <li class="nav-item mx-1 dropdown ms-lg-auto">
+                        <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center text-danger"
+                           href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-2"></i><span>Ciudadano</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión</a>
+                            </li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-plus me-2"></i>Registrarse</a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
+    <!-- Barra de búsqueda independiente -->
+    <div class="bg-light py-3 border-bottom">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="search-container position-relative w-100">
+                        <div class="input-group">
+                                <span class="input-group-text border-end-0 bg-white"
+                                      style="border-top-left-radius: 20px; border-bottom-left-radius: 20px;">
+                                    <i class="fas fa-search text-danger"></i>
+                                </span>
+                            <input class="form-control border-start-0 border-end-0 shadow-sm"
+                                   type="search"
+                                   placeholder="Buscar solicitudes de acceso..."
+                                   aria-label="Search"
+                                   id="searchInput">
+                            <button class="btn btn-danger border-start-0"
+                                    style="border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
+                                Buscar
+                            </button>
+                        </div>
+                        <div class="search-tags d-none d-md-flex justify-content-center mt-2">
+                            <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
+                                    class="fas fa-tag me-1"></i>Solicitudes</span>
+                            <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
+                                    class="fas fa-tag me-1"></i>Ley 27806</span>
+                            <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
+                                    class="fas fa-tag me-1"></i>Formularios</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Section -->
     <div class="hero-section">
-        <div class="container">
+        <div class="hero-overlay"></div>
+        <div class="container position-relative">
             <div class="row align-items-center">
                 <div class="col-lg-7">
                     <h1 class="display-5 fw-bold mb-3">Acceso a la Información Pública</h1>
@@ -605,52 +777,12 @@
                         <c:if test="${empty solicitudes}">
                             <div class="info-box animate-fadeInUp">
                                 <div class="row align-items-center">
-                                    <div class="col-md-6">
-                                        <h5 class="info-box-title mb-2">Solicitud #SOL20250342</h5>
-                                        <p class="mb-2">
-                                            <strong>Fecha:</strong> 15/04/2025<br>
-                                            <strong>Tipo:</strong> Proyectos y Obras Públicas<br>
-                                            <strong>Entidad:</strong> Ministerio de Transportes y Comunicaciones
-                                        </p>
-                                    </div>
-                                    <div class="col-md-3 text-md-center">
-                                        <span class="status-badge status-en-proceso">En Proceso</span>
-                                    </div>
-                                    <div class="col-md-3 text-md-end">
-                                        <a href="ServletSolicitudAcceso?accion=detalle&id=1"
-                                           class="btn btn-sm btn-primary">
-                                            <i class="fas fa-eye me-1"></i> Ver Detalles
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <!-- Timeline de la solicitud -->
-                                <div class="mt-4">
-                                    <h6 class="mb-3">Historial de la Solicitud</h6>
-                                    <div class="timeline">
-                                        <div class="timeline-item left">
-                                            <div class="timeline-content">
-                                                <h6>Solicitud Recibida</h6>
-                                                <p class="mb-0 small">15/04/2025 - 10:25 am</p>
-                                            </div>
-                                        </div>
-                                        <div class="timeline-item right">
-                                            <div class="timeline-content">
-                                                <h6>En Revisión</h6>
-                                                <p class="mb-0 small">16/04/2025 - 09:15 am</p>
-                                            </div>
-                                        </div>
-                                        <div class="timeline-item left">
-                                            <div class="timeline-content">
-                                                <h6>En Proceso</h6>
-                                                <p class="mb-0 small">18/04/2025 - 14:30 pm</p>
-                                            </div>
-                                        </div>
-                                        <div class="timeline-item right">
-                                            <div class="timeline-content">
-                                                <h6>Próximo paso: Respuesta</h6>
-                                                <p class="mb-0 small">Fecha estimada: 25/04/2025</p>
-                                            </div>
+                                    <div class="col-md-12 text-center">
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                                            <h4>No hay datos disponibles</h4>
+                                            <p>No se pudieron cargar los datos de solicitudes. Por favor, inténtelo de
+                                                nuevo más tarde o inicie sesión para ver sus solicitudes.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -687,11 +819,14 @@
                             <div>
                                 <h6 class="mb-0">Solicitudes este año</h6>
                                 <h4 class="mb-0">
-                                    <c:set var="totalSolicitudes" value="0"/>
-                                    <c:forEach var="solicitud" items="${solicitudesTotal}">
-                                        <c:set var="totalSolicitudes" value="${totalSolicitudes + 1}"/>
-                                    </c:forEach>
-                                    <c:out value="${totalSolicitudes > 0 ? totalSolicitudes : '12,458'}"/>
+                                    <c:choose>
+                                        <c:when test="${empty solicitudesTotal}">
+                                            <span class="text-danger">No disponible</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:out value="${fn:length(solicitudesTotal)}"/>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </h4>
                             </div>
                         </div>
@@ -702,15 +837,23 @@
                             <div>
                                 <h6 class="mb-0">Tasa de respuesta</h6>
                                 <h4 class="mb-0">
-                                    <c:set var="solicitudesRespondidas" value="0"/>
-                                    <c:forEach var="solicitud" items="${solicitudesTotal}">
-                                        <c:if test="${solicitud.estadoSolicitudId == 3}">
-                                            <c:set var="solicitudesRespondidas" value="${solicitudesRespondidas + 1}"/>
-                                        </c:if>
-                                    </c:forEach>
-                                    <c:set var="tasaRespuesta"
-                                           value="${totalSolicitudes > 0 ? (solicitudesRespondidas * 100.0) / totalSolicitudes : 92.3}"/>
-                                    <fmt:formatNumber value="${tasaRespuesta}" pattern="#,##0.0"/>%
+                                    <c:choose>
+                                        <c:when test="${empty solicitudesTotal}">
+                                            <span class="text-danger">No disponible</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:set var="solicitudesRespondidas" value="0"/>
+                                            <c:forEach var="solicitud" items="${solicitudesTotal}">
+                                                <c:if test="${solicitud.estadoSolicitudId == 3}">
+                                                    <c:set var="solicitudesRespondidas"
+                                                           value="${solicitudesRespondidas + 1}"/>
+                                                </c:if>
+                                            </c:forEach>
+                                            <fmt:formatNumber
+                                                    value="${solicitudesRespondidas / fn:length(solicitudesTotal) * 100}"
+                                                    pattern="#,##0.0"/>%
+                                        </c:otherwise>
+                                    </c:choose>
                                 </h4>
                             </div>
                         </div>
@@ -721,9 +864,14 @@
                             <div>
                                 <h6 class="mb-0">Tiempo promedio</h6>
                                 <h4 class="mb-0">
-                                    <c:set var="tiempoPromedio"
-                                           value="${tiempoPromedioAtencion > 0 ? tiempoPromedioAtencion : 7.2}"/>
-                                    <fmt:formatNumber value="${tiempoPromedio}" pattern="#,##0.0"/> días
+                                    <c:choose>
+                                        <c:when test="${empty solicitudesTotal || tiempoPromedioAtencion <= 0}">
+                                            <span class="text-danger">No disponible</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <fmt:formatNumber value="${tiempoPromedioAtencion}" pattern="#,##0.0"/> días
+                                        </c:otherwise>
+                                    </c:choose>
                                 </h4>
                             </div>
                         </div>
@@ -734,9 +882,14 @@
                             <div>
                                 <h6 class="mb-0">Entidades participantes</h6>
                                 <h4 class="mb-0">
-                                    <c:set var="totalEntidades"
-                                           value="${totalEntidadesParticipantes > 0 ? totalEntidadesParticipantes : 283}"/>
-                                    <c:out value="${totalEntidades}"/>
+                                    <c:choose>
+                                        <c:when test="${empty solicitudesTotal || totalEntidadesParticipantes <= 0}">
+                                            <span class="text-danger">No disponible</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:out value="${totalEntidadesParticipantes}"/>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </h4>
                             </div>
                         </div>
@@ -825,50 +978,65 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5 class="mb-3">Portal de Transparencia Perú</h5>
-                    <p>Facilitando el acceso a la información pública para promover la transparencia y participación ciudadana en la gestión pública.</p>
+            <div class="row g-4">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="mb-4 text-white">Portal de Transparencia Perú</h5>
+                    <p class="text-white-50">Una iniciativa del Estado Peruano para promover la transparencia y el
+                        acceso a
+                        la información pública según la Ley 27806.</p>
+                    <div class="mt-4">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    </div>
                 </div>
-                <div class="col-md-2 mb-4 mb-md-0">
-                    <h5 class="mb-3">Enlaces</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="index.jsp">Inicio</a></li>
-                        <li><a href="ServletPresupuesto">Presupuesto</a></li>
-                        <li><a href="ServletSolicitudAcceso">Solicitudes</a></li>
-                        <li><a href="#">Datos Abiertos</a></li>
+                <div class="col-sm-6 col-lg-2 mb-4 mb-lg-0">
+                    <h6 class="text-white mb-4">Enlaces Rápidos</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><a href="index.jsp" class="text-white-50 text-decoration-none">Inicio</a></li>
+                        <li class="mb-2"><a href="ServletPresupuesto" class="text-white-50 text-decoration-none">Presupuesto
+                            Público</a></li>
+                        <li class="mb-2"><a href="ServletSolicitudAcceso" class="text-white-50 text-decoration-none">Acceso
+                            a la Información</a>
+                        </li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Entidades</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Datos Abiertos</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3 mb-4 mb-md-0">
-                    <h5 class="mb-3">Entidades Relacionadas</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="https://www.gob.pe/mef" target="_blank">Ministerio de Economía</a></li>
-                        <li><a href="https://www.gob.pe/pcm" target="_blank">Presidencia del Consejo de Ministros</a></li>
-                        <li><a href="https://www.gob.pe/contraloria" target="_blank">Contraloría General</a></li>
-                        <li><a href="https://www.gob.pe" target="_blank">Portal del Estado Peruano</a></li>
+                <div class="col-sm-6 col-lg-3 mb-4 mb-lg-0">
+                    <h6 class="text-white mb-4">Recursos</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Preguntas Frecuentes</a>
+                        </li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Guía del Usuario</a>
+                        </li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Ley de Transparencia</a>
+                        </li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Procedimientos</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Formatos</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3">
-                    <h5 class="mb-3">Contacto</h5>
-                    <address>
-                        <i class="fas fa-map-marker-alt me-2"></i> Av. Abancay 251, Lima<br>
-                        <i class="fas fa-phone me-2"></i> (01) 311-5930<br>
-                        <i class="fas fa-envelope me-2"></i> <a href="mailto:transparencia@gob.pe">transparencia@gob.pe</a>
-                    </address>
+                <div class="col-lg-3">
+                    <h6 class="text-white mb-4">Contacto</h6>
+                    <ul class="list-unstyled text-white-50">
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Jr. Carabaya Cdra. 1 s/n, Lima, Perú
+                        </li>
+                        <li class="mb-2"><i class="fas fa-phone me-2"></i> (511) 311-5930</li>
+                        <li class="mb-2"><i class="fas fa-envelope me-2"></i> transparencia@peru.gob.pe</li>
+                    </ul>
                 </div>
             </div>
-            <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.1);">
+            <hr class="mt-4 mb-3" style="border-color: rgba(255,255,255,0.1)">
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">&copy; 2025 Portal de Transparencia Perú. Todos los derechos reservados.</p>
+                    <p class="small text-white-50 mb-md-0">&copy; 2025 Portal de Transparencia Perú. Todos los derechos
+                        reservados.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <ul class="list-inline mb-0">
-                        <li class="list-inline-item"><a href="#"><i class="fab fa-facebook-f"></i></a></li>
-                        <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
-                        <li class="list-inline-item"><a href="#"><i class="fab fa-youtube"></i></a></li>
-                        <li class="list-inline-item"><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
-                    </ul>
+                    <a href="#" class="text-white-50 text-decoration-none small me-3">Términos y Condiciones</a>
+                    <a href="#" class="text-white-50 text-decoration-none small me-3">Política de Privacidad</a>
+                    <a href="#" class="text-white-50 text-decoration-none small">Accesibilidad</a>
                 </div>
             </div>
         </div>

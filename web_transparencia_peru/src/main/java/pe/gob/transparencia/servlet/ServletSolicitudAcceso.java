@@ -17,6 +17,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @WebServlet(name = "ServletSolicitudAcceso", urlPatterns = {"/ServletSolicitudAcceso"})
 public class ServletSolicitudAcceso extends HttpServlet {
@@ -27,10 +29,13 @@ public class ServletSolicitudAcceso extends HttpServlet {
         String accion = request.getParameter("accion");
         
         if (accion == null) {
-            accion = "listar";
+            accion = "inicio";
         }
         
         switch (accion) {
+            case "inicio":
+                mostrarPaginaInicio(request, response);
+                break;
             case "listar":
                 listarSolicitudes(request, response);
                 break;
@@ -40,14 +45,14 @@ public class ServletSolicitudAcceso extends HttpServlet {
             case "detalle":
                 mostrarDetalleSolicitud(request, response);
                 break;
-            case "formNuevo":
+            case "form":
                 mostrarFormularioNuevo(request, response);
                 break;
             case "seguimiento":
                 mostrarSeguimiento(request, response);
                 break;
             default:
-                listarSolicitudes(request, response);
+                mostrarPaginaInicio(request, response);
         }
     }
 
@@ -66,10 +71,53 @@ public class ServletSolicitudAcceso extends HttpServlet {
                 cambiarEstadoSolicitud(request, response);
                 break;
             default:
-                response.sendRedirect("solicitud-acceso.jsp");
+                response.sendRedirect("ServletSolicitudAcceso");
         }
     }
-    
+
+    private void mostrarPaginaInicio(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Cargar algunas solicitudes recientes
+        List<SolicitudAccesoEntidad> solicitudes = modelo.listarSolicitudes();
+        request.setAttribute("solicitudes", solicitudes);
+
+        // Para la sección de estadísticas
+        request.setAttribute("solicitudesTotal", solicitudes);
+
+        // Calcular el tiempo promedio de atención (en días)
+        double tiempoPromedio = 0;
+        int solicitudesAtendidas = 0;
+
+        for (SolicitudAccesoEntidad sol : solicitudes) {
+            if (sol.getEstadoSolicitudId() == 3) { // Estado "Atendida"
+                // Si tenemos fechaRespuesta, calculamos la diferencia en días
+                if (sol.getFechaRespuesta() != null && sol.getFechaSolicitud() != null) {
+                    long diferencia = sol.getFechaRespuesta().getTime() - sol.getFechaSolicitud().getTime();
+                    long dias = diferencia / (1000 * 60 * 60 * 24);
+                    tiempoPromedio += dias;
+                    solicitudesAtendidas++;
+                }
+            }
+        }
+
+        if (solicitudesAtendidas > 0) {
+            tiempoPromedio = tiempoPromedio / solicitudesAtendidas;
+        }
+
+        request.setAttribute("tiempoPromedioAtencion", tiempoPromedio);
+
+        // Contar entidades participantes
+        Set<Integer> entidadesUnicas = new HashSet<>();
+        for (SolicitudAccesoEntidad sol : solicitudes) {
+            entidadesUnicas.add(sol.getEntidadPublicaId());
+        }
+
+        int totalEntidades = entidadesUnicas.size();
+        request.setAttribute("totalEntidadesParticipantes", totalEntidades);
+
+        request.getRequestDispatcher("solicitud-acceso.jsp").forward(request, response);
+    }
+
     private void listarSolicitudes(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         List<SolicitudAccesoEntidad> solicitudes = modelo.listarSolicitudes();

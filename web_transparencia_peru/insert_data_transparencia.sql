@@ -88,22 +88,57 @@ VALUES ('Roberto', 'Sánchez Mendoza', '45673829', 'roberto.sanchez@gmail.com', 
 INSERT INTO PeriodoFiscal (anio, fechaInicio, fechaFin, estado)
 VALUES (2022, '2022-01-01', '2022-12-31', 'Cerrado'),
        (2021, '2021-01-01', '2021-12-31', 'Cerrado'),
-       (2020, '2020-01-01', '2020-12-31', 'Cerrado');
+       (2020, '2020-01-01', '2020-12-31', 'Cerrado'),
+       (2023, '2023-01-01', '2023-12-31', 'Cerrado'),
+       (2024, '2024-01-01', '2024-12-31', 'Abierto');
 
 -- Insertar presupuestos adicionales con datos realistas (en millones de soles)
 INSERT INTO Presupuesto (anio, montoTotal, entidadPublicaId, periodoFiscalId, fechaAprobacion, descripcion)
-VALUES (2023, 7350000000.00, 6, 1, '2022-12-19',
-        'Presupuesto anual del Ministerio de Vivienda, Construcción y Saneamiento'),
+VALUES
+-- Presupuestos del año 2023
+(2023, 7350000000.00, 6, 1, '2022-12-19', 'Presupuesto anual del Ministerio de Vivienda, Construcción y Saneamiento'),
        (2023, 9250000000.00, 7, 1, '2022-12-18', 'Presupuesto anual del Ministerio del Interior'),
        (2023, 8150000000.00, 8, 1, '2022-12-17', 'Presupuesto anual del Ministerio de Transportes y Comunicaciones'),
        (2023, 3850000000.00, 9, 1, '2022-12-15', 'Presupuesto anual del Ministerio de Desarrollo Agrario y Riego'),
        (2023, 1250000000.00, 10, 1, '2022-12-16', 'Presupuesto anual del Ministerio del Ambiente'),
        (2023, 750000000.00, 11, 1, '2022-12-20', 'Presupuesto anual de OSINERGMIN'),
        (2023, 350000000.00, 12, 1, '2022-12-19', 'Presupuesto anual de SUNASS'),
-       (2024, 8150000000.00, 6, 2, '2023-12-20',
-        'Presupuesto anual del Ministerio de Vivienda, Construcción y Saneamiento'),
+-- Presupuestos de Gobiernos Regionales 2023
+(2023, 1250000000.00, 3, 1, '2022-12-18', 'Presupuesto anual del Gobierno Regional de Arequipa'),
+(2023, 1450000000.00, 13, 1, '2022-12-17', 'Presupuesto anual del Gobierno Regional de Cusco'),
+(2023, 1350000000.00, 14, 1, '2022-12-16', 'Presupuesto anual del Gobierno Regional de La Libertad'),
+(2023, 1150000000.00, 15, 1, '2022-12-15', 'Presupuesto anual del Gobierno Regional de Piura'),
+-- Presupuestos de Municipalidades 2023
+(2023, 950000000.00, 4, 1, '2022-12-20', 'Presupuesto anual de la Municipalidad Provincial de Cusco'),
+(2023, 1850000000.00, 16, 1, '2022-12-19', 'Presupuesto anual de la Municipalidad Provincial de Lima'),
+(2023, 750000000.00, 17, 1, '2022-12-18', 'Presupuesto anual de la Municipalidad Provincial de Arequipa'),
+
+-- Presupuestos del año 2024
+(2024, 8150000000.00, 6, 2, '2023-12-20', 'Presupuesto anual del Ministerio de Vivienda, Construcción y Saneamiento'),
        (2024, 10150000000.00, 7, 2, '2023-12-19', 'Presupuesto anual del Ministerio del Interior'),
-       (2024, 9250000000.00, 8, 2, '2023-12-18', 'Presupuesto anual del Ministerio de Transportes y Comunicaciones');
+(2024, 9250000000.00, 8, 2, '2023-12-18', 'Presupuesto anual del Ministerio de Transportes y Comunicaciones'),
+(2024, 4250000000.00, 9, 2, '2023-12-17', 'Presupuesto anual del Ministerio de Desarrollo Agrario y Riego'),
+(2024, 1450000000.00, 10, 2, '2023-12-16', 'Presupuesto anual del Ministerio del Ambiente'),
+-- Presupuestos de Gobiernos Regionales 2024
+(2024, 1450000000.00, 3, 2, '2023-12-15', 'Presupuesto anual del Gobierno Regional de Arequipa'),
+(2024, 1650000000.00, 13, 2, '2023-12-14', 'Presupuesto anual del Gobierno Regional de Cusco'),
+(2024, 1550000000.00, 14, 2, '2023-12-13', 'Presupuesto anual del Gobierno Regional de La Libertad'),
+(2024, 1350000000.00, 15, 2, '2023-12-12', 'Presupuesto anual del Gobierno Regional de Piura'),
+-- Presupuestos de Municipalidades 2024
+(2024, 1050000000.00, 4, 2, '2023-12-11', 'Presupuesto anual de la Municipalidad Provincial de Cusco'),
+(2024, 2050000000.00, 16, 2, '2023-12-10', 'Presupuesto anual de la Municipalidad Provincial de Lima'),
+(2024, 850000000.00, 17, 2, '2023-12-09', 'Presupuesto anual de la Municipalidad Provincial de Arequipa');
+
+-- Presupuestos para años anteriores (2022)
+INSERT INTO Presupuesto (anio, montoTotal, entidadPublicaId, periodoFiscalId, fechaAprobacion, descripcion)
+VALUES (2022, 7000000000.00, 6, 4, '2021-12-19',
+        'Presupuesto anual del Ministerio de Vivienda, Construcción y Saneamiento'),
+       (2022, 8500000000.00, 7, 4, '2021-12-18', 'Presupuesto anual del Ministerio del Interior'),
+       (2022, 7800000000.00, 8, 4, '2021-12-17', 'Presupuesto anual del Ministerio de Transportes y Comunicaciones'),
+       (2022, 1200000000.00, 3, 4, '2021-12-16', 'Presupuesto anual del Gobierno Regional de Arequipa'),
+       (2022, 1350000000.00, 13, 4, '2021-12-15', 'Presupuesto anual del Gobierno Regional de Cusco'),
+       (2022, 1250000000.00, 14, 4, '2021-12-14', 'Presupuesto anual del Gobierno Regional de La Libertad'),
+       (2022, 1050000000.00, 15, 4, '2021-12-13', 'Presupuesto anual del Gobierno Regional de Piura');
 
 -- Proyectos con casos típicos de la realidad peruana
 INSERT INTO Proyecto (nombre, descripcion, presupuestoId, categoriaGastoId, fuenteFinanciamientoId, fechaInicio,
