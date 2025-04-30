@@ -189,7 +189,20 @@
         }
     </style>
 </head>
-<body>    <!-- Ribbon -->
+<body>
+<!-- Mensaje de sesión -->
+<%
+    String mensajeSesion = (String) session.getAttribute("mensaje");
+    if (mensajeSesion != null) {
+        session.removeAttribute("mensaje");
+%>
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <%= mensajeSesion %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<% } %>
+
+<!-- Ribbon -->
 <div class="ribbon">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
@@ -202,206 +215,213 @@
                 <a href="#" class="text-white text-decoration-none"><i class="fas fa-universal-access me-1"></i>
                     Accesibilidad</a>
             </div>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3">
-    <div class="container">
-        <!-- Logo y marca -->
-        <a class="navbar-brand d-flex align-items-center" href="#">
-            <img src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/1845b901-cb25-481e-b9ec-c74e9a76936c/d5p73lk-f9b20a75-359d-49d3-8aaa-216d1e2cee27.jpg/v1/fill/w_888,h_900,q_70,strp/escudo_nacional_del_peru_by_esantillansalas_d5p73lk-pre.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9OTEyIiwicGF0aCI6IlwvZlwvMTg0NWI5MDEtY2IyNS00ODFlLWI5ZWMtYzc0ZTlhNzY5MzZjXC9kNXA3M2xrLWY5YjIwYTc1LTM1OWQtNDlkMy04YWFhLTIxNmQxZTJjZWUyNy5qcGciLCJ3aWR0aCI6Ijw9OTAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.rMjvedadAetkHJWCNFhhwRyFLJ9Gz7XCxAZ9hVRVAs8"
-                 alt="Escudo de Perú" class="escudo-peru">
-            <span class="d-flex flex-column">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3">
+        <div class="container">
+            <!-- Logo y marca -->
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/1845b901-cb25-481e-b9ec-c74e9a76936c/d5p73lk-f9b20a75-359d-49d3-8aaa-216d1e2cee27.jpg/v1/fill/w_888,h_900,q_70,strp/escudo_nacional_del_peru_by_esantillansalas_d5p73lk-pre.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9OTEyIiwicGF0aCI6IlwvZlwvMTg0NWI5MDEtY2IyNS00ODFlLWI5ZWMtYzc0ZTlhNzY5MzZjXC9kNXA3M2xrLWY5YjIwYTc1LTM1OWQtNDlkMy04YWFhLTIxNmQxZTJjZWUyNy5qcGciLCJ3aWR0aCI6Ijw9OTAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.rMjvedadAetkHJWCNFhhwRyFLJ9Gz7XCxAZ9hVRVAs8"
+                     alt="Escudo de Perú" class="escudo-peru">
+                <span class="d-flex flex-column">
                     <strong class="fs-4">Portal de Transparencia</strong>
                     <small class="text-danger fs-6">Gobierno del Perú</small>
                 </span>
-        </a>
+            </a>
 
-        <!-- Botón de hamburguesa para móviles -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <!-- Contenido colapsable -->
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <!-- Menú de navegación con Ciudadano integrado como un elemento más del menú -->
-            <ul class="navbar-nav w-100 justify-content-center">
-                <li class="nav-item mx-1">
-                    <a class="nav-link active fw-bold px-3 py-2 rounded-3 d-flex align-items-center" href="index.jsp">
-                        <i class="fas fa-home me-2"></i><span>Inicio</span>
-                    </a>
-                </li>
-                <li class="nav-item mx-1 dropdown">
-                    <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center" href="#"
-                       id="presupuestoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-chart-pie me-2"></i><span>Presupuesto</span>
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="presupuestoDropdown">
-                        <li><a class="dropdown-item" href="ServletPresupuesto">Ver Presupuesto Público</a></li>
-                        <li><a class="dropdown-item" href="#">Ejecución Presupuestal</a></li>
-                        <li><a class="dropdown-item" href="#">Proyectos de Inversión</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item mx-1">
-                    <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center" href="ServletSolicitudAcceso">
-                        <i class="fas fa-file-alt me-2"></i><span>Información</span>
-                    </a>
-                </li>
-                <li class="nav-item mx-1 dropdown">
-                    <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center" href="#"
-                       id="entidadesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-building me-2"></i><span>Entidades</span>
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="entidadesDropdown">
-                        <li><a class="dropdown-item" href="#">Directorio</a></li>
-                        <li><a class="dropdown-item" href="#">Ministerios</a></li>
-                        <li><a class="dropdown-item" href="#">Gobiernos Regionales</a></li>
-                        <li><a class="dropdown-item" href="#">Municipalidades</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item mx-1">
-                    <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center" href="#">
-                        <i class="fas fa-database me-2"></i><span>Datos</span>
-                    </a>
-                </li>
-                <li class="nav-item mx-1 dropdown ms-lg-auto">
-                    <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center text-danger"
-                       href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user-circle me-2"></i><span>Ciudadano</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión</a>
-                        </li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-plus me-2"></i>Registrarse</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a></li>
-                    </ul>
-                </li>
-            </ul>
+            <!-- Botón de hamburguesa para móviles -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Contenido colapsable -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Menú de navegación con Ciudadano integrado como un elemento más del menú -->
+                <ul class="navbar-nav w-100 justify-content-center">
+                    <li class="nav-item mx-1">
+                        <a class="nav-link active fw-bold px-3 py-2 rounded-3 d-flex align-items-center"
+                           href="index.jsp">
+                            <i class="fas fa-home me-2"></i><span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mx-1 dropdown">
+                        <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center" href="#"
+                           id="presupuestoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-chart-pie me-2"></i><span>Presupuesto</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="presupuestoDropdown">
+                            <li><a class="dropdown-item" href="ServletPresupuesto">Ver Presupuesto Público</a></li>
+                            <li><a class="dropdown-item" href="#">Ejecución Presupuestal</a></li>
+                            <li><a class="dropdown-item" href="#">Proyectos de Inversión</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center" href="ServletSolicitudAcceso">
+                            <i class="fas fa-file-alt me-2"></i><span>Información</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mx-1 dropdown">
+                        <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center" href="#"
+                           id="entidadesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-building me-2"></i><span>Entidades</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="entidadesDropdown">
+                            <li><a class="dropdown-item" href="#">Directorio</a></li>
+                            <li><a class="dropdown-item" href="#">Ministerios</a></li>
+                            <li><a class="dropdown-item" href="#">Gobiernos Regionales</a></li>
+                            <li><a class="dropdown-item" href="#">Municipalidades</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center" href="#">
+                            <i class="fas fa-database me-2"></i><span>Datos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mx-1 dropdown ms-lg-auto">
+                        <a class="nav-link dropdown-toggle px-3 py-2 rounded-3 d-flex align-items-center text-danger"
+                           href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-2"></i><span>Ciudadano</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión</a>
+                            </li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-plus me-2"></i>Registrarse</a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Ayuda</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<!-- Barra de búsqueda independiente -->
-<div class="bg-light py-3 border-bottom">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="search-container position-relative w-100">
-                    <div class="input-group">
-                            <span class="input-group-text border-end-0 bg-white"
-                                  style="border-top-left-radius: 20px; border-bottom-left-radius: 20px;">
-                                <i class="fas fa-search text-danger"></i>
-                            </span>
-                        <input class="form-control border-start-0 border-end-0 shadow-sm"
-                               type="search"
-                               placeholder="¿Qué información buscas? Ejemplo: presupuesto, solicitudes, entidades..."
-                               aria-label="Search"
-                               id="searchInput">
-                        <button class="btn btn-danger border-start-0"
-                                style="border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
-                            Buscar
-                        </button>
-                    </div>
-                    <div class="search-tags d-none d-md-flex justify-content-center mt-2">
-                        <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
-                                class="fas fa-tag me-1"></i>Presupuesto 2025</span>
-                        <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
-                                class="fas fa-tag me-1"></i>MEF</span>
-                        <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
-                                class="fas fa-tag me-1"></i>Solicitudes</span>
-                        <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
-                                class="fas fa-tag me-1"></i>Ley 27806</span>
+    <!-- Barra de búsqueda independiente -->
+    <div class="bg-light py-3 border-bottom">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="search-container position-relative w-100">
+                        <div class="input-group">
+                                <span class="input-group-text border-end-0 bg-white"
+                                      style="border-top-left-radius: 20px; border-bottom-left-radius: 20px;">
+                                    <i class="fas fa-search text-danger"></i>
+                                </span>
+                            <input class="form-control border-start-0 border-end-0 shadow-sm"
+                                   type="search"
+                                   placeholder="¿Qué información buscas? Ejemplo: presupuesto, solicitudes, entidades..."
+                                   aria-label="Search"
+                                   id="searchInput">
+                            <button class="btn btn-danger border-start-0"
+                                    style="border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
+                                Buscar
+                            </button>
+                        </div>
+                        <div class="search-tags d-none d-md-flex justify-content-center mt-2">
+                            <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
+                                    class="fas fa-tag me-1"></i>Presupuesto 2025</span>
+                            <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
+                                    class="fas fa-tag me-1"></i>MEF</span>
+                            <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
+                                    class="fas fa-tag me-1"></i>Solicitudes</span>
+                            <span class="badge bg-light text-dark mx-1" style="cursor: pointer;"><i
+                                    class="fas fa-tag me-1"></i>Ley 27806</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Añadir script para la funcionalidad del buscador -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchBtn = document.getElementById('searchBtn');
-        const searchPopup = document.querySelector('.search-popup');
+    <!-- Añadir script para la funcionalidad del buscador -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchBtn = document.getElementById('searchBtn');
+            const searchPopup = document.querySelector('.search-popup');
 
-        searchBtn.addEventListener('click', function () {
-            searchPopup.classList.toggle('d-none');
-        });
+            searchBtn.addEventListener('click', function () {
+                searchPopup.classList.toggle('d-none');
+            });
 
-        // Cerrar al hacer clic fuera
-        document.addEventListener('click', function (event) {
-            if (!searchBtn.contains(event.target) && !searchPopup.contains(event.target)) {
-                searchPopup.classList.add('d-none');
-            }
-        });
-
-        // Añadir efecto hover a los elementos del menú
-        const navItems = document.querySelectorAll('.navbar-nav .nav-link');
-        navItems.forEach(item => {
-            item.addEventListener('mouseenter', function () {
-                if (!this.classList.contains('active')) {
-                    this.style.backgroundColor = 'rgba(217, 16, 35, 0.1)';
+            // Cerrar al hacer clic fuera
+            document.addEventListener('click', function (event) {
+                if (!searchBtn.contains(event.target) && !searchPopup.contains(event.target)) {
+                    searchPopup.classList.add('d-none');
                 }
             });
 
-            item.addEventListener('mouseleave', function () {
-                if (!this.classList.contains('active')) {
-                    this.style.backgroundColor = '';
-                }
+            // Añadir efecto hover a los elementos del menú
+            const navItems = document.querySelectorAll('.navbar-nav .nav-link');
+            navItems.forEach(item => {
+                item.addEventListener('mouseenter', function () {
+                    if (!this.classList.contains('active')) {
+                        this.style.backgroundColor = 'rgba(217, 16, 35, 0.1)';
+                    }
+                });
+
+                item.addEventListener('mouseleave', function () {
+                    if (!this.classList.contains('active')) {
+                        this.style.backgroundColor = '';
+                    }
+                });
             });
         });
-    });
-</script>
+    </script>
 
-<!-- Hero Section -->
-<section class="hero-section position-relative">
-    <div class="hero-overlay"></div>
-    <div class="container position-relative">
-        <div class="row">
-            <div class="col-md-8">
-                <h1 class="display-4 fw-bold mb-4">Transparencia al servicio del ciudadano</h1>
-                <p class="lead mb-5">El Portal de Transparencia Perú es una plataforma que promueve el acceso a la
-                    información pública y la rendición de cuentas, fortaleciendo la democracia y el derecho a saber de
-                    todos los peruanos.</p>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="ServletPresupuesto" class="btn btn-primary btn-lg px-4 me-md-2">Ver Presupuesto Público</a>
-                    <a href="ServletSolicitudAcceso" class="btn btn-outline-light btn-lg px-4">Solicitar Información</a>
+    <!-- Hero Section -->
+    <section class="hero-section position-relative">
+        <div class="hero-overlay"></div>
+        <div class="container position-relative">
+            <div class="row">
+                <div class="col-md-8">
+                    <h1 class="display-4 fw-bold mb-4">Transparencia al servicio del ciudadano</h1>
+                    <p class="lead mb-5">El Portal de Transparencia Perú es una plataforma que promueve el acceso a la
+                        información pública y la rendición de cuentas, fortaleciendo la democracia y el derecho a saber
+                        de
+                        todos los peruanos.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="ServletPresupuesto" class="btn btn-primary btn-lg px-4 me-md-2">Ver Presupuesto
+                            Público</a>
+                        <a href="ServletSolicitudAcceso" class="btn btn-outline-light btn-lg px-4">Solicitar
+                            Información</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Stats Section -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="row g-4 text-center">
-                    <div class="col-md-4">
-                        <div class="stats-block">
-                            <i class="fas fa-landmark mb-3 text-primary fa-2x"></i>
-                            <p class="stats-number" data-count="2500">2,500+</p>
-                            <p class="text-muted mb-0">Entidades Públicas</p>
+    <!-- Stats Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="row g-4 text-center">
+                        <div class="col-md-4">
+                            <div class="stats-block">
+                                <i class="fas fa-landmark mb-3 text-primary fa-2x"></i>
+                                <p class="stats-number" data-count="2500">2,500+</p>
+                                <p class="text-muted mb-0">Entidades Públicas</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stats-block">
-                            <i class="fas fa-file-invoice-dollar mb-3 text-primary fa-2x"></i>
-                            <p class="stats-number" data-count="180">S/. 180 mil millones</p>
-                            <p class="text-muted mb-0">Presupuesto Anual</p>
+                        <div class="col-md-4">
+                            <div class="stats-block">
+                                <i class="fas fa-file-invoice-dollar mb-3 text-primary fa-2x"></i>
+                                <p class="stats-number" data-count="180">S/. 180 mil millones</p>
+                                <p class="text-muted mb-0">Presupuesto Anual</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stats-block">
-                            <i class="fas fa-users mb-3 text-primary fa-2x"></i>
-                            <p class="stats-number" data-count="120000">120,000+</p>
-                            <p class="text-muted mb-0">Solicitudes Atendidas</p>
+                        <div class="col-md-4">
+                            <div class="stats-block">
+                                <i class="fas fa-users mb-3 text-primary fa-2x"></i>
+                                <p class="stats-number" data-count="120000">120,000+</p>
+                                <p class="text-muted mb-0">Solicitudes Atendidas</p>
+                            </div>
                         </div>
                     </div>
                 </div>
