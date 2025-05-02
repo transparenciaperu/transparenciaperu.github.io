@@ -18,6 +18,9 @@
     <title>Panel de Administrador - Portal de Transparencia Perú</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <style>
         .sidebar {
             position: fixed;
@@ -132,52 +135,85 @@
 
         <!-- Contenido principal -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom title-section">
                 <h1 class="h2">Panel de Control</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-toolbar">
                     <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Compartir</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Exportar</button>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="tooltip"
+                                data-bs-placement="bottom" title="Configuración del sistema">
+                            <i class="bi bi-gear me-1"></i> Configuración
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip"
+                                data-bs-placement="bottom" title="Generar reportes">
+                            <i class="bi bi-file-earmark-arrow-down me-1"></i> Reportes
+                        </button>
                     </div>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card stat-card primary-border fade-in">
                         <div class="card-body">
-                            <h5 class="card-title">Usuarios del Sistema</h5>
-                            <h1 class="display-4">12</h1>
-                            <p class="card-text">Total de funcionarios y administradores.</p>
-                            <a href="usuarios.jsp" class="btn btn-primary">Ver detalles</a>
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Usuarios del Sistema
+                                    </div>
+                                    <h1 class="display-4">12</h1>
+                                    <p class="card-text">Total de funcionarios y administradores.</p>
+                                    <a href="usuarios.jsp" class="btn btn-primary">Ver detalles</a>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <i class="bi bi-people text-primary"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card stat-card success-border fade-in">
                         <div class="card-body">
-                            <h5 class="card-title">Ciudadanos Registrados</h5>
-                            <h1 class="display-4">847</h1>
-                            <p class="card-text">Total de ciudadanos registrados en el portal.</p>
-                            <a href="ciudadanos.jsp" class="btn btn-primary">Ver detalles</a>
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Ciudadanos Registrados
+                                    </div>
+                                    <h1 class="display-4">847</h1>
+                                    <p class="card-text">Total de ciudadanos registrados en el portal.</p>
+                                    <a href="ciudadanos.jsp" class="btn btn-primary">Ver detalles</a>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <i class="bi bi-person-badge text-success"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <div class="card">
+                    <div class="card stat-card warning-border fade-in">
                         <div class="card-body">
-                            <h5 class="card-title">Solicitudes Pendientes</h5>
-                            <h1 class="display-4">15</h1>
-                            <p class="card-text">Solicitudes que requieren atención.</p>
-                            <a href="solicitudes.jsp" class="btn btn-primary">Ver detalles</a>
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Solicitudes Pendientes
+                                    </div>
+                                    <h1 class="display-4">15</h1>
+                                    <p class="card-text">Solicitudes que requieren atención.</p>
+                                    <a href="solicitudes.jsp" class="btn btn-primary">Ver detalles</a>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <i class="bi bi-file-earmark-text text-warning"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <h2>Actividad Reciente</h2>
-            <div class="table-responsive">
-                <table class="table table-striped table-sm">
+            <h2 class="mt-4 mb-3">Actividad Reciente</h2>
+            <div class="table-responsive fade-in">
+                <table class="table table-striped" id="tablaActividad">
                     <thead>
                     <tr>
                         <th>ID</th>
@@ -224,6 +260,32 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Inicializar DataTables
+        $('#tablaActividad').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+            },
+            pageLength: 5,
+            lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "Todos"]],
+            responsive: true,
+            order: [[3, 'desc']] // Ordenar por fecha (columna 3) descendente
+        });
+
+        // Inicializar tooltips de Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Añadir animación a las cards de estadísticas
+        $('.card').addClass('fade-in');
+    });
+</script>
 </body>
 </html>

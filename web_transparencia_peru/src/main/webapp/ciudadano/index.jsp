@@ -17,35 +17,8 @@
     <title>Mi Panel Ciudadano - Portal de Transparencia Perú</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            background-color: #f8f9fa;
-        }
-
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-
-        .navbar {
-            box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
-        }
-
-        main {
-            padding-top: 56px;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
 </head>
 <body>
 <!-- Navbar superior -->
@@ -105,6 +78,11 @@
                             <i class="bi bi-person me-1"></i> Mi Perfil
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="presupuesto.jsp">
+                            <i class="bi bi-cash-coin me-1"></i> Presupuesto Público
+                        </a>
+                    </li>
                 </ul>
 
                 <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
@@ -122,18 +100,25 @@
 
         <!-- Contenido principal -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom title-section">
                 <h1 class="h2">Mi Panel Ciudadano</h1>
+                <div class="btn-toolbar">
+                    <div class="btn-group ms-2">
+                        <a href="<%= request.getContextPath() %>/index.jsp" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-house me-1"></i> Página Principal
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <div class="alert alert-info" role="alert">
+            <div class="alert alert-info fade-in" role="alert">
                 <i class="bi bi-info-circle me-2"></i> Bienvenido(a) a su panel ciudadano. Desde aquí puede gestionar
                 sus solicitudes de acceso a la información.
             </div>
 
             <div class="row">
                 <div class="col-md-6 mb-4">
-                    <div class="card">
+                    <div class="card stat-card primary-border">
                         <div class="card-body">
                             <h5 class="card-title">Mis Solicitudes</h5>
                             <p>Estado de sus solicitudes de acceso a la información:</p>
@@ -157,7 +142,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 mb-4">
-                    <div class="card">
+                    <div class="card stat-card success-border">
                         <div class="card-body">
                             <h5 class="card-title">Nueva Solicitud de Información</h5>
                             <p>Realice una nueva solicitud de acceso a la información pública.</p>
@@ -169,9 +154,9 @@
                 </div>
             </div>
 
-            <h2>Últimas Solicitudes</h2>
+            <h2 class="mt-4 mb-3">Últimas Solicitudes</h2>
             <div class="table-responsive">
-                <table class="table table-striped table-sm">
+                <table class="table table-striped table-sm" id="tablaSolicitudes">
                     <thead>
                     <tr>
                         <th>ID</th>
@@ -214,6 +199,13 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Inicializar elementos con animación fade-in
+        $('.card, .alert, .table-responsive').addClass('fade-in');
+    });
+</script>
 </body>
 </html>
