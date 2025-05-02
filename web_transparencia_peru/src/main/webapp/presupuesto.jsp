@@ -1,23 +1,22 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.util.Locale" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presupuesto Público | Portal de Transparencia Perú</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome para iconos -->
+    <title>Presupuestos | Portal de Transparencia Perú</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;500;600;700&display=swap"
-          rel="stylesheet">
-    <!-- Chart.js para gráficos -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- ApexCharts para gráficos avanzados -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
             --primary-red: #D91023;
@@ -31,74 +30,344 @@
         body {
             font-family: 'Roboto', sans-serif;
             color: var(--dark-text);
-            background-color: #f5f7fa;
+            background-color: #f5f5f5;
+        }
+
+        .navbar-brand {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
         }
 
         h1, h2, h3, h4, h5 {
             font-family: 'Montserrat', sans-serif;
         }
 
-        .navbar-brand {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-        }
-
-        .navbar {
-            background-color: var(--primary-white);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            color: var(--dark-text) !important;
-        }
-
-        .nav-link {
-            font-weight: 500;
-            color: var(--dark-text) !important;
-        }
-
-        .nav-link:hover {
-            color: var(--primary-red) !important;
-        }
-
-        .nav-link.active {
-            font-weight: bold;
-        }
-
-        .hero-section {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
-            background-position: center;
-            background-size: cover;
+        .header {
+            background-color: var(--primary-red);
             color: white;
-            padding: 8rem 0;
-            position: relative;
-            margin-bottom: 2rem;
-            border-radius: 0 0 1rem 1rem;
+            padding: 10px 0;
         }
 
-        .hero-overlay {
+        .header .logo-text {
+            font-size: 0.85rem;
+            margin-bottom: 0;
+            letter-spacing: 0.5px;
+        }
+
+        .section-title {
+            position: relative;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            color: var(--secondary-blue);
+        }
+
+        .section-title:after {
+            content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            display: block;
+            width: 70px;
+            height: 3px;
+            background: var(--primary-red);
             bottom: 0;
-            background: linear-gradient(135deg, rgba(217, 16, 35, 0.8) 0%, rgba(30, 61, 89, 0.8) 100%);
-            opacity: 0.7;
+            left: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-red);
+            border-color: var(--primary-red);
+        }
+
+        .btn-primary:hover {
+            background-color: #b80d1e;
+            border-color: #b80d1e;
         }
 
         .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
             margin-bottom: 1.5rem;
-            overflow: hidden;
+            transition: transform 0.3s ease;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background-color: rgba(0, 0, 0, 0.02);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .bg-light-grey {
+            background-color: #f8f9fa;
+        }
+
+        .footer {
+            background-color: var(--secondary-blue);
+            color: white;
+            padding: 20px 0;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: var(--primary-red);
+        }
+        
+        .nivel-card {
+            height: 100%;
+        }
+        
+        .nivel-card .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .nivel-card .mt-auto {
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Superior -->
+    <div class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <p class="logo-text">REPÚBLICA DEL PERÚ</p>
+                </div>
+                <div>
+                    <p class="logo-text">PORTAL OFICIAL DE TRANSPARENCIA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="index.jsp">
+                <img src="https://www.gob.pe/assets/escudo-af8270af12c1a9bf7f46ca9441eb9116df71ed4e197a4bbd0f87546d246a6f01.svg" alt="Escudo Perú" height="38">
+                Portal de Transparencia
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.jsp">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="presupuesto.jsp">Información Presupuestal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="solicitud-acceso.jsp">Solicitar Información</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login_unificado.jsp">Ingresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="container py-5">
+        <!-- Encabezado -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.jsp">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Presupuestos</li>
+                    </ol>
+                </nav>
+                <h1 class="display-5 fw-bold mb-3">Información Presupuestal</h1>
+                <p class="lead text-muted">
+                    Acceda a información detallada sobre el presupuesto público del Perú y su ejecución según niveles de gobierno.
+                </p>
+            </div>
+        </div>
+
+        <!-- Niveles de Gobierno -->
+        <div class="row mb-5">
+            <div class="col-12 mb-4">
+                <h2 class="section-title">Presupuestos por Niveles de Gobierno</h2>
+            </div>
+            
+            <!-- Nivel Nacional -->
+            <div class="col-md-4 mb-4">
+                <div class="card nivel-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <h3 class="card-title">Nacional</h3>
+                        <p class="card-text">
+                            Presupuesto asignado a ministerios y entidades públicas del gobierno central con alcance nacional.
+                        </p>
+                        <div class="mt-auto">
+                            <a href="ServletPresupuesto?accion=nacional" class="btn btn-primary mt-3">Ver Detalle</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Nivel Regional -->
+            <div class="col-md-4 mb-4">
+                <div class="card nivel-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <h3 class="card-title">Regional</h3>
+                        <p class="card-text">
+                            Presupuesto asignado a los gobiernos regionales de las 25 regiones del Perú.
+                        </p>
+                        <div class="mt-auto">
+                            <a href="ServletPresupuesto?accion=regional" class="btn btn-primary mt-3">Ver Detalle</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Nivel Municipal -->
+            <div class="col-md-4 mb-4">
+                <div class="card nivel-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-city"></i>
+                        </div>
+                        <h3 class="card-title">Municipal</h3>
+                        <p class="card-text">
+                            Presupuesto asignado a las municipalidades provinciales y distritales de todo el país.
+                        </p>
+                        <div class="mt-auto">
+                            <a href="ServletPresupuesto?accion=municipal" class="btn btn-primary mt-3">Ver Detalle</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secciones Adicionales -->
+        <div class="row mb-5">
+            <div class="col-12 mb-4">
+                <h2 class="section-title">Información Complementaria</h2>
+            </div>
+            
+            <!-- Proyectos de Inversión -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-chart-line me-3 feature-icon"></i>
+                            <h3 class="card-title mb-0">Proyectos de Inversión</h3>
+                        </div>
+                        <p class="card-text">
+                            Consulte información detallada sobre los proyectos de inversión pública en ejecución a nivel nacional, regional y municipal.
+                        </p>
+                        <a href="ServletPresupuesto?accion=proyectos" class="btn btn-outline-primary mt-3">Ver Proyectos</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ejecución Presupuestal -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-tasks me-3 feature-icon"></i>
+                            <h3 class="card-title mb-0">Ejecución Presupuestal</h3>
+                        </div>
+                        <p class="card-text">
+                            Acceda a información sobre el avance en la ejecución del presupuesto público por nivel de gobierno, entidad y proyecto.
+                        </p>
+                        <a href="ServletPresupuesto?accion=ejecucion" class="btn btn-outline-primary mt-3">Ver Ejecución</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recursos -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <h2 class="section-title">Recursos Útiles</h2>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h4 class="card-title"><i class="fas fa-file-pdf text-danger me-2"></i> Informes Anuales</h4>
+                        <p class="card-text">Descargue los informes anuales sobre la ejecución presupuestaria y resultados obtenidos.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h4 class="card-title"><i class="fas fa-table text-success me-2"></i> Datos Abiertos</h4>
+                        <p class="card-text">Acceda a los conjuntos de datos abiertos sobre presupuesto público para análisis e investigación.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h4 class="card-title"><i class="fas fa-question-circle text-info me-2"></i> Preguntas Frecuentes</h4>
+                        <p class="card-text">Respuestas a las preguntas más frecuentes sobre el presupuesto público y su ejecución.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Portal de Transparencia Perú</h5>
+                    <p>Plataforma oficial para la transparencia y acceso a la información pública.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Enlaces</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.jsp" class="text-white">Inicio</a></li>
+                        <li><a href="presupuesto.jsp" class="text-white">Información Presupuestal</a></li>
+                        <li><a href="solicitud-acceso.jsp" class="text-white">Solicitar Información</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Contacto</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i>contacto@transparencia.gob.pe</li>
+                        <li><i class="fas fa-phone me-2"></i>(01) 123-4567</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4" style="background-color: rgba(255,255,255,0.2);">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; <%= java.time.Year.now().getValue() %> Portal de Transparencia Perú. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="me-3 text-white"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="me-3 text-white"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="me-3 text-white"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
         }
 
         .card-header {

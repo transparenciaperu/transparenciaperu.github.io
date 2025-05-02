@@ -27,13 +27,11 @@ public class CiudadanoFilter implements Filter {
         boolean isLoggedIn = (session != null && session.getAttribute("ciudadano") != null);
 
         if (isLoggedIn) {
-            // El ciudadano está logueado, permitir el acceso
             chain.doFilter(request, response);
         } else {
-            // No está logueado, redirigir al login de ciudadano
-            // En lugar de pasar el error como parámetro URL, usar una sesión flash
-            req.getSession().setAttribute("mensaje", "Debe iniciar sesión para acceder a esta área");
-            res.sendRedirect(req.getContextPath() + "/login_ciudadano.jsp");
+            req.setAttribute("mensajeError", "Debe iniciar sesión para acceder a esta área");
+            res.sendRedirect(req.getContextPath() + "/login_unificado.jsp");
+            return;
         }
     }
 

@@ -36,8 +36,10 @@ public class AdminFilter implements Filter {
             // El usuario es admin, permitir el acceso
             chain.doFilter(request, response);
         } else {
-            // No es admin o no está logueado, redirigir al login
-            res.sendRedirect(req.getContextPath() + "/login.jsp?error=No tiene permisos para acceder a esta área");
+            // No hay usuario en sesión o no es admin, redirigir al login
+            req.setAttribute("mensajeErrorAdmin", "No tiene permisos para acceder a esta área");
+            res.sendRedirect(req.getContextPath() + "/login_unificado.jsp");
+            return;
         }
     }
 

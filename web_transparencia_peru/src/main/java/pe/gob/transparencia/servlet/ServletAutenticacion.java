@@ -12,7 +12,7 @@ import pe.gob.transparencia.interfaces.UsuarioInterface;
 
 import java.io.IOException;
 
-@WebServlet(name = "ServletAutenticacion", urlPatterns = {"/autenticacion"})
+@WebServlet(name = "ServletAutenticacion", urlPatterns = {"/autenticacion.do"})
 public class ServletAutenticacion extends HttpServlet {
 
     @Override
@@ -23,12 +23,12 @@ public class ServletAutenticacion extends HttpServlet {
             // Cerrar sesión
             HttpSession session = request.getSession();
             session.invalidate();
-            response.sendRedirect("login.jsp?mensaje=Sesión cerrada correctamente");
+            response.sendRedirect("login_unificado.jsp?mensaje=Sesión cerrada correctamente");
             return;
         }
 
         // En caso de no especificar acción, redirigir al login
-        response.sendRedirect("login.jsp");
+        response.sendRedirect("login_unificado.jsp");
     }
 
     @Override
@@ -39,11 +39,12 @@ public class ServletAutenticacion extends HttpServlet {
             // Procesar login
             String usuario = request.getParameter("usuario");
             String clave = request.getParameter("clave");
+            String tipo = request.getParameter("tipo"); // Opcional para diferenciar entre admin y funcionario
 
             // Validar datos
             if (usuario == null || usuario.isEmpty() || clave == null || clave.isEmpty()) {
                 request.setAttribute("mensaje", "Debe ingresar usuario y clave");
-                request.getRequestDispatcher("login.jsp").forward(request, response);
+                request.getRequestDispatcher("login_unificado.jsp").forward(request, response);
                 return;
             }
 
@@ -69,17 +70,25 @@ public class ServletAutenticacion extends HttpServlet {
                     default:
                         // Rol no reconocido
                         request.setAttribute("mensaje", "No tiene permisos para acceder al sistema");
-                        request.getRequestDispatcher("login.jsp").forward(request, response);
+                        request.getRequestDispatcher("login_unificado.jsp").forward(request, response);
                         break;
                 }
             } else {
                 // Usuario no autenticado
                 request.setAttribute("mensaje", "Usuario o clave incorrectos");
-                request.getRequestDispatcher("login.jsp").forward(request, response);
+
+                // Dirigir mensajes de error según el tipo de usuario
+                if ("ADMIN".equals(tipo)) {
+                    request.setAttribute("mensajeErrorAdmin", "Usuario o clave incorrectos");
+                } else if ("FUNCIONARIO".equals(tipo)) {
+                    request.setAttribute("mensajeErrorFuncionario", "Usuario o clave incorrectos");
+                }
+
+                request.getRequestDispatcher("login_unificado.jsp").forward(request, response);
             }
         } else {
             // Acción no reconocida
-            response.sendRedirect("login.jsp");
+            response.sendRedirect("login_unificado.jsp");
         }
     }
 }

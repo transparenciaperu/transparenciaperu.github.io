@@ -36,8 +36,10 @@ public class FuncionarioFilter implements Filter {
             // El usuario es funcionario, permitir el acceso
             chain.doFilter(request, response);
         } else {
-            // No es funcionario o no está logueado, redirigir al login
-            res.sendRedirect(req.getContextPath() + "/login.jsp?error=No tiene permisos para acceder a esta área");
+            // No hay usuario en sesión o no es funcionario, redirigir al login
+            req.setAttribute("mensajeErrorFuncionario", "No tiene permisos para acceder a esta área");
+            res.sendRedirect(req.getContextPath() + "/login_unificado.jsp");
+            return;
         }
     }
 

@@ -7,6 +7,7 @@ public class EntidadPublicaEntidad {
     private String ruc;
     private String direccion;
     private String region;
+    private String nivelGobierno;
 
     public EntidadPublicaEntidad() {
     }
@@ -66,5 +67,13 @@ public class EntidadPublicaEntidad {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public String getNivelGobierno() {
+        return nivelGobierno;
+    }
+
+    public void setNivelGobierno(String nivelGobierno) {
+        this.nivelGobierno = nivelGobierno;
     }
 }

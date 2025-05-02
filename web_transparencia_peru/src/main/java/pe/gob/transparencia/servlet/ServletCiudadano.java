@@ -12,7 +12,7 @@ import pe.gob.transparencia.modelo.CiudadanoModelo;
 
 import java.io.IOException;
 
-@WebServlet(name = "ServletCiudadano", urlPatterns = {"/ciudadano"})
+@WebServlet(name = "ServletCiudadano", urlPatterns = {"/ciudadano.do"})
 public class ServletCiudadano extends HttpServlet {
 
     @Override
@@ -50,10 +50,8 @@ public class ServletCiudadano extends HttpServlet {
                 return;
             }
         }
-
-        // En caso de no estar logueado, redirigir al login
         request.getSession().setAttribute("mensaje", "Debe iniciar sesión para realizar esta acción");
-        response.sendRedirect("login_ciudadano.jsp");
+        response.sendRedirect("login_unificado.jsp");
     }
 
     @Override
@@ -64,11 +62,10 @@ public class ServletCiudadano extends HttpServlet {
             // Procesar login de ciudadano
             String correo = request.getParameter("correo");
             String password = request.getParameter("password");
-
             // Validar datos
             if (correo == null || correo.isEmpty() || password == null || password.isEmpty()) {
-                request.setAttribute("mensaje", "Debe ingresar correo y contraseña");
-                request.getRequestDispatcher("login_ciudadano.jsp").forward(request, response);
+                request.setAttribute("mensajeError", "Debe ingresar correo y contraseña");
+                request.getRequestDispatcher("login_unificado.jsp").forward(request, response);
                 return;
             }
 
@@ -86,7 +83,8 @@ public class ServletCiudadano extends HttpServlet {
             } else {
                 // Ciudadano no autenticado
                 request.setAttribute("mensaje", "Correo o contraseña incorrectos");
-                request.getRequestDispatcher("login_ciudadano.jsp").forward(request, response);
+                request.setAttribute("activeTab", "ciudadano"); // Mantener activa la pestaña ciudadano
+                request.getRequestDispatcher("login_unificado.jsp").forward(request, response);
             }
         } else if (accion != null && accion.equals("registro")) {
             // Procesar registro de nuevo ciudadano
@@ -118,7 +116,7 @@ public class ServletCiudadano extends HttpServlet {
                 // Registro exitoso
                 HttpSession session = request.getSession();
                 session.setAttribute("mensaje", "Registro exitoso, ahora puede iniciar sesión");
-                response.sendRedirect("login_ciudadano.jsp");
+                response.sendRedirect("login_unificado.jsp");
             } else {
                 // Error en el registro
                 request.setAttribute("mensaje", "Error al registrar. El correo o DNI ya podría estar registrado.");
@@ -126,7 +124,7 @@ public class ServletCiudadano extends HttpServlet {
             }
         } else {
             // Acción no reconocida
-            response.sendRedirect("login_ciudadano.jsp");
+            response.sendRedirect("login_unificado.jsp");
         }
     }
 }

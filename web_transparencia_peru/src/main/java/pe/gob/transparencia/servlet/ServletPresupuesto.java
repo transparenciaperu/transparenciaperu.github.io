@@ -5,31 +5,28 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import pe.gob.transparencia.entidades.EntidadPublicaEntidad;
 import pe.gob.transparencia.entidades.PresupuestoEntidad;
-import pe.gob.transparencia.entidades.CategoriaGastoEntidad;
+import pe.gob.transparencia.entidades.RegionEntidad;
+import pe.gob.transparencia.modelo.EntidadPublicaModelo;
 import pe.gob.transparencia.modelo.PresupuestoModelo;
-import pe.gob.transparencia.dao.DAOFactory;
-import pe.gob.transparencia.interfaces.ProyectoInterface;
-import pe.gob.transparencia.entidades.ProyectoEntidad;
-import pe.gob.transparencia.db.MySQLConexion;
+import pe.gob.transparencia.modelo.RegionModelo;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
 
+/**
+ * Servlet para gestionar toda la información relacionada con presupuestos públicos.
+ * Este servlet ha sido reestructurado para centrarse en los tres niveles de gobierno:
+ * Nacional, Regional y Municipal.
+ */
 @WebServlet(name = "ServletPresupuesto", urlPatterns = {"/ServletPresupuesto"})
 public class ServletPresupuesto extends HttpServlet {
-    private PresupuestoModelo modelo = new PresupuestoModelo();
+    private final PresupuestoModelo modelo = new PresupuestoModelo();
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String accion = request.getParameter("accion");
@@ -38,125 +35,93 @@ public class ServletPresupuesto extends HttpServlet {
             accion = "listar";
         }
 
-        switch (accion) {
-            case "listar":
-                listarPresupuestos(request, response);
-                break;
-            case "detalle":
-                mostrarDetallePresupuesto(request, response);
-                break;
-            case "formNuevo":
-                mostrarFormularioNuevo(request, response);
-                break;
-            case "formEditar":
-                mostrarFormularioEditar(request, response);
-                break;
-            case "graficoEntidades":
-                mostrarGraficoEntidades(request, response);
-                break;
-            case "graficoAnual":
-                mostrarGraficoAnual(request, response);
-                break;
-            case "comparativoRegiones":
-                mostrarComparativoRegiones(request, response);
-                break;
-            case "entidades":
-                filtrarPorEntidades(request, response);
-                break;
-            case "regiones":
-                filtrarPorRegiones(request, response);
-                break;
-            case "anual":
-                filtrarPorAnio(request, response);
-                break;
-            case "proyectos":
-                filtrarPorProyectos(request, response);
-                break;
-            case "categorias":
-                filtrarPorCategorias(request, response);
-                break;
-            default:
-                listarPresupuestos(request, response);
+        try {
+            switch (accion) {
+                case "listar":
+                    listarPresupuestos(request, response);
+                    break;
+                case "detalle":
+                    mostrarDetallePresupuesto(request, response);
+                    break;
+                case "formNuevo":
+                    mostrarFormularioNuevo(request, response);
+                    break;
+                case "formEditar":
+                    mostrarFormularioEditar(request, response);
+                    break;
+                case "anual":
+                    filtrarPorAnio(request, response);
+                    break;
+                case "nacional":
+                    mostrarPresupuestoNacional(request, response);
+                    break;
+                case "regional":
+                    mostrarPresupuestoRegional(request, response);
+                    break;
+                case "municipal":
+                    mostrarPresupuestoMunicipal(request, response);
+                    break;
+                default:
+                    listarPresupuestos(request, response);
+            }
+        } catch (Exception e) {
+            System.out.println("Error general en ServletPresupuesto: " + e.getMessage());
+            e.printStackTrace();
+            request.setAttribute("error", "Ha ocurrido un error al procesar su solicitud");
+            request.getRequestDispatcher("presupuesto.jsp").forward(request, response);
         }
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String accion = request.getParameter("accion");
 
-        switch (accion) {
-            case "registrar":
-                registrarPresupuesto(request, response);
-                break;
-            case "actualizar":
-                actualizarPresupuesto(request, response);
-                break;
-            case "eliminar":
-                eliminarPresupuesto(request, response);
-                break;
-            default:
-                response.sendRedirect("presupuesto.jsp");
+        try {
+            switch (accion) {
+                case "registrar":
+                    registrarPresupuesto(request, response);
+                    break;
+                case "actualizar":
+                    actualizarPresupuesto(request, response);
+                    break;
+                case "eliminar":
+                    eliminarPresupuesto(request, response);
+                    break;
+                default:
+                    response.sendRedirect("presupuesto.jsp");
+            }
+        } catch (Exception e) {
+            System.out.println("Error general en ServletPresupuesto (POST): " + e.getMessage());
+            e.printStackTrace();
+            request.setAttribute("error", "Ha ocurrido un error al procesar su solicitud");
+            request.getRequestDispatcher("presupuesto.jsp").forward(request, response);
         }
     }
 
+    /**
+     * Método para listar todos los presupuestos mostrando estadísticas por nivel de gobierno
+     */
     private void listarPresupuestos(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
+        // Obtener estadísticas por nivel de gobierno para el año actual
+        List<Map<String, Object>> estadisticas = modelo.obtenerEstadisticasPorNivel(2024);
+        request.setAttribute("estadisticas", estadisticas);
 
-        // Procesar parámetros de filtro si existen
-        String anioStr = request.getParameter("anio");
-        String region = request.getParameter("region");
-        String sector = request.getParameter("sector");
-        String categoria = request.getParameter("categoria");
+        // Obtener datos de evolución anual del presupuesto
+        List<Map<String, Object>> evolucionAnual = modelo.obtenerEvolucionAnual();
+        request.setAttribute("evolucionAnual", evolucionAnual);
 
-        if (anioStr != null && !anioStr.isEmpty()) {
-            try {
-                int anio = Integer.parseInt(anioStr);
-                presupuestos = modelo.listarPresupuestosPorAnio(anio);
-                request.setAttribute("anioSeleccionado", anio);
-            } catch (NumberFormatException e) {
-                System.out.println("Error al parsear el año: " + e.getMessage());
-            }
-        }
-
-        if (region != null && !region.isEmpty()) {
-            // Filtrar la lista por región
-            List<PresupuestoEntidad> presupuestosFiltrados = new ArrayList<>();
-            for (PresupuestoEntidad presupuesto : presupuestos) {
-                if (presupuesto.getEntidadPublica() != null &&
-                        region.equals(presupuesto.getEntidadPublica().getRegion())) {
-                    presupuestosFiltrados.add(presupuesto);
-                }
-            }
-            presupuestos = presupuestosFiltrados;
-            request.setAttribute("regionSeleccionada", region);
-        }
-
-        // Filtrar por sector si es necesario
-        if (sector != null && !sector.isEmpty()) {
-            List<PresupuestoEntidad> presupuestosFiltrados = new ArrayList<>();
-            for (PresupuestoEntidad presupuesto : presupuestos) {
-                if (presupuesto.getEntidadPublica() != null &&
-                        sector.equalsIgnoreCase(presupuesto.getEntidadPublica().getTipo())) {
-                    presupuestosFiltrados.add(presupuesto);
-                }
-            }
-            presupuestos = presupuestosFiltrados;
-            request.setAttribute("sectorSeleccionado", sector);
-        }
-
-        // Preparar datos para categorías si es necesario
-        if (categoria != null && !categoria.isEmpty()) {
-            request.setAttribute("categoriaSeleccionada", categoria);
-        }
-
-        request.setAttribute("presupuestos", presupuestos);
-
-        cargarProyectosYCategorias(request);
+        // Cargar datos de proyectos importantes
+        List<Map<String, Object>> datosProyectos = modelo.obtenerDatosProyectos();
+        request.setAttribute("datosProyectos", datosProyectos);
 
         request.getRequestDispatcher("presupuesto.jsp").forward(request, response);
     }
 
+    /**
+     * Método para mostrar detalles de un presupuesto específico
+     */
     private void mostrarDetallePresupuesto(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
@@ -165,11 +130,17 @@ public class ServletPresupuesto extends HttpServlet {
         request.getRequestDispatcher("detalle-presupuesto.jsp").forward(request, response);
     }
 
+    /**
+     * Método para mostrar formulario para nuevo presupuesto
+     */
     private void mostrarFormularioNuevo(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.getRequestDispatcher("form-presupuesto.jsp").forward(request, response);
     }
 
+    /**
+     * Método para mostrar formulario para editar un presupuesto
+     */
     private void mostrarFormularioEditar(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
@@ -178,6 +149,9 @@ public class ServletPresupuesto extends HttpServlet {
         request.getRequestDispatcher("form-presupuesto.jsp").forward(request, response);
     }
 
+    /**
+     * Método para registrar un nuevo presupuesto
+     */
     private void registrarPresupuesto(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int anio = Integer.parseInt(request.getParameter("anio"));
@@ -193,6 +167,9 @@ public class ServletPresupuesto extends HttpServlet {
         response.sendRedirect("ServletPresupuesto?accion=listar");
     }
 
+    /**
+     * Método para actualizar un presupuesto existente
+     */
     private void actualizarPresupuesto(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
@@ -210,6 +187,9 @@ public class ServletPresupuesto extends HttpServlet {
         response.sendRedirect("ServletPresupuesto?accion=listar");
     }
 
+    /**
+     * Método para eliminar un presupuesto
+     */
     private void eliminarPresupuesto(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
@@ -217,399 +197,114 @@ public class ServletPresupuesto extends HttpServlet {
         response.sendRedirect("ServletPresupuesto?accion=listar");
     }
 
-    private void mostrarGraficoEntidades(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
-        request.setAttribute("presupuestos", presupuestos);
-        request.setAttribute("tipoGrafico", "entidades");
-        request.getRequestDispatcher("grafico-presupuesto.jsp").forward(request, response);
-    }
-
-    private void mostrarGraficoAnual(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
-        request.setAttribute("presupuestos", presupuestos);
-        request.setAttribute("tipoGrafico", "anual");
-        request.getRequestDispatcher("grafico-presupuesto.jsp").forward(request, response);
-    }
-
-    private void mostrarComparativoRegiones(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
-        request.setAttribute("presupuestos", presupuestos);
-        request.setAttribute("tipoGrafico", "regiones");
-        request.getRequestDispatcher("comparativo-regiones.jsp").forward(request, response);
-    }
-
-    private void filtrarPorEntidades(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
-
-        System.out.println("Total de presupuestos iniciales para filtrarPorEntidades: " + presupuestos.size());
-
-        // Procesar parámetros de filtro si existen
-        String anioStr = request.getParameter("anio");
-        String sector = request.getParameter("sector");
-
-        // Aplicamos filtro por año si está presente
-        if (anioStr != null && !anioStr.isEmpty()) {
-            try {
-                int anio = Integer.parseInt(anioStr);
-                presupuestos = modelo.listarPresupuestosPorAnio(anio);
-                System.out.println("Filtrado por año " + anio + ": " + presupuestos.size() + " presupuestos");
-                request.setAttribute("anioSeleccionado", anio);
-            } catch (NumberFormatException e) {
-                System.out.println("Error al parsear el año: " + e.getMessage());
-            }
-        }
-
-        // Verificamos si hay entidades sin tipo/sector y las imprimimos para diagnóstico
-        int entidadesSinSector = 0;
-        for (PresupuestoEntidad presupuesto : presupuestos) {
-            if (presupuesto.getEntidadPublica() == null) {
-                System.out.println("Presupuesto ID " + presupuesto.getId() + " no tiene entidad pública asociada");
-                entidadesSinSector++;
-            } else if (presupuesto.getEntidadPublica().getTipo() == null || presupuesto.getEntidadPublica().getTipo().isEmpty()) {
-                System.out.println("Entidad " + presupuesto.getEntidadPublica().getNombre() + " no tiene tipo/sector definido");
-                entidadesSinSector++;
-            }
-        }
-        System.out.println("Entidades sin sector definido: " + entidadesSinSector);
-
-        // Obtenemos los sectores disponibles para el combo
-        Set<String> sectoresDisponibles = new HashSet<>();
-        for (PresupuestoEntidad presupuesto : presupuestos) {
-            if (presupuesto.getEntidadPublica() != null && presupuesto.getEntidadPublica().getTipo() != null) {
-                sectoresDisponibles.add(presupuesto.getEntidadPublica().getTipo());
-            }
-        }
-        request.setAttribute("sectoresDisponibles", new ArrayList<>(sectoresDisponibles));
-
-        // Aplicamos filtro por sector si está presente
-        if (sector != null && !sector.isEmpty()) {
-            List<PresupuestoEntidad> presupuestosFiltrados = new ArrayList<>();
-            for (PresupuestoEntidad presupuesto : presupuestos) {
-                if (presupuesto.getEntidadPublica() != null &&
-                        sector.equalsIgnoreCase(presupuesto.getEntidadPublica().getTipo())) {
-                    presupuestosFiltrados.add(presupuesto);
-                }
-            }
-            presupuestos = presupuestosFiltrados;
-            System.out.println("Filtrado por sector " + sector + ": " + presupuestos.size() + " presupuestos");
-            request.setAttribute("sectorSeleccionado", sector);
-        }
-
-        request.setAttribute("presupuestos", presupuestos);
-
-        // Si después de aplicar todos los filtros no hay resultados, mostramos un mensaje
-        if (presupuestos.isEmpty()) {
-            request.setAttribute("mensajeNoResultados", "No se encontraron presupuestos con los criterios seleccionados.");
-        }
-
-        cargarProyectosYCategorias(request);
-
-        // Redirigir a una página específica para la sección de entidades
-        request.getRequestDispatcher("presupuesto-entidades.jsp").forward(request, response);
-    }
-
-    private void filtrarPorRegiones(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // Primero obtenemos todos los presupuestos
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
-
-        System.out.println("Total de presupuestos iniciales: " + presupuestos.size());
-
-        // Procesar parámetros de filtro si existen
-        String anioStr = request.getParameter("anio");
-        String region = request.getParameter("region");
-        String sector = request.getParameter("sector");
-
-        // Aplicamos filtro por año si está presente
-        if (anioStr != null && !anioStr.isEmpty()) {
-            try {
-                int anio = Integer.parseInt(anioStr);
-                List<PresupuestoEntidad> presupuestosPorAnio = modelo.listarPresupuestosPorAnio(anio);
-                presupuestos = presupuestosPorAnio;
-                System.out.println("Filtrado por año " + anio + ": " + presupuestos.size() + " presupuestos");
-                request.setAttribute("anioSeleccionado", anio);
-            } catch (NumberFormatException e) {
-                System.out.println("Error al parsear el año: " + e.getMessage());
-            }
-        }
-
-        // Verificamos si hay entidades sin región y las imprimimos para diagnóstico
-        int entidadesSinRegion = 0;
-        for (PresupuestoEntidad presupuesto : presupuestos) {
-            if (presupuesto.getEntidadPublica() == null) {
-                System.out.println("Presupuesto ID " + presupuesto.getId() + " no tiene entidad pública asociada");
-                entidadesSinRegion++;
-            } else if (presupuesto.getEntidadPublica().getRegion() == null || presupuesto.getEntidadPublica().getRegion().isEmpty()) {
-                System.out.println("Entidad " + presupuesto.getEntidadPublica().getNombre() + " no tiene región definida");
-                entidadesSinRegion++;
-            }
-        }
-        System.out.println("Entidades sin región definida: " + entidadesSinRegion);
-
-        // Obtenemos las regiones disponibles para el combo
-        Set<String> regionesDisponibles = new HashSet<>();
-        for (PresupuestoEntidad presupuesto : presupuestos) {
-            if (presupuesto.getEntidadPublica() != null && presupuesto.getEntidadPublica().getRegion() != null) {
-                regionesDisponibles.add(presupuesto.getEntidadPublica().getRegion());
-            }
-        }
-        request.setAttribute("regionesDisponibles", new ArrayList<>(regionesDisponibles));
-
-        // Aplicamos filtro por región si está presente
-        if (region != null && !region.isEmpty()) {
-            // Filtrar la lista por región
-            List<PresupuestoEntidad> presupuestosFiltrados = new ArrayList<>();
-            for (PresupuestoEntidad presupuesto : presupuestos) {
-                if (presupuesto.getEntidadPublica() != null &&
-                        region.equals(presupuesto.getEntidadPublica().getRegion())) {
-                    presupuestosFiltrados.add(presupuesto);
-                }
-            }
-            presupuestos = presupuestosFiltrados;
-            System.out.println("Filtrado por región " + region + ": " + presupuestos.size() + " presupuestos");
-            request.setAttribute("regionSeleccionada", region);
-        }
-
-        // Obtenemos los sectores disponibles para el combo
-        Set<String> sectoresDisponibles = new HashSet<>();
-        for (PresupuestoEntidad presupuesto : presupuestos) {
-            if (presupuesto.getEntidadPublica() != null && presupuesto.getEntidadPublica().getTipo() != null) {
-                sectoresDisponibles.add(presupuesto.getEntidadPublica().getTipo());
-            }
-        }
-        request.setAttribute("sectoresDisponibles", new ArrayList<>(sectoresDisponibles));
-
-        // Aplicamos filtro por sector si está presente
-        if (sector != null && !sector.isEmpty()) {
-            List<PresupuestoEntidad> presupuestosFiltrados = new ArrayList<>();
-            for (PresupuestoEntidad presupuesto : presupuestos) {
-                if (presupuesto.getEntidadPublica() != null &&
-                        sector.equalsIgnoreCase(presupuesto.getEntidadPublica().getTipo())) {
-                    presupuestosFiltrados.add(presupuesto);
-                }
-            }
-            presupuestos = presupuestosFiltrados;
-            System.out.println("Filtrado por sector " + sector + ": " + presupuestos.size() + " presupuestos");
-            request.setAttribute("sectorSeleccionado", sector);
-        }
-
-        // Asignamos la lista filtrada a la solicitud
-        request.setAttribute("presupuestos", presupuestos);
-
-        // Si después de aplicar todos los filtros no hay resultados, mostramos un mensaje
-        if (presupuestos.isEmpty()) {
-            request.setAttribute("mensajeNoResultados", "No se encontraron presupuestos con los criterios seleccionados.");
-        }
-
-        cargarProyectosYCategorias(request);
-
-        // Redirigir a una página específica para la sección de regiones
-        request.getRequestDispatcher("presupuesto-regiones.jsp").forward(request, response);
-    }
-
+    /**
+     * Método para filtrar presupuestos por año
+     */
     private void filtrarPorAnio(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
-
         // Procesar parámetros de filtro si existen
         String anioStr = request.getParameter("anio");
-        String categoria = request.getParameter("categoria");
+        int anio = 2024; // Año por defecto
 
         if (anioStr != null && !anioStr.isEmpty()) {
             try {
-                int anio = Integer.parseInt(anioStr);
-                presupuestos = modelo.listarPresupuestosPorAnio(anio);
-                request.setAttribute("anioSeleccionado", anio);
+                anio = Integer.parseInt(anioStr);
             } catch (NumberFormatException e) {
                 System.out.println("Error al parsear el año: " + e.getMessage());
             }
         }
 
+        request.setAttribute("anioSeleccionado", anio);
+
+        // Obtener estadísticas por nivel de gobierno para el año seleccionado
+        List<Map<String, Object>> estadisticas = modelo.obtenerEstadisticasPorNivel(anio);
+        request.setAttribute("estadisticas", estadisticas);
+
+        // Obtener presupuestos del año seleccionado
+        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestosPorAnio(anio);
         request.setAttribute("presupuestos", presupuestos);
 
         // Obtener datos de evolución anual desde la base de datos
         List<Map<String, Object>> evolucionAnual = modelo.obtenerEvolucionAnual();
-
-        // Filtrar evolución anual por categoría si es necesario
-        if (categoria != null && !categoria.isEmpty()) {
-            // En un escenario real, filtraríamos por categoría en la base de datos
-            // Aquí simulamos que tenemos los datos filtrados
-            request.setAttribute("categoriaSeleccionada", categoria);
-        }
-
         request.setAttribute("evolucionAnual", evolucionAnual);
 
-        cargarProyectosYCategorias(request);
-
-        // Redirigir a una página específica para la sección anual
+        // Redirigir a la página correspondiente
         request.getRequestDispatcher("presupuesto-anual.jsp").forward(request, response);
     }
 
-    private void filtrarPorProyectos(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Método para mostrar presupuesto a nivel nacional
+     */
+    private void mostrarPresupuestoNacional(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
+        // Obtener estadísticas por nivel de gobierno
+        List<Map<String, Object>> estadisticas = modelo.obtenerEstadisticasPorNivel(2024);
+        request.setAttribute("estadisticas", estadisticas);
 
-        // Procesar parámetros de filtro si existen
-        String anioStr = request.getParameter("anio");
-        String region = request.getParameter("region");
-        String sector = request.getParameter("sector");
+        // Obtener presupuestos de entidades nacionales
+        EntidadPublicaModelo entidadModelo = new EntidadPublicaModelo();
+        List<EntidadPublicaEntidad> entidadesNacionales = entidadModelo.listarPorNivel(1); // 1 = Nacional
+        request.setAttribute("entidades", entidadesNacionales);
 
-        if (anioStr != null && !anioStr.isEmpty()) {
-            try {
-                int anio = Integer.parseInt(anioStr);
-                presupuestos = modelo.listarPresupuestosPorAnio(anio);
-                request.setAttribute("anioSeleccionado", anio);
-            } catch (NumberFormatException e) {
-                System.out.println("Error al parsear el año: " + e.getMessage());
-            }
-        }
+        // Obtener presupuestos del nivel nacional por años
+        List<Map<String, Object>> datosPorAnio = modelo.obtenerPresupuestosPorNivelYAnio(1);
+        request.setAttribute("datosPorAnio", datosPorAnio);
 
-        request.setAttribute("presupuestos", presupuestos);
-
-        // Obtener datos de proyectos desde la base de datos
-        List<Map<String, Object>> datosProyectos = modelo.obtenerDatosProyectos();
-
-        // Filtrar proyectos por región si es necesario
-        if (region != null && !region.isEmpty()) {
-            List<Map<String, Object>> proyectosFiltrados = new ArrayList<>();
-            for (Map<String, Object> proyecto : datosProyectos) {
-                if (region.equals(proyecto.get("region"))) {
-                    proyectosFiltrados.add(proyecto);
-                }
-            }
-            datosProyectos = proyectosFiltrados;
-            request.setAttribute("regionSeleccionada", region);
-        }
-
-        // Filtrar por sector si es necesario
-        if (sector != null && !sector.isEmpty()) {
-            List<Map<String, Object>> proyectosFiltrados = new ArrayList<>();
-            for (Map<String, Object> proyecto : datosProyectos) {
-                String entidadNombre = (String) proyecto.get("entidadNombre");
-                // Simular que podemos determinar el sector por el nombre de la entidad
-                if (entidadNombre != null && entidadNombre.toLowerCase().contains(sector.toLowerCase())) {
-                    proyectosFiltrados.add(proyecto);
-                }
-            }
-            if (!proyectosFiltrados.isEmpty()) {
-                datosProyectos = proyectosFiltrados;
-            }
-            request.setAttribute("sectorSeleccionado", sector);
-        }
-
-        request.setAttribute("datosProyectos", datosProyectos);
-
-        cargarProyectosYCategorias(request);
-
-        // Redirigir a una página específica para la sección de proyectos
-        request.getRequestDispatcher("presupuesto-proyectos.jsp").forward(request, response);
+        // Redirigir a la página correspondiente
+        request.getRequestDispatcher("presupuesto-nacional.jsp").forward(request, response);
     }
 
-    private void filtrarPorCategorias(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Método para mostrar presupuesto a nivel regional
+     */
+    private void mostrarPresupuestoRegional(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<PresupuestoEntidad> presupuestos = modelo.listarPresupuestos();
+        // Obtener estadísticas por nivel de gobierno
+        List<Map<String, Object>> estadisticas = modelo.obtenerEstadisticasPorNivel(2024);
+        request.setAttribute("estadisticas", estadisticas);
 
-        // Procesar parámetros de filtro si existen
-        String anioStr = request.getParameter("anio");
-        String categoria = request.getParameter("categoria");
+        // Obtener presupuestos de gobiernos regionales
+        EntidadPublicaModelo entidadModelo = new EntidadPublicaModelo();
+        List<EntidadPublicaEntidad> entidadesRegionales = entidadModelo.listarPorNivel(2); // 2 = Regional
+        request.setAttribute("entidades", entidadesRegionales);
 
-        if (anioStr != null && !anioStr.isEmpty()) {
-            try {
-                int anio = Integer.parseInt(anioStr);
-                presupuestos = modelo.listarPresupuestosPorAnio(anio);
-                request.setAttribute("anioSeleccionado", anio);
-            } catch (NumberFormatException e) {
-                System.out.println("Error al parsear el año: " + e.getMessage());
-            }
-        }
+        // Obtener presupuestos del nivel regional por años
+        List<Map<String, Object>> datosPorAnio = modelo.obtenerPresupuestosPorNivelYAnio(2);
+        request.setAttribute("datosPorAnio", datosPorAnio);
 
-        request.setAttribute("presupuestos", presupuestos);
+        // Obtener regiones para filtrar
+        RegionModelo regionModelo = new RegionModelo();
+        List<RegionEntidad> regiones = regionModelo.listar();
+        request.setAttribute("regiones", regiones);
 
-        // Obtener datos de categorías desde la base de datos
-        List<Map<String, Object>> datosCategorias = modelo.obtenerDatosCategorias();
-
-        // Filtrar por categoría específica si es necesario
-        if (categoria != null && !categoria.isEmpty()) {
-            List<Map<String, Object>> categoriasFiltradas = new ArrayList<>();
-            for (Map<String, Object> cat : datosCategorias) {
-                String nombreCategoria = (String) cat.get("nombre");
-                if (categoria.equalsIgnoreCase(nombreCategoria)) {
-                    categoriasFiltradas.add(cat);
-                }
-            }
-            // Si encontramos alguna categoría que coincida, usamos solo esas
-            if (!categoriasFiltradas.isEmpty()) {
-                datosCategorias = categoriasFiltradas;
-            }
-            request.setAttribute("categoriaSeleccionada", categoria);
-        }
-
-        request.setAttribute("datosCategorias", datosCategorias);
-
-        cargarProyectosYCategorias(request);
-
-        // Redirigir a una página específica para la sección de categorías
-        request.getRequestDispatcher("presupuesto-categorias.jsp").forward(request, response);
+        // Redirigir a la página correspondiente
+        request.getRequestDispatcher("presupuesto-regional.jsp").forward(request, response);
     }
 
-    private void cargarProyectosYCategorias(HttpServletRequest request) {
-        // Obtener proyectos para mostrarlos en la página
-        try {
-            DAOFactory daoFactory = DAOFactory.getDAOFactory(DAOFactory.MYSQL);
-            ProyectoInterface proyectoDAO = daoFactory.getProyectoDAO();
-            List<ProyectoEntidad> proyectos = proyectoDAO.listarProyectos();
-            request.setAttribute("proyectos", proyectos);
-        } catch (Exception e) {
-            System.out.println("Error al cargar proyectos: " + e.getMessage());
-            e.printStackTrace();
-        }
+    /**
+     * Método para mostrar presupuesto a nivel municipal
+     */
+    private void mostrarPresupuestoMunicipal(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Obtener estadísticas por nivel de gobierno
+        List<Map<String, Object>> estadisticas = modelo.obtenerEstadisticasPorNivel(2024);
+        request.setAttribute("estadisticas", estadisticas);
 
-        // Cargar categorías de gasto usando procedimiento almacenado
-        Connection cn = null;
-        CallableStatement cstm = null;
-        ResultSet rs = null;
-        List<CategoriaGastoEntidad> categorias = new ArrayList<>();
+        // Obtener presupuestos de municipalidades
+        EntidadPublicaModelo entidadModelo = new EntidadPublicaModelo();
+        List<EntidadPublicaEntidad> entidadesMunicipales = entidadModelo.listarPorNivel(3); // 3 = Municipal
+        request.setAttribute("entidades", entidadesMunicipales);
 
-        try {
-            cn = MySQLConexion.getConexion();
-            if (cn != null) {
-                // Obtener todas las categorías de gasto
-                String sql = "SELECT id, nombre, descripcion FROM CategoriaGasto";
-                PreparedStatement stmt = cn.prepareStatement(sql);
-                rs = stmt.executeQuery();
+        // Obtener presupuestos del nivel municipal por años
+        List<Map<String, Object>> datosPorAnio = modelo.obtenerPresupuestosPorNivelYAnio(3);
+        request.setAttribute("datosPorAnio", datosPorAnio);
 
-                while (rs.next()) {
-                    CategoriaGastoEntidad categoria = new CategoriaGastoEntidad();
-                    categoria.setId(rs.getInt("id"));
-                    categoria.setNombre(rs.getString("nombre"));
-                    categoria.setDescripcion(rs.getString("descripcion"));
+        // Obtener regiones para filtrar
+        RegionModelo regionModelo = new RegionModelo();
+        List<RegionEntidad> regiones = regionModelo.listar();
+        request.setAttribute("regiones", regiones);
 
-                    // Simulamos datos estadísticos para cada categoría
-                    // En una aplicación real, estos datos se calcularían con consultas adicionales
-                    categoria.setMontoTotal(1000000 + Math.random() * 50000000);
-                    categoria.setPorcentaje(5 + Math.random() * 25);
-                    categoria.setVariacion(-3 + Math.random() * 12);
-
-                    categorias.add(categoria);
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("Error al cargar categorías: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (cstm != null) cstm.close();
-                if (cn != null) cn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        request.setAttribute("categorias", categorias);
+        // Redirigir a la página correspondiente
+        request.getRequestDispatcher("presupuesto-municipal.jsp").forward(request, response);
     }
 }

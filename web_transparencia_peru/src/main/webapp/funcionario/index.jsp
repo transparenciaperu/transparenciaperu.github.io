@@ -2,11 +2,13 @@
 <%@ page import="pe.gob.transparencia.entidades.UsuarioEntidad" %>
 <%
     // Verificar si el usuario está en sesión y es funcionario
-    UsuarioEntidad usuario = (UsuarioEntidad) session.getAttribute("usuario");
-    if (usuario == null || !"FUNCIONARIO".equals(usuario.getCodRol())) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp?error=No tiene permisos para acceder a esta área");
+    HttpSession sesion = request.getSession(false);
+    if (sesion == null || sesion.getAttribute("usuario") == null || !((UsuarioEntidad) sesion.getAttribute("usuario")).getCodRol().equals("FUNCIONARIO")) {
+        // No es funcionario o no está logueado, redirigir al login
+        response.sendRedirect(request.getContextPath() + "/login_unificado.jsp");
         return;
     }
+    UsuarioEntidad usuario = (UsuarioEntidad) sesion.getAttribute("usuario");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -68,7 +70,8 @@
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="<%= request.getContextPath() %>/autenticacion?accion=cerrar"><i
+                        <li><a class="dropdown-item"
+                               href="<%= request.getContextPath() %>/autenticacion.do?accion=cerrar"><i
                                 class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión</a></li>
                     </ul>
                 </li>

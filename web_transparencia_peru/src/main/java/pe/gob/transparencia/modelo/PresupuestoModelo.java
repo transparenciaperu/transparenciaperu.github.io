@@ -39,8 +39,11 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 return lista;
             }
 
-            String sql = "SELECT p.*, e.nombre AS entidad_nombre, e.tipo, e.region FROM Presupuesto p " +
-                         "INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id";
+            String sql = "SELECT p.*, e.nombre AS entidad_nombre, e.tipo, n.nombre AS nivel_gobierno, r.nombre AS region_nombre " +
+                         "FROM Presupuesto p " +
+                         "INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id " +
+                         "INNER JOIN NivelGobierno n ON e.nivelGobiernoId = n.id " +
+                         "LEFT JOIN Region r ON e.regionId = r.id";
             pstm = cn.prepareStatement(sql);
             rs = pstm.executeQuery();
             
@@ -55,7 +58,8 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 entidad.setId(rs.getInt("entidadPublicaId"));
                 entidad.setNombre(rs.getString("entidad_nombre"));
                 entidad.setTipo(rs.getString("tipo"));
-                entidad.setRegion(rs.getString("region"));
+                entidad.setRegion(rs.getString("region_nombre"));
+                entidad.setNivelGobierno(rs.getString("nivel_gobierno"));
                 
                 presupuesto.setEntidadPublica(entidad);
                 
@@ -98,8 +102,11 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 return lista;
             }
 
-            String sql = "SELECT p.*, e.nombre AS entidad_nombre, e.tipo, e.region FROM Presupuesto p " +
+            String sql = "SELECT p.*, e.nombre AS entidad_nombre, e.tipo, n.nombre AS nivel_gobierno, r.nombre AS region_nombre " +
+                    "FROM Presupuesto p " +
                          "INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id " +
+                    "INNER JOIN NivelGobierno n ON e.nivelGobiernoId = n.id " +
+                    "LEFT JOIN Region r ON e.regionId = r.id " +
                          "WHERE p.entidadPublicaId = ?";
             pstm = cn.prepareStatement(sql);
             pstm.setInt(1, entidadId);
@@ -116,7 +123,8 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 entidad.setId(rs.getInt("entidadPublicaId"));
                 entidad.setNombre(rs.getString("entidad_nombre"));
                 entidad.setTipo(rs.getString("tipo"));
-                entidad.setRegion(rs.getString("region"));
+                entidad.setRegion(rs.getString("region_nombre"));
+                entidad.setNivelGobierno(rs.getString("nivel_gobierno"));
                 
                 presupuesto.setEntidadPublica(entidad);
                 
@@ -159,8 +167,11 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 return lista;
             }
 
-            String sql = "SELECT p.*, e.nombre AS entidad_nombre, e.tipo, e.region FROM Presupuesto p " +
+            String sql = "SELECT p.*, e.nombre AS entidad_nombre, e.tipo, n.nombre AS nivel_gobierno, r.nombre AS region_nombre " +
+                    "FROM Presupuesto p " +
                          "INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id " +
+                    "INNER JOIN NivelGobierno n ON e.nivelGobiernoId = n.id " +
+                    "LEFT JOIN Region r ON e.regionId = r.id " +
                          "WHERE p.anio = ?";
             pstm = cn.prepareStatement(sql);
             pstm.setInt(1, anio);
@@ -177,7 +188,8 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 entidad.setId(rs.getInt("entidadPublicaId"));
                 entidad.setNombre(rs.getString("entidad_nombre"));
                 entidad.setTipo(rs.getString("tipo"));
-                entidad.setRegion(rs.getString("region"));
+                entidad.setRegion(rs.getString("region_nombre"));
+                entidad.setNivelGobierno(rs.getString("nivel_gobierno"));
                 
                 presupuesto.setEntidadPublica(entidad);
                 
@@ -220,8 +232,11 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 return null;
             }
 
-            String sql = "SELECT p.*, e.nombre AS entidad_nombre, e.tipo, e.region FROM Presupuesto p " +
+            String sql = "SELECT p.*, e.nombre AS entidad_nombre, e.tipo, n.nombre AS nivel_gobierno, r.nombre AS region_nombre " +
+                    "FROM Presupuesto p " +
                          "INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id " +
+                    "INNER JOIN NivelGobierno n ON e.nivelGobiernoId = n.id " +
+                    "LEFT JOIN Region r ON e.regionId = r.id " +
                          "WHERE p.id = ?";
             pstm = cn.prepareStatement(sql);
             pstm.setInt(1, id);
@@ -238,7 +253,8 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 entidad.setId(rs.getInt("entidadPublicaId"));
                 entidad.setNombre(rs.getString("entidad_nombre"));
                 entidad.setTipo(rs.getString("tipo"));
-                entidad.setRegion(rs.getString("region"));
+                entidad.setRegion(rs.getString("region_nombre"));
+                entidad.setNivelGobierno(rs.getString("nivel_gobierno"));
                 
                 presupuesto.setEntidadPublica(entidad);
             }
@@ -382,11 +398,7 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return resultado;
     }
 
-    /**
-     * Obtiene la evolución anual del presupuesto desde 2018 hasta la actualidad
-     *
-     * @return Lista de mapas con la información de evolución por año
-     */
+    @Override
     public List<Map<String, Object>> obtenerEvolucionAnual() {
         List<Map<String, Object>> evolucionAnual = new ArrayList<>();
 
@@ -440,11 +452,7 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return evolucionAnual;
     }
 
-    /**
-     * Obtiene los datos de proyectos con su presupuesto y avance
-     *
-     * @return Lista de proyectos con información presupuestal
-     */
+    @Override
     public List<Map<String, Object>> obtenerDatosProyectos() {
         List<Map<String, Object>> proyectos = new ArrayList<>();
 
@@ -529,11 +537,7 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return proyectos;
     }
 
-    /**
-     * Obtiene los datos de categorías de gasto con su presupuesto y porcentaje
-     *
-     * @return Lista de categorías con información presupuestal
-     */
+    @Override
     public List<Map<String, Object>> obtenerDatosCategorias() {
         List<Map<String, Object>> categorias = new ArrayList<>();
 
@@ -651,5 +655,95 @@ public class PresupuestoModelo implements PresupuestoInterface {
 
         // Ordenar por año
         evolucionAnual.sort((a, b) -> Integer.compare((Integer) a.get("anio"), (Integer) b.get("anio")));
+    }
+
+    @Override
+    public List<Map<String, Object>> obtenerEstadisticasPorNivel(int anio) {
+        List<Map<String, Object>> estadisticas = new ArrayList<>();
+        
+        Connection cn = null;
+        CallableStatement cstm = null;
+        ResultSet rs = null;
+        
+        try {
+            cn = MySQLConexion.getConexion();
+            
+            if (cn == null) {
+                return estadisticas;
+            }
+            
+            String sql = "CALL sp_estadisticas_por_nivel(?)";
+            cstm = cn.prepareCall(sql);
+            cstm.setInt(1, anio);
+            rs = cstm.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("nivel", rs.getString("nivel"));
+                item.put("presupuesto_total", rs.getBigDecimal("presupuesto_total"));
+                item.put("cantidad_entidades", rs.getInt("cantidad_entidades"));
+                estadisticas.add(item);
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Error en PresupuestoModelo.obtenerEstadisticasPorNivel: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (cstm != null) cstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                System.out.println("Error al cerrar conexiones: " + e.getMessage());
+            }
+        }
+        
+        return estadisticas;
+    }
+
+    @Override
+    public List<Map<String, Object>> obtenerPresupuestosPorNivelYAnio(int nivelId) {
+        List<Map<String, Object>> datos = new ArrayList<>();
+        
+        Connection cn = null;
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+        
+        try {
+            cn = MySQLConexion.getConexion();
+            
+            if (cn == null) {
+                return datos;
+            }
+            
+            String sql = "SELECT p.anio, SUM(p.montoTotal) as total " +
+                         "FROM Presupuesto p " +
+                         "INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id " +
+                         "WHERE e.nivelGobiernoId = ? " +
+                         "GROUP BY p.anio " +
+                         "ORDER BY p.anio";
+            pstm = cn.prepareStatement(sql);
+            pstm.setInt(1, nivelId);
+            rs = pstm.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("anio", rs.getInt("anio"));
+                item.put("total", rs.getBigDecimal("total"));
+                datos.add(item);
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Error en PresupuestoModelo.obtenerPresupuestosPorNivelYAnio: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstm != null) pstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                System.out.println("Error al cerrar conexiones: " + e.getMessage());
+            }
+        }
+        
+        return datos;
     }
 }

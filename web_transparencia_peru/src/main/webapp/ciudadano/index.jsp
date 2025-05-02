@@ -1,12 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="pe.gob.transparencia.entidades.CiudadanoEntidad" %>
 <%
-    // Verificar si el ciudadano está en sesión
-    CiudadanoEntidad ciudadano = (CiudadanoEntidad) session.getAttribute("ciudadano");
-    if (ciudadano == null) {
-        response.sendRedirect(request.getContextPath() + "/login_ciudadano.jsp?error=Debe iniciar sesión para acceder a esta área");
+    HttpSession sesion = request.getSession(false);
+    if (sesion == null || sesion.getAttribute("ciudadano") == null) {
+        // No está logueado como ciudadano, redirigir al login
+        response.sendRedirect(request.getContextPath() + "/login_unificado.jsp");
         return;
     }
+    CiudadanoEntidad ciudadano = (CiudadanoEntidad) sesion.getAttribute("ciudadano");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -68,7 +69,8 @@
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="<%= request.getContextPath() %>/ciudadano?accion=cerrar"><i
+                        <li><a class="dropdown-item"
+                               href="<%= request.getContextPath() %>/ciudadano.do?accion=cerrar"><i
                                 class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión</a></li>
                     </ul>
                 </li>
