@@ -95,7 +95,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="usuarios.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/admin.do?accion=listarUsuarios">
                             <i class="bi bi-people me-1"></i> Gestión de Usuarios
                         </a>
                     </li>
@@ -105,17 +105,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="ciudadanos.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/admin.do?accion=listarCiudadanos">
                             <i class="bi bi-person-badge me-1"></i> Ciudadanos
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="presupuestos.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/admin.do?accion=listarPresupuestos">
                             <i class="bi bi-cash-coin me-1"></i> Presupuestos
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="solicitudes.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/admin.do?accion=listarSolicitudes">
                             <i class="bi bi-file-earmark-text me-1"></i> Solicitudes
                         </a>
                     </li>
@@ -151,6 +151,20 @@
                 </div>
             </div>
 
+            <%
+                // Mostrar mensaje de redirección si existe
+                String mensaje = (String) session.getAttribute("mensaje");
+                if (mensaje != null && !mensaje.isEmpty()) {
+            %>
+            <div class="alert alert-warning fade-in" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> <%= mensaje %>
+            </div>
+            <%
+                    // Limpiar el mensaje después de mostrarlo
+                    session.removeAttribute("mensaje");
+                }
+            %>
+
             <div class="row">
                 <div class="col-md-4 mb-4">
                     <div class="card stat-card primary-border fade-in">
@@ -162,7 +176,8 @@
                                     </div>
                                     <h1 class="display-4">12</h1>
                                     <p class="card-text">Total de funcionarios y administradores.</p>
-                                    <a href="usuarios.jsp" class="btn btn-primary">Ver detalles</a>
+                                    <a href="<%= request.getContextPath() %>/admin.do?accion=listarUsuarios"
+                                       class="btn btn-primary">Ver detalles</a>
                                 </div>
                                 <div class="col-4 text-end">
                                     <i class="bi bi-people text-primary"></i>
@@ -181,7 +196,8 @@
                                     </div>
                                     <h1 class="display-4">847</h1>
                                     <p class="card-text">Total de ciudadanos registrados en el portal.</p>
-                                    <a href="ciudadanos.jsp" class="btn btn-primary">Ver detalles</a>
+                                    <a href="<%= request.getContextPath() %>/admin.do?accion=listarCiudadanos"
+                                       class="btn btn-primary">Ver detalles</a>
                                 </div>
                                 <div class="col-4 text-end">
                                     <i class="bi bi-person-badge text-success"></i>
@@ -200,7 +216,8 @@
                                     </div>
                                     <h1 class="display-4">15</h1>
                                     <p class="card-text">Solicitudes que requieren atención.</p>
-                                    <a href="solicitudes.jsp" class="btn btn-primary">Ver detalles</a>
+                                    <a href="<%= request.getContextPath() %>/admin.do?accion=listarSolicitudes"
+                                       class="btn btn-primary">Ver detalles</a>
                                 </div>
                                 <div class="col-4 text-end">
                                     <i class="bi bi-file-earmark-text text-warning"></i>

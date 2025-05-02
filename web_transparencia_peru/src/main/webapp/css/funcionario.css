@@ -1,0 +1,312 @@
+/* 
+* Portal de Transparencia Perú - Estilos Panel Funcionario
+* Diseño limpio, profesional y moderno específico para el panel funcionario
+*/
+
+/* Personalización del tema base para el panel de funcionario */
+:root {
+    /* Paleta de colores principal para funcionario */
+    --funcionario-primary: #3867d6; /* Azul océano */
+    --funcionario-secondary: #20bf6b; /* Verde esmeralda */
+    --funcionario-accent: #fa8231; /* Naranja coral */
+    --funcionario-dark: #2d3436; /* Gris carbón */
+    --funcionario-light: #dff9fb; /* Celeste pálido */
+    --funcionario-error: #eb3b5a; /* Rojo hibisco */
+}
+
+/* Estilos específicos para el panel funcionario */
+.funcionario-theme .navbar {
+    background: linear-gradient(135deg, var(--funcionario-primary), #1e3799);
+}
+
+.funcionario-theme .sidebar {
+    background-color: #f8fafd;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.funcionario-theme .sidebar .nav-link.active {
+    background-color: rgba(56, 103, 214, 0.1);
+    color: var(--funcionario-primary);
+    border-left: 3px solid var(--funcionario-primary);
+}
+
+.funcionario-theme .sidebar .nav-link:hover {
+    background-color: rgba(56, 103, 214, 0.05);
+    color: var(--funcionario-primary);
+}
+
+.funcionario-theme .card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.funcionario-theme .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.funcionario-theme .card-header {
+    background: var(--funcionario-primary);
+    color: white;
+    font-weight: 600;
+    border-bottom: none;
+}
+
+/* Botones y elementos de interfaz */
+.funcionario-theme .btn-primary {
+    background-color: var(--funcionario-primary);
+    border-color: var(--funcionario-primary);
+}
+
+.funcionario-theme .btn-primary:hover,
+.funcionario-theme .btn-primary:focus {
+    background-color: #2854c3;
+    border-color: #2854c3;
+}
+
+.funcionario-theme .btn-success {
+    background-color: var(--funcionario-secondary);
+    border-color: var(--funcionario-secondary);
+}
+
+.funcionario-theme .btn-success:hover,
+.funcionario-theme .btn-success:focus {
+    background-color: #1aaa5c;
+    border-color: #1aaa5c;
+}
+
+.funcionario-theme .btn-outline-primary {
+    color: var(--funcionario-primary);
+    border-color: var(--funcionario-primary);
+}
+
+.funcionario-theme .btn-outline-primary:hover {
+    background-color: var(--funcionario-primary);
+    color: white;
+}
+
+/* Banner de bienvenida */
+.funcionario-theme .welcome-banner {
+    background: linear-gradient(120deg, var(--funcionario-primary), #4b7bec);
+    color: white;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.funcionario-theme .welcome-banner h1 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.funcionario-theme .welcome-banner p {
+    font-weight: 400;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+/* Tarjetas de estadísticas */
+.funcionario-theme .stat-card {
+    overflow: hidden;
+    position: relative;
+}
+
+.funcionario-theme .stat-card .stat-icon {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 3rem;
+    opacity: 0.15;
+    color: var(--funcionario-primary);
+}
+
+.funcionario-theme .stat-card.primary-accent {
+    border-left: 5px solid var(--funcionario-primary);
+}
+
+.funcionario-theme .stat-card.secondary-accent {
+    border-left: 5px solid var(--funcionario-secondary);
+}
+
+.funcionario-theme .stat-card.warning-accent {
+    border-left: 5px solid var(--funcionario-accent);
+}
+
+.funcionario-theme .stat-card .title {
+    color: var(--funcionario-dark);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.funcionario-theme .stat-card .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--funcionario-primary);
+    margin-bottom: 0.5rem;
+}
+
+.funcionario-theme .stat-card.secondary-accent .value {
+    color: var(--funcionario-secondary);
+}
+
+.funcionario-theme .stat-card.warning-accent .value {
+    color: var(--funcionario-accent);
+}
+
+/* Tablas y DataTables */
+.funcionario-theme .table {
+    font-size: 0.95rem;
+    color: var(--funcionario-dark);
+}
+
+.funcionario-theme .table thead th {
+    background-color: rgba(56, 103, 214, 0.05);
+    color: var(--funcionario-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 0.75rem;
+    border-bottom: 2px solid rgba(56, 103, 214, 0.1);
+    vertical-align: middle;
+}
+
+.funcionario-theme .table tbody tr:hover {
+    background-color: rgba(56, 103, 214, 0.03);
+}
+
+.funcionario-theme .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.funcionario-theme .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--funcionario-primary) !important;
+    border-color: var(--funcionario-primary) !important;
+    color: white !important;
+    border-radius: 0.25rem;
+}
+
+.funcionario-theme .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: rgba(56, 103, 214, 0.1) !important;
+    border-color: transparent !important;
+}
+
+/* Componentes de formularios */
+.funcionario-theme .form-control {
+    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.funcionario-theme .form-control:focus {
+    border-color: var(--funcionario-primary);
+    box-shadow: 0 0 0 0.25rem rgba(56, 103, 214, 0.15);
+}
+
+.funcionario-theme .form-label {
+    font-weight: 600;
+    color: var(--funcionario-dark);
+    margin-bottom: 0.5rem;
+}
+
+.funcionario-theme .input-group-text {
+    background-color: rgba(56, 103, 214, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--funcionario-primary);
+}
+
+/* Componentes de notificación */
+.funcionario-theme .notification-badge {
+    position: relative;
+}
+
+.funcionario-theme .notification-badge::after {
+    content: attr(data-count);
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.6rem;
+    background: var(--funcionario-error);
+    color: white;
+    width: 1rem;
+    height: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.funcionario-theme .badge-pending {
+    background-color: var(--funcionario-accent);
+    color: white;
+}
+
+.funcionario-theme .badge-approved {
+    background-color: var(--funcionario-secondary);
+    color: white;
+}
+
+.funcionario-theme .badge-rejected {
+    background-color: var(--funcionario-error);
+    color: white;
+}
+
+/* Paneles acordeón */
+.funcionario-theme .accordion-button:not(.collapsed) {
+    background-color: rgba(56, 103, 214, 0.1);
+    color: var(--funcionario-primary);
+}
+
+.funcionario-theme .accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(56, 103, 214, 0.15);
+    border-color: rgba(56, 103, 214, 0.5);
+}
+
+/* Gráficos y visualizaciones */
+.funcionario-theme .chart-container {
+    height: 300px;
+    margin-bottom: 1.5rem;
+}
+
+/* Efectos de animación */
+@keyframes slide-in-left {
+    0% {
+        transform: translateX(-10px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.funcionario-theme .slide-in {
+    animation: slide-in-left 0.3s ease forwards;
+}
+
+/* Footer personalizado */
+.funcionario-theme .footer {
+    background: linear-gradient(to right, #f8fafd, #f5f7fa);
+    padding: 1.5rem 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .funcionario-theme .welcome-banner {
+        padding: 1.5rem;
+    }
+
+    .funcionario-theme .stat-card .value {
+        font-size: 1.5rem;
+    }
+
+    .funcionario-theme .chart-container {
+        height: 250px;
+    }
+}

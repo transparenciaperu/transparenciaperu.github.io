@@ -20,38 +20,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/funcionario.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
-    <style>
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            background-color: #f8f9fa;
-        }
-
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-
-        .navbar {
-            box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
-        }
-
-        main {
-            padding-top: 56px;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="funcionario-theme">
 <!-- Navbar superior -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container-fluid">
@@ -115,52 +88,138 @@
 
         <!-- Contenido principal -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom title-section">
-                <h1 class="h2">Panel de Funcionario</h1>
-                <div class="btn-toolbar">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip"
-                                data-bs-placement="bottom" title="Exportar datos">
-                            <i class="bi bi-download me-1"></i> Exportar
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip"
-                                data-bs-placement="bottom" title="Actualizar datos">
-                            <i class="bi bi-arrow-repeat me-1"></i> Actualizar
-                        </button>
+            <div class="welcome-banner fade-in">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1>Bienvenido(a), <%= usuario.getNombreCompleto().split(" ")[0] %>
+                        </h1>
+                        <p class="mb-4">Acceda a todas las herramientas para gestionar las solicitudes de transparencia
+                            y la información pública de su entidad.</p>
+                        <div class="d-grid gap-2 d-md-flex">
+                            <a href="solicitudes.jsp" class="btn btn-light btn-lg px-4 me-md-2">
+                                <i class="bi bi-envelope-open me-2"></i>Gestionar Solicitudes
+                            </a>
+                            <a href="transparencia.jsp" class="btn btn-outline-light btn-lg px-4">
+                                <i class="bi bi-file-earmark-text me-2"></i>Gestionar Documentos
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 d-none d-lg-block text-center">
+                        <i class="bi bi-clipboard-data" style="font-size: 8rem; opacity: 0.5;"></i>
                     </div>
                 </div>
             </div>
 
+            <%
+                // Mostrar mensaje de redirección si existe
+                String mensaje = (String) session.getAttribute("mensaje");
+                if (mensaje != null && !mensaje.isEmpty()) {
+            %>
+            <div class="alert alert-warning fade-in" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> <%= mensaje %>
+            </div>
+            <%
+                    // Limpiar el mensaje después de mostrarlo
+                    session.removeAttribute("mensaje");
+                }
+            %>
+
             <div class="row">
                 <div class="col-md-6 mb-4">
-                    <div class="card stat-card warning-border fade-in">
+                    <div class="card stat-card warning-accent fade-in">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-8">
-                                    <h5 class="card-title">Solicitudes Pendientes</h5>
-                                    <h1 class="display-4">8</h1>
+                                    <div class="title">Solicitudes Pendientes</div>
+                                    <div class="value">8</div>
                                     <p class="card-text">Solicitudes de información que requieren su atención.</p>
                                     <a href="solicitudes.jsp" class="btn btn-primary">Gestionar solicitudes</a>
                                 </div>
-                                <div class="col-4 text-end">
-                                    <i class="bi bi-envelope-exclamation text-warning"></i>
+                                <div class="col-4">
+                                    <i class="bi bi-envelope-exclamation stat-icon"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6 mb-4">
-                    <div class="card stat-card info-border fade-in">
+                    <div class="card stat-card secondary-accent fade-in">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-8">
-                                    <h5 class="card-title">Documentos de Transparencia</h5>
-                                    <h1 class="display-4">15</h1>
+                                    <div class="title">Documentos de Transparencia</div>
+                                    <div class="value">15</div>
                                     <p class="card-text">Documentos publicados por su entidad.</p>
                                     <a href="transparencia.jsp" class="btn btn-primary">Gestionar documentos</a>
                                 </div>
-                                <div class="col-4 text-end">
-                                    <i class="bi bi-file-earmark-text text-info"></i>
+                                <div class="col-4">
+                                    <i class="bi bi-file-earmark-text stat-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8 mb-4">
+                    <div class="card shadow fade-in">
+                        <div class="card-header py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold">Distribución de Solicitudes</h6>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button"
+                                            id="chartPeriodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Este Año
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="chartPeriodDropdown">
+                                        <li><a class="dropdown-item" href="#">Este Mes</a></li>
+                                        <li><a class="dropdown-item" href="#">Este Año</a></li>
+                                        <li><a class="dropdown-item" href="#">Todo el Tiempo</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="solicitudesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow fade-in">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold">Estado de Solicitudes</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="estadoSolicitudesChart"></canvas>
+                            </div>
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>Pendientes</span>
+                                    <span class="badge bg-warning">8</span>
+                                </div>
+                                <div class="progress mb-3" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 40%"
+                                         aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>En proceso</span>
+                                    <span class="badge bg-primary">5</span>
+                                </div>
+                                <div class="progress mb-3" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25"
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>Atendidas</span>
+                                    <span class="badge bg-success">7</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 35%"
+                                         aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
                         </div>
@@ -254,6 +313,102 @@
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Gráfico de solicitudes mensuales
+        var ctxSolicitudes = document.getElementById('solicitudesChart').getContext('2d');
+        var solicitudesChart = new Chart(ctxSolicitudes, {
+            type: 'line',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                datasets: [{
+                    label: 'Solicitudes Recibidas',
+                    data: [12, 19, 15, 17, 14, 23, 19, 24, 18, 16, 20, 15],
+                    backgroundColor: 'rgba(56, 103, 214, 0.1)',
+                    borderColor: '#3867d6',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#3867d6',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function (context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' solicitudes';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        grid: {
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de distribución de estados
+        var ctxEstados = document.getElementById('estadoSolicitudesChart').getContext('2d');
+        var estadosChart = new Chart(ctxEstados, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pendientes', 'En Proceso', 'Atendidas'],
+                datasets: [{
+                    data: [8, 5, 7],
+                    backgroundColor: [
+                        '#f59e0b', // Naranja para pendientes
+                        '#3867d6', // Azul para en proceso
+                        '#10b981'  // Verde para atendidas
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        // Validar enlaces dinámicamente
+        $('a').on('click', function (e) {
+            const href = $(this).attr('href');
+            if (href === '#' || href === 'javascript:void(0)') {
+                e.preventDefault();
+                alert('Esta funcionalidad estará disponible próximamente');
+            }
         });
     });
 </script>

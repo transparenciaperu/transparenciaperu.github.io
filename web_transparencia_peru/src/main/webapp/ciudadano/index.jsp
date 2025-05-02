@@ -18,9 +18,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/ciudadano.css">
 </head>
-<body>
+<body class="ciudadano-theme">
 <!-- Navbar superior -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container-fluid">
@@ -102,23 +104,48 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom title-section">
                 <h1 class="h2">Mi Panel Ciudadano</h1>
-                <div class="btn-toolbar">
-                    <div class="btn-group ms-2">
-                        <a href="<%= request.getContextPath() %>/index.jsp" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-house me-1"></i> Página Principal
-                        </a>
+            </div>
+
+            <div class="hero-banner fade-in">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1>Bienvenido(a), <%= ciudadano.getNombreCompleto().split(" ")[0] %>
+                        </h1>
+                        <p class="lead mb-4">Al Portal de Transparencia, donde puedes acceder a información pública y
+                            realizar solicitudes de acceso de manera fácil y rápida.</p>
+                        <div class="d-grid gap-2 d-md-flex">
+                            <a href="nueva_solicitud.jsp" class="btn btn-light btn-lg px-4 me-md-2">
+                                <i class="bi bi-plus-circle me-2"></i>Nueva Solicitud
+                            </a>
+                            <a href="presupuesto.jsp" class="btn btn-outline-light btn-lg px-4">
+                                <i class="bi bi-cash-coin me-2"></i>Ver Presupuesto
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 d-none d-lg-block">
+                        <img src="<%= request.getContextPath() %>/assets/img/transparency.svg" alt="Transparencia"
+                             class="img-fluid float-animation" style="max-height: 200px;">
                     </div>
                 </div>
             </div>
 
-            <div class="alert alert-info fade-in" role="alert">
-                <i class="bi bi-info-circle me-2"></i> Bienvenido(a) a su panel ciudadano. Desde aquí puede gestionar
-                sus solicitudes de acceso a la información.
+            <%
+                // Mostrar mensaje de redirección si existe
+                String mensaje = (String) session.getAttribute("mensaje");
+                if (mensaje != null && !mensaje.isEmpty()) {
+            %>
+            <div class="alert alert-warning fade-in" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> <%= mensaje %>
             </div>
+            <%
+                    // Limpiar el mensaje después de mostrarlo
+                    session.removeAttribute("mensaje");
+                }
+            %>
 
             <div class="row">
                 <div class="col-md-6 mb-4">
-                    <div class="card stat-card primary-border">
+                    <div class="card stat-card primary-border fade-in">
                         <div class="card-body">
                             <h5 class="card-title">Mis Solicitudes</h5>
                             <p>Estado de sus solicitudes de acceso a la información:</p>
@@ -142,7 +169,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 mb-4">
-                    <div class="card stat-card success-border">
+                    <div class="card stat-card success-border fade-in">
                         <div class="card-body">
                             <h5 class="card-title">Nueva Solicitud de Información</h5>
                             <p>Realice una nueva solicitud de acceso a la información pública.</p>
@@ -154,9 +181,87 @@
                 </div>
             </div>
 
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow mb-4 fade-in">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold">Accesos Rápidos</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-6 text-center">
+                                    <a href="presupuesto.jsp" class="text-decoration-none">
+                                        <div class="feature-icon mx-auto">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </div>
+                                        <h5>Presupuesto Público</h5>
+                                        <p class="text-muted">Consulta información detallada</p>
+                                    </a>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <a href="nueva_solicitud.jsp" class="text-decoration-none">
+                                        <div class="feature-icon mx-auto">
+                                            <i class="bi bi-file-plus"></i>
+                                        </div>
+                                        <h5>Nueva Solicitud</h5>
+                                        <p class="text-muted">Crea un nuevo requerimiento</p>
+                                    </a>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <a href="mis_solicitudes.jsp" class="text-decoration-none">
+                                        <div class="feature-icon mx-auto">
+                                            <i class="bi bi-list-check"></i>
+                                        </div>
+                                        <h5>Mis Solicitudes</h5>
+                                        <p class="text-muted">Revisa el estado de tus pedidos</p>
+                                    </a>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <a href="perfil.jsp" class="text-decoration-none">
+                                        <div class="feature-icon mx-auto">
+                                            <i class="bi bi-person"></i>
+                                        </div>
+                                        <h5>Mi Perfil</h5>
+                                        <p class="text-muted">Actualiza tu información</p>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow mb-4 fade-in">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold">Estado del Sistema</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Servidor Portal de Transparencia
+                                    <span class="badge bg-success rounded-pill">Activo</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Base de Datos
+                                    <span class="badge bg-success rounded-pill">Activo</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    API de Integración
+                                    <span class="badge bg-success rounded-pill">Activo</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Siguientes Mantenimientos Programados
+                                    <span class="text-muted small">30 de mayo, 2025 - 01:00-05:00 AM</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <h2 class="mt-4 mb-3">Últimas Solicitudes</h2>
-            <div class="table-responsive">
-                <table class="table table-striped table-sm" id="tablaSolicitudes">
+            <div class="table-responsive fade-in">
+                <table class="table table-striped" id="tablaSolicitudes">
                     <thead>
                     <tr>
                         <th>ID</th>

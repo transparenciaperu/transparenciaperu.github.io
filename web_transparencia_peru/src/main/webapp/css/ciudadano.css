@@ -1,0 +1,265 @@
+/* 
+* Portal de Transparencia Perú - Estilos Panel Ciudadano
+* Diseño limpio, profesional y moderno específico para el panel ciudadano
+*/
+
+/* Personalización del tema base para el panel de ciudadano */
+:root {
+    /* Paleta de colores principal para ciudadano */
+    --ciudadano-primary: #2e86de; /* Azul principal */
+    --ciudadano-secondary: #10ac84; /* Verde secundario */
+    --ciudadano-accent: #ff9f43; /* Naranja acento */
+    --ciudadano-dark: #1e3799; /* Azul oscuro */
+    --ciudadano-light: #54a0ff; /* Azul claro */
+    --ciudadano-error: #ee5253; /* Rojo error */
+}
+
+/* Estilos específicos para el panel ciudadano */
+.ciudadano-theme .navbar {
+    background: linear-gradient(to right, var(--ciudadano-dark), var(--ciudadano-primary));
+}
+
+.ciudadano-theme .sidebar {
+    background-color: #f8f9fc;
+}
+
+.ciudadano-theme .sidebar .nav-link.active {
+    background-color: rgba(46, 134, 222, 0.1);
+    color: var(--ciudadano-primary);
+    border-left: 3px solid var(--ciudadano-primary);
+}
+
+.ciudadano-theme .sidebar .nav-link:hover {
+    background-color: rgba(46, 134, 222, 0.05);
+    color: var(--ciudadano-primary);
+}
+
+.ciudadano-theme .card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.ciudadano-theme .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.ciudadano-theme .card-header {
+    background: var(--ciudadano-primary);
+    color: white;
+    font-weight: 600;
+}
+
+/* Estilos para elementos de la interfaz */
+.ciudadano-theme .btn-primary {
+    background-color: var(--ciudadano-primary);
+    border-color: var(--ciudadano-primary);
+}
+
+.ciudadano-theme .btn-primary:hover,
+.ciudadano-theme .btn-primary:focus {
+    background-color: var(--ciudadano-dark);
+    border-color: var(--ciudadano-dark);
+}
+
+.ciudadano-theme .btn-success {
+    background-color: var(--ciudadano-secondary);
+    border-color: var(--ciudadano-secondary);
+}
+
+.ciudadano-theme .btn-success:hover,
+.ciudadano-theme .btn-success:focus {
+    background-color: #0c9875;
+    border-color: #0c9875;
+}
+
+/* Estilos para componentes específicos */
+.ciudadano-theme .hero-banner {
+    background: linear-gradient(120deg, var(--ciudadano-light), var(--ciudadano-primary));
+    color: white;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.ciudadano-theme .hero-banner h1 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.ciudadano-theme .hero-banner p {
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+/* Stats */
+.ciudadano-theme .stat-card {
+    position: relative;
+    padding-left: 1rem;
+    overflow: hidden;
+}
+
+.ciudadano-theme .stat-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 4px;
+    background: var(--ciudadano-primary);
+}
+
+.ciudadano-theme .stat-card.success-border::before {
+    background: var(--ciudadano-secondary);
+}
+
+.ciudadano-theme .stat-card.warning-border::before {
+    background: var(--ciudadano-accent);
+}
+
+.ciudadano-theme .stat-card.danger-border::before {
+    background: var(--ciudadano-error);
+}
+
+.ciudadano-theme .stat-card .stat-icon {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 3rem;
+    opacity: 0.15;
+    color: var(--ciudadano-primary);
+}
+
+.ciudadano-theme .stat-card.success-border .stat-icon {
+    color: var(--ciudadano-secondary);
+}
+
+.ciudadano-theme .stat-card.warning-border .stat-icon {
+    color: var(--ciudadano-accent);
+}
+
+.ciudadano-theme .stat-card.danger-border .stat-icon {
+    color: var(--ciudadano-error);
+}
+
+/* Table styles */
+.ciudadano-theme .table {
+    font-size: 0.95rem;
+}
+
+.ciudadano-theme .table thead th {
+    background-color: rgba(46, 134, 222, 0.05);
+    color: var(--ciudadano-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.025em;
+    padding: 0.75rem;
+}
+
+.ciudadano-theme .table tbody tr:hover {
+    background-color: rgba(46, 134, 222, 0.03);
+}
+
+/* DataTables customization */
+.ciudadano-theme .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.ciudadano-theme .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--ciudadano-primary) !important;
+    border-color: var(--ciudadano-primary) !important;
+    color: white !important;
+}
+
+.ciudadano-theme .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: rgba(46, 134, 222, 0.1) !important;
+    border-color: transparent !important;
+}
+
+/* Badges */
+.ciudadano-theme .badge-pending {
+    background-color: var(--ciudadano-accent);
+}
+
+.ciudadano-theme .badge-success {
+    background-color: var(--ciudadano-secondary);
+}
+
+/* Gráficos y visualizaciones */
+.ciudadano-theme .chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 1.5rem;
+}
+
+.ciudadano-theme .chart-legends .legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.ciudadano-theme .chart-legends .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* Animaciones */
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.ciudadano-theme .float-animation {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Ajustes de iconos y elementos especiales */
+.ciudadano-theme .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 0.75rem;
+    background-color: rgba(46, 134, 222, 0.1);
+    color: var(--ciudadano-primary);
+    margin-bottom: 1.25rem;
+}
+
+.ciudadano-theme .feature-icon i {
+    font-size: 2rem;
+}
+
+/* Footer personalizado */
+.ciudadano-theme .footer {
+    background-color: #f8f9fc;
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.ciudadano-theme .footer-brand {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--ciudadano-dark);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ciudadano-theme .hero-banner {
+        padding: 1.5rem;
+    }
+
+    .ciudadano-theme .chart-container {
+        height: 250px;
+    }
+}

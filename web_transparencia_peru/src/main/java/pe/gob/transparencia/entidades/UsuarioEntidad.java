@@ -9,6 +9,8 @@ public class UsuarioEntidad {
     private int idPersona;
     private int idRol;
     private String clave;
+    private String correo;
+    private boolean activo;
 
     // Propiedades adicionales que no están en la tabla pero son útiles
     private String nombreCompleto;
@@ -26,16 +28,13 @@ public class UsuarioEntidad {
         this.clave = clave;
     }
 
-    // Constructor completo con propiedades adicionales
-    public UsuarioEntidad(int idUsuario, String codUsuario, int idPersona, int idRol, String clave, String nombreCompleto, String codRol, String descripRol) {
+    public UsuarioEntidad(int idUsuario, String codUsuario, String nombreCompleto, String correo, String codRol, boolean activo) {
         this.idUsuario = idUsuario;
         this.codUsuario = codUsuario;
-        this.idPersona = idPersona;
-        this.idRol = idRol;
-        this.clave = clave;
         this.nombreCompleto = nombreCompleto;
+        this.correo = correo;
         this.codRol = codRol;
-        this.descripRol = descripRol;
+        this.activo = activo;
     }
 
     public int getIdUsuario() {
@@ -102,6 +101,39 @@ public class UsuarioEntidad {
         this.descripRol = descripRol;
     }
 
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    // Métodos auxiliares para compatibilidad con el código del admin
+    public String getUsuario() {
+        return this.codUsuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.codUsuario = usuario;
+    }
+
+    public int getId() {
+        return this.idUsuario;
+    }
+
+    public void setId(int id) {
+        this.idUsuario = id;
+    }
+
     @Override
     public String toString() {
         return "UsuarioEntidad{" +
@@ -112,6 +144,8 @@ public class UsuarioEntidad {
                 ", nombreCompleto='" + nombreCompleto + '\'' +
                 ", codRol='" + codRol + '\'' +
                 ", descripRol='" + descripRol + '\'' +
+                ", correo='" + correo + '\'' +
+                ", activo=" + activo +
                 '}';
     }
 }
