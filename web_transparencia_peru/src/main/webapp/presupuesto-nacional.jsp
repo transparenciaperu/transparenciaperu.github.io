@@ -2,6 +2,12 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.List" %>
 <%@ page import="pe.gob.transparencia.modelo.PresupuestoModelo" %>
+<%@ page import="pe.gob.transparencia.entidades.EntidadPublicaEntidad" %>
+<%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="pe.gob.transparencia.entidades.PresupuestoEntidad" %>
+<%@ page import="pe.gob.transparencia.entidades.ProyectoEntidad" %>
+<%@ page import="java.math.BigDecimal" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -151,30 +157,59 @@
                             <div class="col-md-3">
                                 <div class="border-end border-2 pe-3">
                                     <p class="text-muted mb-0">Presupuesto Total</p>
-                                    <p class="stats-number mb-0">S/ 132,701 MM</p>
-                                    <small class="text-success"><i class="fas fa-caret-up"></i> +2.8% vs 2023</small>
+                                    <%
+                                        // Obtener presupuesto total del request
+                                        BigDecimal presupuestoTotal = (BigDecimal) request.getAttribute("presupuestoTotal");
+                                        NumberFormat formatoMoneda = NumberFormat.getInstance(new Locale("es", "PE"));
+                                        String presupuestoFormateado = formatoMoneda.format(presupuestoTotal.longValue() / 1000000) + " MM";
+
+                                        // Calcular variación con año anterior
+                                        BigDecimal variacionAnterior = (BigDecimal) request.getAttribute("variacionPresupuesto");
+                                        String signoVariacion = variacionAnterior.doubleValue() >= 0 ? "+" : "";
+                                        String claseVariacion = variacionAnterior.doubleValue() >= 0 ? "text-success" : "text-danger";
+                                        String iconoVariacion = variacionAnterior.doubleValue() >= 0 ? "fa-caret-up" : "fa-caret-down";
+                                    %>
+                                    <p class="stats-number mb-0">S/ <%= presupuestoFormateado %>
+                                    </p>
+                                    <small class="<%= claseVariacion %>"><i
+                                            class="fas <%= iconoVariacion %>"></i> <%= signoVariacion %><%= String.format("%.1f", variacionAnterior.doubleValue()) %>
+                                        % vs <%= (Integer) request.getAttribute("anioAnterior") %>
+                                    </small>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="border-end border-2 pe-3">
                                     <p class="text-muted mb-0">Ejecución</p>
-                                    <p class="stats-number mb-0">68.5%</p>
+                                    <%
+                                        Double porcentajeEjecucion = (Double) request.getAttribute("porcentajeEjecucion");
+                                        String ejecucionFormateada = String.format("%.1f", porcentajeEjecucion);
+                                    %>
+                                    <p class="stats-number mb-0"><%= ejecucionFormateada %>%</p>
                                     <div class="progress mt-1" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 68.5%"></div>
+                                        <div class="progress-bar" role="progressbar"
+                                             style="width: <%= porcentajeEjecucion %>%"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="border-end border-2 pe-3">
                                     <p class="text-muted mb-0">Entidades</p>
-                                    <p class="stats-number mb-0">90</p>
+                                    <%
+                                        Integer cantidadEntidades = (Integer) request.getAttribute("cantidadEntidades");
+                                    %>
+                                    <p class="stats-number mb-0"><%= cantidadEntidades %>
+                                    </p>
                                     <small class="text-muted">Ministerios y organismos</small>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div>
                                     <p class="text-muted mb-0">Proyectos</p>
-                                    <p class="stats-number mb-0">1,245</p>
+                                    <%
+                                        Integer cantidadProyectos = (Integer) request.getAttribute("cantidadProyectos");
+                                    %>
+                                    <p class="stats-number mb-0"><%= cantidadProyectos %>
+                                    </p>
                                     <small class="text-muted">En ejecución</small>
                                 </div>
                             </div>
@@ -217,61 +252,37 @@
                                 </tr>
                                 </thead>
                                 <tbody>
+                                <%
+                                    List<Map<String, Object>> distribucionMinisterios =
+                                            (List<Map<String, Object>>) request.getAttribute("distribucionMinisterios");
+
+                                    if (distribucionMinisterios != null && !distribucionMinisterios.isEmpty()) {
+                                        for (Map<String, Object> ministerio : distribucionMinisterios) {
+                                            String nombre = (String) ministerio.get("nombre");
+                                            BigDecimal monto = (BigDecimal) ministerio.get("monto");
+                                            Double porcentaje = (Double) ministerio.get("porcentaje");
+                                            Double ejecucion = (Double) ministerio.get("ejecucion");
+
+                                            String montoFormateado = formatoMoneda.format(monto.longValue() / 1000000);
+                                %>
                                 <tr>
-                                    <td>Educación</td>
-                                    <td>32,580</td>
-                                    <td>24.6%</td>
+                                    <td><%= nombre %>
+                                    </td>
+                                    <td><%= montoFormateado %>
+                                    </td>
+                                    <td><%= String.format("%.1f", porcentaje) %>%</td>
                                     <td>
                                         <div class="progress" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 72%"></div>
+                                            <div class="progress-bar" role="progressbar"
+                                                 style="width: <%= ejecucion %>%"></div>
                                         </div>
-                                        <small>72%</small>
+                                        <small><%= String.format("%.0f", ejecucion) %>%</small>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td>Economía y Finanzas</td>
-                                    <td>42,500</td>
-                                    <td>32.0%</td>
-                                    <td>
-                                        <div class="progress" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 84%"></div>
-                                        </div>
-                                        <small>84%</small>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Salud</td>
-                                    <td>24,300</td>
-                                    <td>18.3%</td>
-                                    <td>
-                                        <div class="progress" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 68%"></div>
-                                        </div>
-                                        <small>68%</small>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Transportes y Comunicaciones</td>
-                                    <td>9,250</td>
-                                    <td>7.0%</td>
-                                    <td>
-                                        <div class="progress" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 62%"></div>
-                                        </div>
-                                        <small>62%</small>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Interior</td>
-                                    <td>10,150</td>
-                                    <td>7.7%</td>
-                                    <td>
-                                        <div class="progress" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 78%"></div>
-                                        </div>
-                                        <small>78%</small>
-                                    </td>
-                                </tr>
+                                <%
+                                        }
+                                    }
+                                %>
                                 </tbody>
                             </table>
                         </div>
@@ -333,74 +344,55 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                <%
+                                    List<Map<String, Object>> proyectos =
+                                            (List<Map<String, Object>>) request.getAttribute("proyectos");
+
+                                    if (proyectos != null && !proyectos.isEmpty()) {
+                                        for (Map<String, Object> proyecto : proyectos) {
+                                            String nombre = (String) proyecto.get("nombre");
+                                            String entidad = (String) proyecto.get("entidadNombre");
+                                            BigDecimal presupuesto = (BigDecimal) proyecto.get("presupuestoAsignado");
+                                            Double avance = (Double) proyecto.get("avanceFisico");
+                                            String estado = (String) proyecto.get("estado");
+                                            Integer proyectoId = (Integer) proyecto.get("id");
+
+                                            String presupuestoStr = "S/ " + formatoMoneda.format(presupuesto) + " millones";
+                                            String badgeClass = "bg-success";
+                                            if ("Planificado".equalsIgnoreCase(estado)) {
+                                                badgeClass = "bg-info";
+                                            } else if ("Paralizado".equalsIgnoreCase(estado)) {
+                                                badgeClass = "bg-danger";
+                                            } else if ("Finalizado".equalsIgnoreCase(estado)) {
+                                                badgeClass = "bg-secondary";
+                                            }
+                                %>
                                     <tr>
-                                        <td>Ampliación del sistema de agua potable en zonas urbano-marginales</td>
-                                        <td>Ministerio de Vivienda</td>
-                                        <td>S/ 520 millones</td>
+                                        <td><%= nombre %>
+                                        </td>
+                                        <td><%= entidad %>
+                                        </td>
+                                        <td><%= presupuestoStr %>
+                                        </td>
                                         <td>
                                             <div class="progress" style="height: 5px;">
-                                                <div class="progress-bar" role="progressbar" style="width: 48%"></div>
+                                                <div class="progress-bar" role="progressbar"
+                                                     style="width: <%= avance %>%"></div>
                                             </div>
-                                            <small>48%</small>
+                                            <small><%= String.format("%.0f", avance) %>%</small>
                                         </td>
-                                        <td><span class="badge bg-success">En ejecución</span></td>
+                                        <td><span class="badge <%= badgeClass %>"><%= estado %></span></td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary">
+                                            <a href="ServletPresupuesto?accion=detalleProyecto&id=<%= proyectoId %>"
+                                               class="btn btn-sm btn-primary">
                                                 <i class="fas fa-info-circle"></i>
-                                            </button>
+                                            </a>
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <td>Programa Nacional de Infraestructura Educativa</td>
-                                        <td>Ministerio de Educación</td>
-                                        <td>S/ 1,250 millones</td>
-                                        <td>
-                                            <div class="progress" style="height: 5px;">
-                                                <div class="progress-bar" role="progressbar" style="width: 35%"></div>
-                                            </div>
-                                            <small>35%</small>
-                                        </td>
-                                        <td><span class="badge bg-success">En ejecución</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary">
-                                                <i class="fas fa-info-circle"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Modernización de hospitales regionales</td>
-                                        <td>Ministerio de Salud</td>
-                                        <td>S/ 780 millones</td>
-                                        <td>
-                                            <div class="progress" style="height: 5px;">
-                                                <div class="progress-bar" role="progressbar" style="width: 52%"></div>
-                                            </div>
-                                            <small>52%</small>
-                                        </td>
-                                        <td><span class="badge bg-success">En ejecución</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary">
-                                                <i class="fas fa-info-circle"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Mejoramiento de la red vial nacional</td>
-                                        <td>Ministerio de Transportes</td>
-                                        <td>S/ 1,420 millones</td>
-                                        <td>
-                                            <div class="progress" style="height: 5px;">
-                                                <div class="progress-bar" role="progressbar" style="width: 65%"></div>
-                                            </div>
-                                            <small>65%</small>
-                                        </td>
-                                        <td><span class="badge bg-success">En ejecución</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary">
-                                                <i class="fas fa-info-circle"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
+                                <%
+                                        }
+                                    }
+                                %>
                                 </tbody>
                             </table>
                         </div>

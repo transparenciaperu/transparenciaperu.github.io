@@ -1,5 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="pe.gob.transparencia.entidades.CiudadanoEntidad" %>
+<%@ page import="java.sql.*" %>
+<%@ page import="pe.gob.transparencia.util.ConexionBD" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
 <%
     HttpSession sesion = request.getSession(false);
     if (sesion == null || sesion.getAttribute("ciudadano") == null) {
@@ -8,6 +14,83 @@
         return;
     }
     CiudadanoEntidad ciudadano = (CiudadanoEntidad) sesion.getAttribute("ciudadano");
+
+    // Conexión a la base de datos para obtener datos dinámicos
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+
+    // Datos para las estadísticas de solicitudes
+    int solicitudesPendientes = 0;
+    int solicitudesEnProceso = 0;
+    int solicitudesAtendidas = 0;
+
+    // Lista para almacenar las últimas solicitudes
+    List<Map<String, Object>> ultimasSolicitudes = new ArrayList<>();
+
+    try {
+        conn = ConexionBD.getConexion();
+
+        // Obtener estadísticas de solicitudes
+        String sqlEstadisticas = "SELECT e.nombre, COUNT(s.id) as cantidad " +
+                "FROM SolicitudAcceso s " +
+                "JOIN EstadoSolicitud e ON s.estadoSolicitudId = e.id " +
+                "WHERE s.ciudadanoId = ? " +
+                "GROUP BY e.nombre";
+
+        pstmt = conn.prepareStatement(sqlEstadisticas);
+        pstmt.setInt(1, ciudadano.getId());
+        rs = pstmt.executeQuery();
+
+        while (rs.next()) {
+            String estado = rs.getString("nombre");
+            int cantidad = rs.getInt("cantidad");
+
+            if (estado.equals("Pendiente")) {
+                solicitudesPendientes = cantidad;
+            } else if (estado.equals("En Proceso")) {
+                solicitudesEnProceso = cantidad;
+            } else if (estado.equals("Atendida")) {
+                solicitudesAtendidas = cantidad;
+            }
+        }
+
+        // Obtener las últimas solicitudes
+        String sqlUltimasSolicitudes = "SELECT s.id, s.fechaSolicitud, e.nombre as entidad, " +
+                "s.descripcion, es.nombre as estado, s.fechaRespuesta " +
+                "FROM SolicitudAcceso s " +
+                "JOIN EstadoSolicitud es ON s.estadoSolicitudId = es.id " +
+                "JOIN EntidadPublica e ON s.entidadPublicaId = e.id " +
+                "WHERE s.ciudadanoId = ? " +
+                "ORDER BY s.fechaSolicitud DESC LIMIT 3";
+
+        pstmt = conn.prepareStatement(sqlUltimasSolicitudes);
+        pstmt.setInt(1, ciudadano.getId());
+        rs = pstmt.executeQuery();
+
+        while (rs.next()) {
+            Map<String, Object> solicitud = new HashMap<>();
+            solicitud.put("id", rs.getInt("id"));
+            solicitud.put("fecha", rs.getDate("fechaSolicitud"));
+            solicitud.put("entidad", rs.getString("entidad"));
+            solicitud.put("descripcion", rs.getString("descripcion"));
+            solicitud.put("estado", rs.getString("estado"));
+            solicitud.put("fechaRespuesta", rs.getDate("fechaRespuesta"));
+
+            ultimasSolicitudes.add(solicitud);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -153,13 +236,13 @@
                                 <div class="col-6">
                                     <div class="d-flex align-items-center">
                                         <div class="badge bg-warning me-2">P</div>
-                                        <div>Pendientes <span class="fw-bold">3</span></div>
+                                        <div>Pendientes <span class="fw-bold"><%= solicitudesPendientes %></span></div>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="d-flex align-items-center">
                                         <div class="badge bg-success me-2">A</div>
-                                        <div>Atendidas <span class="fw-bold">7</span></div>
+                                        <div>Atendidas <span class="fw-bold"><%= solicitudesAtendidas %></span></div>
                                     </div>
                                 </div>
                             </div>
@@ -273,30 +356,43 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <%
+                        // Mostrar las últimas solicitudes obtenidas de la base de datos
+                        for (Map<String, Object> solicitud : ultimasSolicitudes) {
+                            String estado = (String) solicitud.get("estado");
+                            String badgeClass = "bg-warning"; // Por defecto
+
+                            if (estado.equalsIgnoreCase("Atendida")) {
+                                badgeClass = "bg-success";
+                            } else if (estado.equalsIgnoreCase("En Proceso")) {
+                                badgeClass = "bg-primary";
+                            } else if (estado.equalsIgnoreCase("Rechazada")) {
+                                badgeClass = "bg-danger";
+                            }
+                    %>
                     <tr>
-                        <td>1018</td>
-                        <td>2024-04-28</td>
-                        <td>Ministerio de Educación</td>
-                        <td>Solicitud de información sobre programas de becas estudiantiles</td>
-                        <td><span class="badge bg-warning">Pendiente</span></td>
-                        <td><a href="solicitud_detalle.jsp?id=1018" class="btn btn-sm btn-primary">Ver detalle</a></td>
+                        <td><%= solicitud.get("id") %>
+                        </td>
+                        <td><%= solicitud.get("fecha") %>
+                        </td>
+                        <td><%= solicitud.get("entidad") %>
+                        </td>
+                        <td><%= solicitud.get("descripcion").toString().length() > 70 ? solicitud.get("descripcion").toString().substring(0, 70) + "..." : solicitud.get("descripcion") %>
+                        </td>
+                        <td><span class="badge <%= badgeClass %>"><%= estado %></span></td>
+                        <td><a href="solicitud_detalle.jsp?id=<%= solicitud.get("id") %>"
+                               class="btn btn-sm btn-primary">Ver detalle</a></td>
                     </tr>
+                    <% } %>
+
+                    <%
+                        // Si no hay solicitudes, mostrar mensaje
+                        if (ultimasSolicitudes.isEmpty()) {
+                    %>
                     <tr>
-                        <td>1017</td>
-                        <td>2024-04-15</td>
-                        <td>Municipalidad de Lima</td>
-                        <td>Solicitud de planos urbanos del distrito de San Isidro</td>
-                        <td><span class="badge bg-success">Atendida</span></td>
-                        <td><a href="solicitud_detalle.jsp?id=1017" class="btn btn-sm btn-primary">Ver detalle</a></td>
+                        <td colspan="6" class="text-center">No hay solicitudes registradas</td>
                     </tr>
-                    <tr>
-                        <td>1016</td>
-                        <td>2024-03-22</td>
-                        <td>Ministerio de Salud</td>
-                        <td>Solicitud de información sobre campañas de vacunación</td>
-                        <td><span class="badge bg-success">Atendida</span></td>
-                        <td><a href="solicitud_detalle.jsp?id=1016" class="btn btn-sm btn-primary">Ver detalle</a></td>
-                    </tr>
+                    <% } %>
                     </tbody>
                 </table>
             </div>

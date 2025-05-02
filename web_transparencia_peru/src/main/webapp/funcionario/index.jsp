@@ -1,5 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="pe.gob.transparencia.entidades.UsuarioEntidad" %>
+<%@ page import="java.sql.*" %>
+<%@ page import="pe.gob.transparencia.util.ConexionBD" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.LinkedHashMap" %>
 <%
     // Verificar si el usuario está en sesión y es funcionario
     HttpSession sesion = request.getSession(false);
@@ -9,6 +16,111 @@
         return;
     }
     UsuarioEntidad usuario = (UsuarioEntidad) sesion.getAttribute("usuario");
+
+    // Variables para estadísticas y datos de gráficos
+    int solicitudesPendientes = 0;
+    int solicitudesEnProceso = 0;
+    int solicitudesAtendidas = 0;
+
+    // Mapas para almacenar datos de gráficos
+    Map<String, Integer> datosSolicitudesMensuales = new LinkedHashMap<>();
+
+    // Obtener la entidad del funcionario (simulación)
+    int entidadFuncionarioId = 2; // En un caso real, esto vendría de la sesión del usuario
+    int anioActual = 2024; // En un caso real, sería el año actual
+
+    // Conexión a la base de datos
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+
+    try {
+        conn = ConexionBD.getConexion();
+
+        // Obtener estadísticas de solicitudes
+        String sqlEstadisticas = "SELECT es.nombre, COUNT(s.id) AS cantidad " +
+                "FROM SolicitudAcceso s " +
+                "JOIN EstadoSolicitud es ON s.estadoSolicitudId = es.id " +
+                "WHERE s.entidadPublicaId = ? " +
+                "GROUP BY es.nombre";
+
+        pstmt = conn.prepareStatement(sqlEstadisticas);
+        pstmt.setInt(1, entidadFuncionarioId);
+        rs = pstmt.executeQuery();
+
+        while (rs.next()) {
+            String estado = rs.getString("nombre");
+            int cantidad = rs.getInt("cantidad");
+
+            if (estado.equalsIgnoreCase("Pendiente")) {
+                solicitudesPendientes = cantidad;
+            } else if (estado.equalsIgnoreCase("En Proceso")) {
+                solicitudesEnProceso = cantidad;
+            } else if (estado.equalsIgnoreCase("Atendida")) {
+                solicitudesAtendidas = cantidad;
+            }
+        }
+
+        // Obtener datos para el gráfico de solicitudes mensuales
+        String sqlGrafico = "SELECT periodo, totalSolicitudes " +
+                "FROM EstadisticasSolicitudes " +
+                "WHERE entidadId = ? AND anio = ? " +
+                "ORDER BY mes";
+
+        pstmt = conn.prepareStatement(sqlGrafico);
+        pstmt.setInt(1, entidadFuncionarioId);
+        pstmt.setInt(2, anioActual);
+        rs = pstmt.executeQuery();
+
+        // Inicializar todos los meses con 0 para asegurar que tenemos datos para todos los meses
+        String[] meses = {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
+        for (String mes : meses) {
+            datosSolicitudesMensuales.put(mes, 0);
+        }
+
+        // Llenar con los datos de la base de datos
+        while (rs.next()) {
+            String periodo = rs.getString("periodo"); // Formato: 'ENE-2024'
+            int totalSolicitudes = rs.getInt("totalSolicitudes");
+
+            // Extraer el mes del periodo (primeras 3 letras)
+            String mes = periodo.substring(0, 3);
+            // Convertir a formato de título (primera letra mayúscula, resto minúsculas)
+            mes = mes.substring(0, 1) + mes.substring(1).toLowerCase();
+
+            // Actualizar el mapa
+            datosSolicitudesMensuales.put(mes, totalSolicitudes);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Convertir datos del gráfico a formato JSON para JavaScript
+    StringBuilder labelsJSON = new StringBuilder("[");
+    StringBuilder dataJSON = new StringBuilder("[");
+
+    boolean first = true;
+    for (Map.Entry<String, Integer> entry : datosSolicitudesMensuales.entrySet()) {
+        if (!first) {
+            labelsJSON.append(", ");
+            dataJSON.append(", ");
+        }
+        labelsJSON.append("'").append(entry.getKey()).append("'");
+        dataJSON.append(entry.getValue());
+        first = false;
+    }
+
+    labelsJSON.append("]");
+    dataJSON.append("]");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -131,7 +243,8 @@
                             <div class="row">
                                 <div class="col-8">
                                     <div class="title">Solicitudes Pendientes</div>
-                                    <div class="value">8</div>
+                                    <div class="value"><%= solicitudesPendientes %>
+                                    </div>
                                     <p class="card-text">Solicitudes de información que requieren su atención.</p>
                                     <a href="solicitudes.jsp" class="btn btn-primary">Gestionar solicitudes</a>
                                 </div>
@@ -199,27 +312,33 @@
                             <div class="mt-3">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span>Pendientes</span>
-                                    <span class="badge bg-warning">8</span>
+                                    <span class="badge bg-warning"><%= solicitudesPendientes %></span>
                                 </div>
                                 <div class="progress mb-3" style="height: 8px;">
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 40%"
-                                         aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="progress-bar bg-warning" role="progressbar"
+                                         style="width: <%= 100.0 * solicitudesPendientes / (solicitudesPendientes + solicitudesEnProceso + solicitudesAtendidas) %>%"
+                                         aria-valuenow="<%= solicitudesPendientes %>" aria-valuemin="0"
+                                         aria-valuemax="100"></div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span>En proceso</span>
-                                    <span class="badge bg-primary">5</span>
+                                    <span class="badge bg-primary"><%= solicitudesEnProceso %></span>
                                 </div>
                                 <div class="progress mb-3" style="height: 8px;">
-                                    <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25"
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width: <%= 100.0 * solicitudesEnProceso / (solicitudesPendientes + solicitudesEnProceso + solicitudesAtendidas) %>%"
+                                         aria-valuenow="<%= solicitudesEnProceso %>"
                                          aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span>Atendidas</span>
-                                    <span class="badge bg-success">7</span>
+                                    <span class="badge bg-success"><%= solicitudesAtendidas %></span>
                                 </div>
                                 <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: 35%"
-                                         aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                         style="width: <%= 100.0 * solicitudesAtendidas / (solicitudesPendientes + solicitudesEnProceso + solicitudesAtendidas) %>%"
+                                         aria-valuenow="<%= solicitudesAtendidas %>" aria-valuemin="0"
+                                         aria-valuemax="100"></div>
                                 </div>
                             </div>
                         </div>
@@ -315,15 +434,15 @@
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
 
-        // Gráfico de solicitudes mensuales
+        // Gráfico de solicitudes mensuales con datos de la base de datos
         var ctxSolicitudes = document.getElementById('solicitudesChart').getContext('2d');
         var solicitudesChart = new Chart(ctxSolicitudes, {
             type: 'line',
             data: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                labels: <%= labelsJSON.toString() %>,
                 datasets: [{
                     label: 'Solicitudes Recibidas',
-                    data: [12, 19, 15, 17, 14, 23, 19, 24, 18, 16, 20, 15],
+                    data: <%= dataJSON.toString() %>,
                     backgroundColor: 'rgba(56, 103, 214, 0.1)',
                     borderColor: '#3867d6',
                     borderWidth: 2,
@@ -369,14 +488,14 @@
             }
         });
 
-        // Gráfico de distribución de estados
+        // Gráfico de distribución de estados con datos dinámicos
         var ctxEstados = document.getElementById('estadoSolicitudesChart').getContext('2d');
         var estadosChart = new Chart(ctxEstados, {
             type: 'doughnut',
             data: {
                 labels: ['Pendientes', 'En Proceso', 'Atendidas'],
                 datasets: [{
-                    data: [8, 5, 7],
+                    data: [<%= solicitudesPendientes %>, <%= solicitudesEnProceso %>, <%= solicitudesAtendidas %>],
                     backgroundColor: [
                         '#f59e0b', // Naranja para pendientes
                         '#3867d6', // Azul para en proceso

@@ -2,7 +2,11 @@ package pe.gob.transparencia.entidades;
 
 import java.util.Date;
 
+/**
+ * Clase entidad que representa a un ciudadano en el sistema
+ */
 public class CiudadanoEntidad {
+
     private int id;
     private String nombres;
     private String apellidos;
@@ -11,12 +15,19 @@ public class CiudadanoEntidad {
     private String telefono;
     private String direccion;
     private Date fechaRegistro;
-    private String password;
+    private String password; // Solo para uso en registro y login, no se debe retornar en consultas
 
+    /**
+     * Constructor por defecto
+     */
     public CiudadanoEntidad() {
     }
 
-    public CiudadanoEntidad(int id, String nombres, String apellidos, String dni, String correo) {
+    /**
+     * Constructor completo
+     */
+    public CiudadanoEntidad(int id, String nombres, String apellidos, String dni, String correo,
+                            String telefono, String direccion, Date fechaRegistro) {
         this.id = id;
         this.nombres = nombres;
         this.apellidos = apellidos;

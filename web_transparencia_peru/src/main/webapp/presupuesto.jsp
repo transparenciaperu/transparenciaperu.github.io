@@ -1278,6 +1278,10 @@
             // Preparar datos comunes para los gráficos
             const entidades = [];
             const montos = [];
+            const sectorDistribucion = ['Educación', 'Salud', 'Transporte', 'Vivienda', 'Defensa', 'Otros'];
+            const porcentajeSector = [19.6, 11.4, 10.8, 8.5, 7.3, 42.4];
+            const añosEvolucion = ['2020', '2021', '2022', '2023', '2024'];
+            const montosEvolucion = [120, 135, 145, 160, 180];
             const backgroundColor = [
                 'rgba(54, 162, 235, 0.7)',
                 'rgba(75, 192, 192, 0.7)',
@@ -1449,107 +1453,118 @@
             function initRegionesChart() {
                 if (!chartContainers.regiones) return;
 
-                const ctxRegiones = chartContainers.regiones.getContext('2d');
-                charts.regiones = new Chart(ctxRegiones, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Lima', 'Arequipa', 'Cusco', 'La Libertad', 'Piura'],
-                        datasets: [{
-                            label: 'Presupuesto per cápita (S/)',
-                            data: [3500, 2800, 2100, 1800, 1500],
-                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                            borderColor: 'rgb(54, 162, 235)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
+                try {
+                    const ctxRegiones = chartContainers.regiones.getContext('2d');
+                    charts.regiones = new Chart(ctxRegiones, {
+                        type: 'bar',
+                        data: {
+                            labels: regionesNombres,
+                            datasets: [{
+                                label: 'Presupuesto per cápita (S/)',
+                                data: regionesPresupuestoPerCapita,
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                borderColor: 'rgb(54, 162, 235)',
+                                borderWidth: 1
+                            }]
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function (value) {
-                                        return 'S/ ' + value;
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function (value) {
+                                            return 'S/ ' + value;
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                } catch (error) {
+                    console.error('Error al inicializar gráfico de regiones:', error);
+                    showChartError('regiones');
+                }
             }
 
             // Gráfico de Evolución Anual
             function initAnualChart() {
                 if (!chartContainers.anual) return;
 
-                const ctxAnual = chartContainers.anual.getContext('2d');
-                charts.anual = new Chart(ctxAnual, {
-                    type: 'line',
-                    data: {
-                        labels: ['2018', '2019', '2020', '2021', '2022', '2023', '2024'],
-                        datasets: [{
-                            label: 'Presupuesto Total (Miles de millones S/)',
-                            data: [157.2, 168.1, 177.4, 183.0, 197.0, 214.8, 230.4],
-                            borderColor: 'rgb(54, 162, 235)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function (context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
+                try {
+                    const ctxAnual = chartContainers.anual.getContext('2d');
+                    charts.anual = new Chart(ctxAnual, {
+                        type: 'line',
+                        data: {
+                            labels: añosEvolucion,
+                            datasets: [{
+                                label: 'Presupuesto Total (Miles de millones S/)',
+                                data: montosEvolucion,
+                                borderColor: 'rgb(54, 162, 235)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += 'S/ ' + context.parsed.y.toLocaleString('es-PE') + ' mil millones';
+                                            }
+                                            return label;
                                         }
-                                        if (context.parsed.y !== null) {
-                                            label += 'S/ ' + context.parsed.y.toLocaleString('es-PE') + ' mil millones';
-                                        }
-                                        return label;
                                     }
                                 }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    callback: function (value) {
-                                        return 'S/ ' + value;
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    ticks: {
+                                        callback: function (value) {
+                                            return 'S/ ' + value;
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                } catch (error) {
+                    console.error('Error al inicializar gráfico anual:', error);
+                    showChartError('anual');
+                }
             }
 
             // Gráfico de Distribución por sectores
             function initDistribucionChart() {
                 if (!chartContainers.distribucion) return;
 
-                const ctxDistribucion = chartContainers.distribucion.getContext('2d');
-                charts.distribucion = new Chart(ctxDistribucion, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Educación', 'Salud', 'Transporte', 'Vivienda', 'Defensa', 'Otros'],
-                        datasets: [{
-                            label: 'Distribución del Presupuesto',
-                            data: [19.6, 11.4, 10.8, 8.5, 7.3, 42.4],
-                            backgroundColor: backgroundColor,
-                            borderColor: borderColor,
-                            borderWidth: 1
+                try {
+                    const ctxDistribucion = chartContainers.distribucion.getContext('2d');
+                    charts.distribucion = new Chart(ctxDistribucion, {
+                        type: 'doughnut',
+                        data: {
+                            labels: sectorDistribucion,
+                            datasets: [{
+                                label: 'Distribución del Presupuesto',
+                                data: porcentajeSector,
+                                backgroundColor: backgroundColor,
+                                borderColor: borderColor,
+                                borderWidth: 1
                         }]
                     },
                     options: {
@@ -1576,6 +1591,10 @@
                         }
                     }
                 });
+                } catch (error) {
+                    console.error('Error al inicializar gráfico de distribución:', error);
+                    showChartError('distribucion');
+                }
             }
 
             // Gráfico de Proyectos

@@ -240,6 +240,7 @@
             List<Map<String, Object>> datosPorAnio = (List<Map<String, Object>>) request.getAttribute("datosPorAnio");
             List<EntidadPublicaEntidad> entidades = (List<EntidadPublicaEntidad>) request.getAttribute("entidades");
             List<RegionEntidad> regiones = (List<RegionEntidad>) request.getAttribute("regiones");
+            List<Map<String, Object>> topRegiones = (List<Map<String, Object>>) request.getAttribute("topRegiones");
         %>
 
         <!-- Estadísticas Generales -->
@@ -394,26 +395,23 @@
                             <div class="col-md-4">
                                 <h5 class="mb-3">Top 5 Regiones con Mayor Presupuesto</h5>
                                 <ul class="list-group">
+                                    <%
+                                        if (topRegiones != null && !topRegiones.isEmpty()) {
+                                            for (int i = 0; i < topRegiones.size(); i++) {
+                                                Map<String, Object> region = topRegiones.get(i);
+                                    %>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Lima
-                                        <span class="badge bg-primary rounded-pill">S/ 1,500,000,000</span>
+                                        <%= region.get("nombre") %>
+                                        <span class="badge bg-primary rounded-pill">S/ <%= currencyFormatter.format(region.get("presupuesto")) %></span>
                                     </li>
+                                    <%
+                                        }
+                                    } else {
+                                    %>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Arequipa
-                                        <span class="badge bg-primary rounded-pill">S/ 950,000,000</span>
+                                        No hay datos disponibles
                                     </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        La Libertad
-                                        <span class="badge bg-primary rounded-pill">S/ 780,000,000</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Cusco
-                                        <span class="badge bg-primary rounded-pill">S/ 700,000,000</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Piura
-                                        <span class="badge bg-primary rounded-pill">S/ 650,000,000</span>
-                                    </li>
+                                    <% } %>
                                 </ul>
                             </div>
                         </div>
@@ -437,8 +435,8 @@
                                         <th scope="col">#</th>
                                         <th scope="col">Entidad</th>
                                         <th scope="col">Región</th>
-                                        <th scope="col">Contacto</th>
-                                        <th scope="col">Sitio Web</th>
+                                        <th scope="col">Dirección</th>
+                                        <th scope="col">Nivel</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -450,23 +448,11 @@
                                     <tr>
                                         <th scope="row"><%= contador++ %></th>
                                         <td><%= entidad.getNombre() %></td>
-                                        <td><%= entidad.getNombreRegion() != null ? entidad.getNombreRegion() : "-" %></td>
-                                        <td>
-                                            <% if (entidad.getTelefono() != null && !entidad.getTelefono().isEmpty()) { %>
-                                                <i class="fas fa-phone me-1"></i> <%= entidad.getTelefono() %><br>
-                                            <% } %>
-                                            <% if (entidad.getEmail() != null && !entidad.getEmail().isEmpty()) { %>
-                                                <i class="fas fa-envelope me-1"></i> <%= entidad.getEmail() %>
-                                            <% } %>
+                                        <td><%= entidad.getRegion() != null ? entidad.getRegion() : "-" %>
                                         </td>
-                                        <td>
-                                            <% if (entidad.getSitioWeb() != null && !entidad.getSitioWeb().isEmpty()) { %>
-                                                <a href="<%= entidad.getSitioWeb().startsWith("http") ? entidad.getSitioWeb() : "https://" + entidad.getSitioWeb() %>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-external-link-alt me-1"></i> Visitar
-                                                </a>
-                                            <% } else { %>
-                                                <span class="text-muted">No disponible</span>
-                                            <% } %>
+                                        <td><%= entidad.getDireccion() != null ? entidad.getDireccion() : "No disponible" %>
+                                        </td>
+                                        <td><%= entidad.getNivelGobierno() != null ? entidad.getNivelGobierno() : "-" %>
                                         </td>
                                     </tr>
                                     <% 

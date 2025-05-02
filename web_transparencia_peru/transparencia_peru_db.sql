@@ -554,8 +554,8 @@ CREATE PROCEDURE sp_registrar_persona(
     IN p_fech_nac DATE
 )
 BEGIN
-INSERT INTO persona (nombre_completo, correo, dni, genero, fech_nac)
-VALUES (p_nombre_completo, p_correo, p_dni, p_genero, p_fech_nac);
+    INSERT INTO persona (nombre_completo, correo, dni, genero, fech_nac)
+    VALUES (p_nombre_completo, p_correo, p_dni, p_genero, p_fech_nac);
 END $$
 DELIMITER ;
 
@@ -568,8 +568,8 @@ CREATE PROCEDURE sp_registrar_usuario(
     IN p_clave VARCHAR (255)
 )
 BEGIN
-INSERT INTO usuario (cod_usuario, id_persona, id_rol, clave)
-VALUES (p_cod_usuario, p_id_persona, p_id_rol, p_clave);
+    INSERT INTO usuario (cod_usuario, id_persona, id_rol, clave)
+    VALUES (p_cod_usuario, p_id_persona, p_id_rol, p_clave);
 END $$
 DELIMITER ;
 
@@ -580,16 +580,16 @@ CREATE PROCEDURE sp_autenticar_usuario(
     IN p_clave VARCHAR (255)
 )
 BEGIN
-SELECT u.id_usuario,
-       u.cod_usuario,
-       p.nombre_completo,
-       r.cod_rol,
-       r.descrip_rol
-FROM usuario u
-         INNER JOIN persona p ON u.id_persona = p.id_persona
-         INNER JOIN rol r ON u.id_rol = r.id_rol
-WHERE u.cod_usuario = p_cod_usuario
-  AND u.clave = p_clave;
+    SELECT u.id_usuario,
+           u.cod_usuario,
+           p.nombre_completo,
+           r.cod_rol,
+           r.descrip_rol
+    FROM usuario u
+             INNER JOIN persona p ON u.id_persona = p.id_persona
+             INNER JOIN rol r ON u.id_rol = r.id_rol
+    WHERE u.cod_usuario = p_cod_usuario
+      AND u.clave = p_clave;
 END $$
 DELIMITER ;
 
@@ -600,9 +600,9 @@ CREATE PROCEDURE sp_autenticar_ciudadano(
     IN p_password VARCHAR(255)
 )
 BEGIN
-SELECT id, nombres, apellidos, dni, correo, telefono, direccion, fechaRegistro
-FROM Ciudadano
-WHERE correo = p_correo AND password = p_password;
+    SELECT id, nombres, apellidos, dni, correo, telefono, direccion, fechaRegistro
+    FROM Ciudadano
+    WHERE correo = p_correo AND password = p_password;
 END $$
 DELIMITER ;
 
@@ -618,8 +618,8 @@ CREATE PROCEDURE sp_registrar_ciudadano(
     IN p_password VARCHAR(255)
 )
 BEGIN
-INSERT INTO Ciudadano (nombres, apellidos, dni, correo, telefono, direccion, fechaRegistro, password)
-VALUES (p_nombres, p_apellidos, p_dni, p_correo, p_telefono, p_direccion, CURDATE(), p_password);
+    INSERT INTO Ciudadano (nombres, apellidos, dni, correo, telefono, direccion, fechaRegistro, password)
+    VALUES (p_nombres, p_apellidos, p_dni, p_correo, p_telefono, p_direccion, CURDATE(), p_password);
 END $$
 DELIMITER ;
 
@@ -627,16 +627,16 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE sp_listar_usuarios()
 BEGIN
-SELECT u.id_usuario,
-       u.cod_usuario,
-       p.nombre_completo,
-       p.correo,
-       p.dni,
-       r.descrip_rol
-FROM usuario u
-         INNER JOIN persona p ON u.id_persona = p.id_persona
-         INNER JOIN rol r ON u.id_rol = r.id_rol
-ORDER BY u.id_usuario;
+    SELECT u.id_usuario,
+           u.cod_usuario,
+           p.nombre_completo,
+           p.correo,
+           p.dni,
+           r.descrip_rol
+    FROM usuario u
+             INNER JOIN persona p ON u.id_persona = p.id_persona
+             INNER JOIN rol r ON u.id_rol = r.id_rol
+    ORDER BY u.id_usuario;
 END $$
 DELIMITER ;
 
@@ -646,12 +646,12 @@ CREATE PROCEDURE sp_listar_entidades_por_nivel(
     IN p_nivel_id INT
 )
 BEGIN
-SELECT e.id, e.nombre, e.tipo, n.nombre as nivel, r.nombre as region, e.direccion, e.telefono, e.email, e.sitioWeb
-FROM EntidadPublica e
-         INNER JOIN NivelGobierno n ON e.nivelGobiernoId = n.id
-         LEFT JOIN Region r ON e.regionId = r.id
-WHERE e.nivelGobiernoId = p_nivel_id
-ORDER BY e.nombre;
+    SELECT e.id, e.nombre, e.tipo, n.nombre as nivel, r.nombre as region, e.direccion, e.telefono, e.email, e.sitioWeb
+    FROM EntidadPublica e
+             INNER JOIN NivelGobierno n ON e.nivelGobiernoId = n.id
+             LEFT JOIN Region r ON e.regionId = r.id
+    WHERE e.nivelGobiernoId = p_nivel_id
+    ORDER BY e.nombre;
 END $$
 DELIMITER ;
 
@@ -659,9 +659,9 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE sp_listar_niveles_gobierno()
 BEGIN
-SELECT id, nombre, descripcion
-FROM NivelGobierno
-ORDER BY id;
+    SELECT id, nombre, descripcion
+    FROM NivelGobierno
+    ORDER BY id;
 END $$
 DELIMITER ;
 
@@ -671,13 +671,13 @@ CREATE PROCEDURE sp_estadisticas_por_nivel(
     IN p_anio INT
 )
 BEGIN
-SELECT ng.nombre as nivel, SUM(p.montoTotal) as presupuesto_total, COUNT(p.id) as cantidad_entidades
-FROM Presupuesto p
-         INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
-         INNER JOIN NivelGobierno ng ON e.nivelGobiernoId = ng.id
-WHERE p.anio = p_anio
-GROUP BY ng.nombre
-ORDER BY presupuesto_total DESC;
+    SELECT ng.nombre as nivel, SUM(p.montoTotal) as presupuesto_total, COUNT(p.id) as cantidad_entidades
+    FROM Presupuesto p
+             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+             INNER JOIN NivelGobierno ng ON e.nivelGobiernoId = ng.id
+    WHERE p.anio = p_anio
+    GROUP BY ng.nombre
+    ORDER BY presupuesto_total DESC;
 END $$
 DELIMITER ;
 
@@ -688,12 +688,12 @@ CREATE PROCEDURE sp_presupuesto_por_nivel_y_anio(
     IN p_nivel_id INT
 )
 BEGIN
-SELECT p.anio, SUM(p.montoTotal) as presupuesto_total
-FROM Presupuesto p
-         INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
-WHERE e.nivelGobiernoId = p_nivel_id
-GROUP BY p.anio
-ORDER BY p.anio;
+    SELECT p.anio, SUM(p.montoTotal) as presupuesto_total
+    FROM Presupuesto p
+             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+    WHERE e.nivelGobiernoId = p_nivel_id
+    GROUP BY p.anio
+    ORDER BY p.anio;
 END $$
 DELIMITER ;
 
@@ -704,12 +704,147 @@ CREATE PROCEDURE sp_gasto_por_nivel(
     IN p_nivel_id INT
 )
 BEGIN
-SELECT g.concepto, g.monto, g.fecha, tg.nombre as tipo_gasto
-FROM Gasto g
-         INNER JOIN EntidadPublica e ON g.presupuestoId = e.id
-         INNER JOIN TipoGasto tg ON g.tipoGastoId = tg.id
-WHERE e.nivelGobiernoId = p_nivel_id
-ORDER BY g.fecha DESC;
+    SELECT g.concepto, g.monto, g.fecha, tg.nombre as tipo_gasto
+    FROM Gasto g
+             INNER JOIN EntidadPublica e ON g.presupuestoId = e.id
+             INNER JOIN TipoGasto tg ON g.tipoGastoId = tg.id
+    WHERE e.nivelGobiernoId = p_nivel_id
+    ORDER BY g.fecha DESC;
+END $$
+DELIMITER ;
+
+-- Procedimiento para obtener la distribución del presupuesto por ministerios
+DELIMITER
+$$
+CREATE PROCEDURE sp_distribucion_presupuesto_ministerios(
+    IN p_anio INT
+)
+BEGIN
+    SELECT e.id,
+           e.nombre,
+           SUM(p.montoTotal)                                                                         as montoTotal,
+           (SUM(p.montoTotal) / (SELECT SUM(montoTotal) FROM Presupuesto WHERE anio = p_anio)) * 100 as porcentaje
+    FROM Presupuesto p
+             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+    WHERE e.nivelGobiernoId = 1 -- Nacional
+      AND e.tipo = 'Ministerio'
+      AND p.anio = p_anio
+    GROUP BY e.id, e.nombre
+    ORDER BY montoTotal DESC;
+END $$
+DELIMITER ;
+
+-- Procedimiento para obtener proyectos por nivel de gobierno
+DELIMITER
+$$
+CREATE PROCEDURE sp_proyectos_por_nivel(
+    IN p_nivel_id INT
+)
+BEGIN
+    SELECT p.id,
+           p.nombre,
+           p.descripcion,
+           p.estado,
+           e.nombre     as entidad_nombre,
+           p.fechaInicio,
+           p.fechaFin,
+           SUM(g.monto) as presupuesto_ejecutado
+    FROM Proyecto p
+             INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id
+             INNER JOIN EntidadPublica e ON pr.entidadPublicaId = e.id
+             LEFT JOIN Gasto g ON g.proyectoId = p.id
+    WHERE e.nivelGobiernoId = p_nivel_id
+    GROUP BY p.id, p.nombre, p.descripcion, p.estado, e.nombre, p.fechaInicio, p.fechaFin
+    ORDER BY presupuesto_ejecutado DESC LIMIT 10;
+END $$
+DELIMITER ;
+
+-- Procedimiento para obtener la ejecución del gasto por mes
+DELIMITER
+$$
+CREATE PROCEDURE sp_ejecucion_mensual_por_nivel(
+    IN p_nivel_id INT,
+    IN p_anio INT
+)
+BEGIN
+    SELECT MONTH (g.fecha) as mes, SUM (g.monto) as monto_ejecutado
+    FROM Gasto g
+             INNER JOIN Presupuesto p
+                        ON g.presupuestoId = p.id
+             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+    WHERE e.nivelGobiernoId = p_nivel_id
+      AND YEAR (g.fecha) = p_anio
+    GROUP BY MONTH (g.fecha)
+    ORDER BY mes;
+END $$
+DELIMITER ;
+
+-- Procedimiento para obtener el porcentaje de ejecución presupuestaria
+DELIMITER
+$$
+CREATE PROCEDURE sp_porcentaje_ejecucion(
+    IN p_nivel_id INT,
+    IN p_anio INT
+)
+BEGIN
+    SELECT SUM(p.montoTotal)                        as presupuesto_total,
+           SUM(g.monto)                             as ejecutado_total,
+           (SUM(g.monto) / SUM(p.montoTotal)) * 100 as porcentaje_ejecucion
+    FROM Presupuesto p
+             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+             LEFT JOIN Gasto g ON g.presupuestoId = p.id
+    WHERE e.nivelGobiernoId = p_nivel_id
+      AND p.anio = p_anio;
+END $$
+DELIMITER ;
+
+-- Procedimiento para obtener datos de ejecución por categoría de gasto
+DELIMITER
+$$
+CREATE PROCEDURE sp_gasto_por_categoria(
+    IN p_nivel_id INT,
+    IN p_anio INT
+)
+BEGIN
+    SELECT tg.id,
+           tg.nombre,
+           SUM(g.monto)                                    as monto_total,
+           (SUM(g.monto) / (SELECT SUM(g2.monto)
+                            FROM Gasto g2
+                                     INNER JOIN Presupuesto p2 ON g2.presupuestoId = p2.id
+                                     INNER JOIN EntidadPublica e2 ON p2.entidadPublicaId = e2.id
+                            WHERE e2.nivelGobiernoId = p_nivel_id
+                              AND p2.anio = p_anio)) * 100 as porcentaje
+    FROM Gasto g
+             INNER JOIN TipoGasto tg ON g.tipoGastoId = tg.id
+             INNER JOIN Presupuesto p ON g.presupuestoId = p.id
+             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+    WHERE e.nivelGobiernoId = p_nivel_id
+      AND p.anio = p_anio
+    GROUP BY tg.id, tg.nombre
+    ORDER BY monto_total DESC;
+END $$
+DELIMITER ;
+
+-- Procedimiento para obtener información de proyectos destacados
+DELIMITER
+$$
+CREATE PROCEDURE sp_proyectos_destacados()
+BEGIN
+    SELECT p.id,
+           p.nombre,
+           p.descripcion,
+           p.estado,
+           e.nombre      as entidad_nombre,
+           SUM(g.monto)  as presupuesto_ejecutado,
+           pr.montoTotal as presupuesto_asignado
+    FROM Proyecto p
+             INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id
+             INNER JOIN EntidadPublica e ON pr.entidadPublicaId = e.id
+             LEFT JOIN Gasto g ON g.proyectoId = p.id
+    WHERE p.estado = 'En ejecución'
+    GROUP BY p.id, p.nombre, p.descripcion, p.estado, e.nombre, pr.montoTotal
+    ORDER BY presupuesto_ejecutado DESC LIMIT 5;
 END $$
 DELIMITER ;
 

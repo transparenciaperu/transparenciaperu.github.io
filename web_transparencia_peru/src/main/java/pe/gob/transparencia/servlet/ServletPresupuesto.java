@@ -14,6 +14,8 @@ import pe.gob.transparencia.modelo.RegionModelo;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -245,10 +247,135 @@ public class ServletPresupuesto extends HttpServlet {
         EntidadPublicaModelo entidadModelo = new EntidadPublicaModelo();
         List<EntidadPublicaEntidad> entidadesNacionales = entidadModelo.listarPorNivel(1); // 1 = Nacional
         request.setAttribute("entidades", entidadesNacionales);
+        request.setAttribute("cantidadEntidades", entidadesNacionales.size());
 
         // Obtener presupuestos del nivel nacional por años
         List<Map<String, Object>> datosPorAnio = modelo.obtenerPresupuestosPorNivelYAnio(1);
         request.setAttribute("datosPorAnio", datosPorAnio);
+
+        // Obtener proyectos del nivel nacional
+        List<Map<String, Object>> proyectos = modelo.obtenerDatosProyectosNacionales();
+        request.setAttribute("proyectos", proyectos);
+        request.setAttribute("proyectosDestacados", proyectos); // Para el gráfico
+
+        // Contar proyectos en ejecución
+        int proyectosEnEjecucion = 0;
+        for (Map<String, Object> proyecto : proyectos) {
+            String estado = (String) proyecto.get("estado");
+            if ("En ejecución".equalsIgnoreCase(estado)) {
+                proyectosEnEjecucion++;
+            }
+        }
+        request.setAttribute("cantidadProyectos", proyectosEnEjecucion);
+
+        // Obtener distribución por ministerios
+        List<Map<String, Object>> distribucionMinisterios = modelo.obtenerDistribucionPresupuestoMinisterios();
+        request.setAttribute("distribucionMinisterios", distribucionMinisterios);
+
+        // Guardar distribución por sectores para el gráfico
+        request.setAttribute("distribucionSectores", distribucionMinisterios);
+
+        // Calcular presupuesto total nacional actual y anterior
+        BigDecimal presupuestoTotal = modelo.obtenerPresupuestoTotalPorNivel(1, 2024);
+        BigDecimal presupuestoAnterior = modelo.obtenerPresupuestoTotalPorNivel(1, 2023);
+
+        request.setAttribute("presupuestoTotal", presupuestoTotal);
+        request.setAttribute("anioActual", 2024);
+        request.setAttribute("anioAnterior", 2023);
+
+        // Calcular variación porcentual
+        BigDecimal variacion = BigDecimal.ZERO;
+        if (presupuestoAnterior != null && presupuestoAnterior.doubleValue() > 0) {
+            variacion = presupuestoTotal.subtract(presupuestoAnterior)
+                    .multiply(new BigDecimal(100))
+                    .divide(presupuestoAnterior, 2, BigDecimal.ROUND_HALF_UP);
+        }
+        request.setAttribute("variacionPresupuesto", variacion);
+
+        // Obtener porcentaje de ejecución
+        Double porcentajeEjecucion = modelo.obtenerPorcentajeEjecucionPorNivel(1, 2024);
+        request.setAttribute("porcentajeEjecucion", porcentajeEjecucion);
+
+        // Datos de ejecución mensual para gráficos
+        List<Map<String, Object>> datosEjecucion = modelo.obtenerEjecucionMensualPorNivel(1);
+        request.setAttribute("datosEjecucion", datosEjecucion);
+
+        // Evolución anual para gráficos
+        List<Map<String, Object>> evolucionAnualList = modelo.obtenerEvolucionAnual();
+        request.setAttribute("evolucionAnual", evolucionAnualList);
+
+        // Datos para tendencias de categorías
+        List<Map<String, Object>> categoriasTendencia = new ArrayList<>();
+        List<Map<String, Object>> categorias = modelo.obtenerDatosCategorias();
+
+        // Procesar las categorías para incluir datos de tendencia
+        for (int i = 0; i < Math.min(5, categorias.size()); i++) {
+            Map<String, Object> categoria = categorias.get(i);
+            Map<String, Object> categoriaTendencia = new HashMap<>();
+            categoriaTendencia.put("nombre", categoria.get("nombre"));
+
+            // Generar valores de tendencia
+            List<Double> valores = new ArrayList<>();
+            double baseValue = ((Number) categoria.get("porcentaje")).doubleValue();
+            for (int año = 2020; año <= 2024; año++) {
+                // Variación aleatoria pero consistente basada en el año y nombre
+                double variacionPorcentual = (año - 2020) * 0.5;
+                if (año % 2 == 0) variacionPorcentual += 1.5;
+                else variacionPorcentual -= 0.8;
+
+                valores.add(Math.max(5, Math.min(40, baseValue + variacionPorcentual)));
+            }
+            categoriaTendencia.put("valores", valores);
+            categoriasTendencia.add(categoriaTendencia);
+        }
+        request.setAttribute("categoriasTendencia", categoriasTendencia);
+
+        // Datos para presupuesto per cápita por región
+        List<Map<String, Object>> regionesPerCapita = new ArrayList<>();
+        List<RegionEntidad> regiones = new RegionModelo().listar();
+
+        for (RegionEntidad region : regiones) {
+            if (regionesPerCapita.size() >= 5) break; // Limitar a 5 regiones
+
+            Map<String, Object> regionData = new HashMap<>();
+            regionData.put("nombre", region.getNombre());
+
+            // Obtener presupuesto de la región
+            BigDecimal presupuestoRegion = modelo.obtenerPresupuestoTotalPorNivel(2, 2024);
+
+            // Población estimada (en un sistema real vendría de la base de datos)
+            int poblacion = 0;
+            switch (region.getNombre()) {
+                case "Lima":
+                    poblacion = 10500000;
+                    break;
+                case "Arequipa":
+                    poblacion = 1500000;
+                    break;
+                case "Cusco":
+                    poblacion = 1300000;
+                    break;
+                case "La Libertad":
+                    poblacion = 2000000;
+                    break;
+                case "Piura":
+                    poblacion = 2100000;
+                    break;
+                default:
+                    poblacion = 1000000;
+                    break;
+            }
+
+            // Calcular presupuesto per cápita
+            double presupuestoPerCapita = 0;
+            if (presupuestoRegion != null && poblacion > 0) {
+                presupuestoPerCapita = presupuestoRegion.doubleValue() / poblacion;
+            }
+
+            regionData.put("presupuestoPerCapita", presupuestoPerCapita);
+            regionesPerCapita.add(regionData);
+        }
+        request.setAttribute("regionesPerCapita", regionesPerCapita);
 
         // Redirigir a la página correspondiente
         request.getRequestDispatcher("presupuesto-nacional.jsp").forward(request, response);
@@ -276,6 +403,65 @@ public class ServletPresupuesto extends HttpServlet {
         RegionModelo regionModelo = new RegionModelo();
         List<RegionEntidad> regiones = regionModelo.listar();
         request.setAttribute("regiones", regiones);
+
+        // Obtener top 5 regiones con mayor presupuesto
+        List<Map<String, Object>> topRegiones = new ArrayList<>();
+
+        // Para cada región, determinar su presupuesto y agregar al listado
+        for (RegionEntidad region : regiones) {
+            // Si ya tenemos 5 regiones, salimos del bucle
+            if (topRegiones.size() >= 5) break;
+
+            Map<String, Object> regionData = new HashMap<>();
+            regionData.put("nombre", region.getNombre());
+
+            // Determinar el presupuesto (en un sistema real vendría de la base de datos)
+            // Aquí usamos el presupuesto regional general como aproximación
+            BigDecimal presupuestoRegional = modelo.obtenerPresupuestoTotalPorNivel(2, 2024);
+
+            // Ajustar el valor basado en un factor para simular diferentes presupuestos
+            // En un sistema real, estos datos vendrían de una consulta específica por región
+            double factor = 1.0;
+            switch (region.getNombre()) {
+                case "Lima":
+                    factor = 1.5;
+                    break;
+                case "Arequipa":
+                    factor = 0.95;
+                    break;
+                case "Cusco":
+                    factor = 0.85;
+                    break;
+                case "La Libertad":
+                    factor = 0.78;
+                    break;
+                case "Piura":
+                    factor = 0.65;
+                    break;
+                default:
+                    factor = 0.5;
+                    break;
+            }
+
+            BigDecimal presupuestoRegionAjustado = presupuestoRegional.multiply(new BigDecimal(factor));
+            regionData.put("presupuesto", presupuestoRegionAjustado);
+
+            topRegiones.add(regionData);
+        }
+
+        // Ordenar las regiones por presupuesto de mayor a menor
+        topRegiones.sort((r1, r2) -> {
+            BigDecimal p1 = (BigDecimal) r1.get("presupuesto");
+            BigDecimal p2 = (BigDecimal) r2.get("presupuesto");
+            return p2.compareTo(p1); // Orden descendente
+        });
+
+        // Limitar a solo 5 regiones
+        if (topRegiones.size() > 5) {
+            topRegiones = topRegiones.subList(0, 5);
+        }
+
+        request.setAttribute("topRegiones", topRegiones);
 
         // Redirigir a la página correspondiente
         request.getRequestDispatcher("presupuesto-regional.jsp").forward(request, response);
