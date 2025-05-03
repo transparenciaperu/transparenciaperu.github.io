@@ -438,21 +438,89 @@ public class PresupuestoModelo implements PresupuestoInterface {
 
             // Si no se pudo establecer la conexión, retornar 0
             if (cn == null) {
+                System.out.println("No se pudo establecer conexión. No se puede eliminar presupuesto.");
                 return resultado;
             }
 
+            // Primero verificar si el presupuesto existe
+            PreparedStatement pstmt = null;
+            ResultSet rs = null;
+
+            try {
+                String sqlVerificar = "SELECT id FROM Presupuesto WHERE id = ?";
+                pstmt = cn.prepareStatement(sqlVerificar);
+                pstmt.setInt(1, id);
+                rs = pstmt.executeQuery();
+
+                if (!rs.next()) {
+                    System.out.println("El presupuesto con ID " + id + " no existe.");
+                    return 0;
+                }
+            } finally {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+            }
+
+            // Intentar primero con una consulta directa para eliminar gastos asociados
+            try {
+                String sqlEliminarGastos = "DELETE FROM Gasto WHERE presupuestoId = ?";
+                pstmt = cn.prepareStatement(sqlEliminarGastos);
+                pstmt.setInt(1, id);
+                pstmt.executeUpdate();
+                System.out.println("Gastos eliminados para presupuesto ID " + id);
+            } catch (SQLException e) {
+                System.out.println("Error al eliminar gastos asociados: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                if (pstmt != null) pstmt.close();
+            }
+
+            // Intentar eliminar proyectos asociados
+            try {
+                String sqlEliminarProyectos = "DELETE FROM Proyecto WHERE presupuestoId = ?";
+                pstmt = cn.prepareStatement(sqlEliminarProyectos);
+                pstmt.setInt(1, id);
+                pstmt.executeUpdate();
+                System.out.println("Proyectos eliminados para presupuesto ID " + id);
+            } catch (SQLException e) {
+                System.out.println("Error al eliminar proyectos asociados: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                if (pstmt != null) pstmt.close();
+            }
+
+            // Ahora eliminar el presupuesto con consulta directa
+            try {
+                String sqlEliminarPresupuesto = "DELETE FROM Presupuesto WHERE id = ?";
+                pstmt = cn.prepareStatement(sqlEliminarPresupuesto);
+                pstmt.setInt(1, id);
+                resultado = pstmt.executeUpdate();
+                System.out.println("Presupuesto eliminado directamente: " + resultado);
+                return resultado;
+            } catch (SQLException e) {
+                System.out.println("Error al eliminar presupuesto directamente: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                if (pstmt != null) pstmt.close();
+            }
+
+            // Si falla la eliminación directa, intentar con procedimiento almacenado
+            System.out.println("Intentando eliminar presupuesto con procedimiento almacenado ID " + id);
             String sql = "{CALL sp_eliminar_presupuesto(?)}";
             cstm = cn.prepareCall(sql);
             cstm.setInt(1, id);
             
             resultado = cstm.executeUpdate();
+            System.out.println("Resultado de eliminación con procedimiento: " + resultado);
         } catch (SQLException e) {
+            System.out.println("Error SQL al eliminar presupuesto: " + e.getMessage());
             e.printStackTrace();
         } finally {
             try {
                 if (cstm != null) cstm.close();
                 if (cn != null) cn.close();
             } catch (SQLException e) {
+                System.out.println("Error al cerrar recursos: " + e.getMessage());
                 e.printStackTrace();
             }
         }

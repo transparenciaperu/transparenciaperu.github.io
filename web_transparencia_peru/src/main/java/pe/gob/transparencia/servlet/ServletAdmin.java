@@ -849,17 +849,19 @@ public class ServletAdmin extends HttpServlet {
                     jsonBuilder.append("\"montoTotal\": ").append(presupuesto.getMontoTotal()).append(",");
                     jsonBuilder.append("\"entidadPublicaId\": ").append(presupuesto.getEntidadPublicaId()).append(",");
 
-                    // Incluir fecha de aprobación y descripción si existen
+                    // Formatear fecha de aprobación para que sea más amigable
                     if (presupuesto.getFechaAprobacion() != null) {
-                        jsonBuilder.append("\"fechaAprobacion\": \"").append(presupuesto.getFechaAprobacion()).append("\",");
+                        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+                        String fechaFormateada = formato.format(presupuesto.getFechaAprobacion());
+                        jsonBuilder.append("\"fechaAprobacion\": \"").append(fechaFormateada).append("\",");
                     } else {
                         jsonBuilder.append("\"fechaAprobacion\": null,");
                     }
 
-                    if (presupuesto.getDescripcion() != null) {
-                        jsonBuilder.append("\"descripcion\": \"")
-                                .append(presupuesto.getDescripcion().replace("\"", "\\\""))
-                                .append("\",");
+                    // Incluir descripción si existe, escapando comillas
+                    if (presupuesto.getDescripcion() != null && !presupuesto.getDescripcion().isEmpty()) {
+                        String descripcionEscapada = presupuesto.getDescripcion().replace("\"", "\\\"").replace("\n", "\\n");
+                        jsonBuilder.append("\"descripcion\": \"").append(descripcionEscapada).append("\",");
                     } else {
                         jsonBuilder.append("\"descripcion\": null,");
                     }
@@ -877,6 +879,8 @@ public class ServletAdmin extends HttpServlet {
                     jsonBuilder.append("\"nivelGobierno\": \"").append(nivelGobierno != null ? nivelGobierno.replace("\"", "\\\"") : "Nacional").append("\"");
                     jsonBuilder.append("}");
                     jsonBuilder.append("}");
+
+                    System.out.println("JSON generado: " + jsonBuilder.toString());
 
                     response.getWriter().write(jsonBuilder.toString());
                     return;

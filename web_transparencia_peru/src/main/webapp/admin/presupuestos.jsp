@@ -718,26 +718,30 @@
             success: function (data) {
                 // Si obtenemos datos correctamente, llenar el modal
                 if (data && data.id) {
+                    console.log("Datos recibidos:", data); // Depuración
                     $('#detalleId').text(data.id);
                     $('#detalleAnio').text(data.anio);
                     $('#detalleEntidad').text(data.entidadPublica.nombre);
-                    $('#detalleMonto').text(String.format("S/. %.2f", data.montoTotal));
+
+                    // Formatear monto
+                    try {
+                        $('#detalleMonto').text(formatCurrency(data.montoTotal));
+                    } catch (e) {
+                        console.log("Error al formatear monto:", e);
+                        $('#detalleMonto').text("S/. " + data.montoTotal);
+                    }
+
                     $('#detalleTipoEntidad').text(data.entidadPublica.tipo || 'Entidad Pública');
                     $('#detalleNivelGobierno').text(data.entidadPublica.nivelGobierno || 'Nacional');
-                    var fechaAprobacion = data.fechaAprobacion;
-                    if (fechaAprobacion && fechaAprobacion !== "No disponible") {
-                        var partsFecha = fechaAprobacion.split('/');
-                        if (partsFecha.length === 3) {
-                            var fechaFormateada = partsFecha[2] + '-' +
-                                (partsFecha[1].length === 1 ? '0' + partsFecha[1] : partsFecha[1]) + '-' +
-                                (partsFecha[0].length === 1 ? '0' + partsFecha[0] : partsFecha[0]);
-                            $('#detalleFechaAprobacion').text(fechaFormateada);
-                        } else {
-                            $('#detalleFechaAprobacion').text(fechaAprobacion);
-                        }
+
+                    // Mostrar fecha de aprobación
+                    if (data.fechaAprobacion) {
+                        $('#detalleFechaAprobacion').text(data.fechaAprobacion);
                     } else {
                         $('#detalleFechaAprobacion').text("No disponible");
                     }
+
+                    // Mostrar descripción
                     $('#detalleDescripcion').text(data.descripcion || "Sin descripción");
 
                     // Mostrar contenido
@@ -745,10 +749,14 @@
                     $('#detallePresupuestoContent').show();
                 } else {
                     // Si no hay datos JSON válidos, buscar en la tabla
+                    console.log("No hay datos JSON válidos, usando tabla");
                     buscarDetalleEnTabla(id);
                 }
             },
-            error: function () {
+            error: function (xhr, status, error) {
+                console.log("Error AJAX:", error);
+                console.log("Estado:", status);
+                console.log("Respuesta:", xhr.responseText);
                 // En caso de error, intentar obtener datos de la tabla
                 buscarDetalleEnTabla(id);
             }
