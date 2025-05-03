@@ -564,30 +564,41 @@
             var regionFiltro = $('#filtroRegion').val();
             var tipoFiltro = $('#filtroTipo').val();
 
+            // Obtener texto seleccionado para comparaciones
+            var nivelTexto = nivelFiltro ? $('#filtroNivel option:selected').text().trim() : '';
+            var regionTexto = regionFiltro ? $('#filtroRegion option:selected').text().trim() : '';
+
+            // Limpiar filtros previos
+            $.fn.dataTable.ext.search.pop();
+
             $.fn.dataTable.ext.search.push(
                 function (settings, data, dataIndex) {
-                    var nivel = data[3]; // Índice de la columna Nivel de Gobierno
-                    var region = data[4]; // Índice de la columna Región
-                    var tipo = data[2];   // Índice de la columna Tipo
+                    var nivelData = data[3].trim(); // Índice de la columna Nivel de Gobierno
+                    var regionData = data[4].trim(); // Índice de la columna Región
+                    var tipoData = data[2].trim();   // Índice de la columna Tipo
 
-                    var nivelOK = nivelFiltro === '' || nivel.includes(nivelFiltro);
-                    var regionOK = regionFiltro === '' || region.includes($('#filtroRegion option:selected').text());
-                    var tipoOK = tipoFiltro === '' || tipo === tipoFiltro;
+                    // Verificar coincidencia exacta o sin filtro
+                    var nivelOK = nivelFiltro === '' || nivelData === nivelTexto;
+                    var regionOK = regionFiltro === '' || regionData === regionTexto;
+                    var tipoOK = tipoFiltro === '' || tipoData === tipoFiltro;
 
                     return nivelOK && regionOK && tipoOK;
                 }
             );
 
             tabla.draw();
-
-            // Limpiar el filtro después de aplicarlo
-            $.fn.dataTable.ext.search.pop();
         });
 
         $('#btnLimpiarFiltros').click(function () {
+            // Resetear valores de filtros
             $('#filtroNivel').val('');
             $('#filtroRegion').val('');
             $('#filtroTipo').val('');
+
+            // Limpiar cualquier filtro personalizado
+            $.fn.dataTable.ext.search.pop();
+
+            // Restablecer la tabla a su estado original
             tabla.search('').columns().search('').draw();
         });
     });
