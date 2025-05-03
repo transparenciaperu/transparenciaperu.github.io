@@ -4,7 +4,11 @@
 <%@ page import="pe.gob.transparencia.modelo.EntidadPublicaModelo" %>
 <%@ page import="pe.gob.transparencia.modelo.NivelGobiernoModelo" %>
 <%@ page import="pe.gob.transparencia.modelo.RegionModelo" %>
+<%@ page import="pe.gob.transparencia.entidades.NivelGobiernoEntidad" %>
+<%@ page import="pe.gob.transparencia.entidades.RegionEntidad" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+
 <%
     // Verificar si el usuario está en sesión y es admin
     HttpSession sesion = request.getSession(false);
@@ -31,11 +35,22 @@
 
     // Obtener niveles de gobierno para el formulario
     NivelGobiernoModelo nivelModelo = new NivelGobiernoModelo();
-    List<?> niveles = nivelModelo.listarNivelesGobierno();
+    List<NivelGobiernoEntidad> niveles = nivelModelo.listar();
 
     // Obtener regiones para el formulario
     RegionModelo regionModelo = new RegionModelo();
-    List<?> regiones = regionModelo.listarRegiones();
+    List<RegionEntidad> regiones = regionModelo.listar();
+
+    // Verificar si hay entidades
+    if (listaEntidades == null) {
+        listaEntidades = new ArrayList<>();
+        System.out.println("No se encontraron entidades públicas en la base de datos.");
+    } else {
+        System.out.println("Se encontraron " + listaEntidades.size() + " entidades públicas.");
+        for (EntidadPublicaEntidad e : listaEntidades) {
+            System.out.println("Entidad #" + e.getId() + ": " + e.getNombre() + ", Nivel: " + e.getNivelGobiernoId());
+        }
+    }
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -166,20 +181,20 @@
                             <label for="filtroNivel" class="form-label">Nivel de Gobierno</label>
                             <select class="form-select" id="filtroNivel">
                                 <option value="">Todos</option>
-                                <option value="1">Nacional</option>
-                                <option value="2">Regional</option>
-                                <option value="3">Municipal</option>
+                                <% for (NivelGobiernoEntidad nivel : niveles) { %>
+                                <option value="<%= nivel.getId() %>"><%= nivel.getNombre() %>
+                                </option>
+                                <% } %>
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="filtroRegion" class="form-label">Región</label>
                             <select class="form-select" id="filtroRegion">
                                 <option value="">Todas</option>
-                                <option value="1">Lima</option>
-                                <option value="2">Arequipa</option>
-                                <option value="3">Cusco</option>
-                                <option value="4">La Libertad</option>
-                                <option value="5">Piura</option>
+                                <% for (RegionEntidad region : regiones) { %>
+                                <option value="<%= region.getId() %>"><%= region.getNombre() %>
+                                </option>
+                                <% } %>
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -225,39 +240,42 @@
                             </tr>
                             </thead>
                             <tbody>
+                            <% if (listaEntidades != null && !listaEntidades.isEmpty()) { %>
                             <% for (EntidadPublicaEntidad entidad : listaEntidades) { %>
                             <tr>
                                 <td><%= entidad.getId() %>
                                 </td>
-                                <td><%= entidad.getNombre() %>
+                                <td><%= entidad.getNombre() != null ? entidad.getNombre() : "" %>
                                 </td>
-                                <td><%= entidad.getTipo() %>
+                                <td><%= entidad.getTipo() != null ? entidad.getTipo() : "" %>
                                 </td>
                                 <td>
                                     <%
-                                        String nivelGobierno = "";
-                                        switch (entidad.getNivelGobiernoId()) {
-                                            case 1:
-                                                nivelGobierno = "Nacional";
-                                                break;
-                                            case 2:
-                                                nivelGobierno = "Regional";
-                                                break;
-                                            case 3:
-                                                nivelGobierno = "Municipal";
-                                                break;
-                                            default:
-                                                nivelGobierno = "No definido";
+                                        String nivelGobierno = "No definido";
+                                        if (entidad.getNivelGobiernoId() > 0) {
+                                            for (NivelGobiernoEntidad nivel : niveles) {
+                                                if (nivel.getId() == entidad.getNivelGobiernoId()) {
+                                                    nivelGobierno = nivel.getNombre();
+                                                    break;
+                                                }
+                                            }
                                         }
                                     %>
                                     <%= nivelGobierno %>
                                 </td>
                                 <td>
-                                    <% if (entidad.getRegionId() != 0) { %>
-                                    <%= modelo.obtenerNombreRegion(entidad.getRegionId()) %>
-                                    <% } else { %>
-                                    -
-                                    <% } %>
+                                    <%
+                                        String nombreRegion = "-";
+                                        if (entidad.getRegionId() > 0) {
+                                            for (RegionEntidad region : regiones) {
+                                                if (region.getId() == entidad.getRegionId()) {
+                                                    nombreRegion = region.getNombre();
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    %>
+                                    <%= nombreRegion %>
                                 </td>
                                 <td>
                                     <small>
@@ -267,21 +285,38 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="<%= request.getContextPath() %>/admin.do?accion=editarEntidad&id=<%= entidad.getId() %>"
-                                           class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip"
+                                                title="Editar"
+                                                onclick="editarEntidad({
+                                                        id: <%= entidad.getId() %>,
+                                                        nombre: '<%= entidad.getNombre() != null ? entidad.getNombre().replace("'", "\\'") : "" %>',
+                                                        tipo: '<%= entidad.getTipo() != null ? entidad.getTipo().replace("'", "\\'") : "" %>',
+                                                        direccion: '<%= entidad.getDireccion() != null ? entidad.getDireccion().replace("'", "\\'") : "" %>',
+                                                        nivelGobiernoId: <%= entidad.getNivelGobiernoId() %>,
+                                                        regionId: <%= entidad.getRegionId() %>,
+                                                        telefono: '<%= entidad.getTelefono() != null ? entidad.getTelefono().replace("'", "\\'") : "" %>',
+                                                        email: '<%= entidad.getEmail() != null ? entidad.getEmail().replace("'", "\\'") : "" %>',
+                                                        sitioWeb: '<%= entidad.getSitioWeb() != null ? entidad.getSitioWeb().replace("'", "\\'") : "" %>'
+                                                        })">
                                             <i class="bi bi-pencil"></i>
-                                        </a>
+                                        </button>
                                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip"
                                                 title="Eliminar"
-                                                onclick="confirmarEliminacion(<%= entidad.getId() %>, '<%= entidad.getNombre() %>')">
+                                                onclick="confirmarEliminacion(<%= entidad.getId() %>, '<%= entidad.getNombre() != null ? entidad.getNombre().replace("'", "\\'") : "" %>')">
                                             <i class="bi bi-trash"></i>
                                         </button>
-                                        <a href="<%= request.getContextPath() %>/admin.do?accion=verDetalleEntidad&id=<%= entidad.getId() %>"
-                                           class="btn btn-outline-info" data-bs-toggle="tooltip" title="Ver detalle">
+                                        <button type="button" class="btn btn-outline-info" data-bs-toggle="tooltip"
+                                                title="Ver detalle"
+                                                onclick="window.location.href='<%= request.getContextPath() %>/entidades.do?accion=verDetalle&id=<%= entidad.getId() %>'">
                                             <i class="bi bi-eye"></i>
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
+                            </tr>
+                            <% } %>
+                            <% } else { %>
+                            <tr>
+                                <td colspan="7" class="text-center">No hay entidades públicas registradas</td>
                             </tr>
                             <% } %>
                             </tbody>
@@ -304,8 +339,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <form action="<%= request.getContextPath() %>/admin.do" method="post">
-                <input type="hidden" name="accion" value="registrarEntidad">
+            <form action="<%= request.getContextPath() %>/entidades.do" method="post" id="formNuevaEntidad">
+                <input type="hidden" name="accion" value="registrar">
                 <div class="modal-body">
                     <div class="row mb-3">
                         <div class="col-md-8">
@@ -330,42 +365,22 @@
                         <div class="col-md-6">
                             <label for="nivelGobiernoId" class="form-label">Nivel de Gobierno</label>
                             <select class="form-select" id="nivelGobiernoId" name="nivelGobiernoId" required
-                                    onchange="mostrarRegion()">
+                                    onchange="mostrarOcultarRegion('nivelGobiernoId')">
                                 <option value="">Seleccione nivel</option>
-                                <option value="1">Nacional</option>
-                                <option value="2">Regional</option>
-                                <option value="3">Municipal</option>
+                                <% for (NivelGobiernoEntidad nivel : niveles) { %>
+                                <option value="<%= nivel.getId() %>"><%= nivel.getNombre() %>
+                                </option>
+                                <% } %>
                             </select>
                         </div>
                         <div class="col-md-6" id="div-region" style="display:none;">
                             <label for="regionId" class="form-label">Región</label>
                             <select class="form-select" id="regionId" name="regionId">
                                 <option value="">Seleccione región</option>
-                                <option value="1">Lima</option>
-                                <option value="2">Arequipa</option>
-                                <option value="3">Cusco</option>
-                                <option value="4">La Libertad</option>
-                                <option value="5">Piura</option>
-                                <option value="6">Amazonas</option>
-                                <option value="7">Áncash</option>
-                                <option value="8">Apurímac</option>
-                                <option value="9">Ayacucho</option>
-                                <option value="10">Cajamarca</option>
-                                <option value="11">Callao</option>
-                                <option value="12">Huancavelica</option>
-                                <option value="13">Huánuco</option>
-                                <option value="14">Ica</option>
-                                <option value="15">Junín</option>
-                                <option value="16">Lambayeque</option>
-                                <option value="17">Loreto</option>
-                                <option value="18">Madre de Dios</option>
-                                <option value="19">Moquegua</option>
-                                <option value="20">Pasco</option>
-                                <option value="21">Puno</option>
-                                <option value="22">San Martín</option>
-                                <option value="23">Tacna</option>
-                                <option value="24">Tumbes</option>
-                                <option value="25">Ucayali</option>
+                                <% for (RegionEntidad region : regiones) { %>
+                                <option value="<%= region.getId() %>"><%= region.getNombre() %>
+                                </option>
+                                <% } %>
                             </select>
                         </div>
                     </div>
@@ -388,12 +403,104 @@
 
                     <div class="mb-3">
                         <label for="sitioWeb" class="form-label">Sitio Web</label>
-                        <input type="url" class="form-control" id="sitioWeb" name="sitioWeb" placeholder="https://">
+                        <input type="text" class="form-control" id="sitioWeb" name="sitioWeb" placeholder="https://">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Entidad -->
+<div class="modal fade" id="editarEntidadModal" tabindex="-1" aria-labelledby="editarEntidadModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editarEntidadModalLabel"><i class="bi bi-pencil-square me-2"></i>Editar
+                    Entidad
+                    Pública</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <form action="<%= request.getContextPath() %>/entidades.do" method="post" id="formEditarEntidad">
+                <input type="hidden" name="accion" value="actualizar">
+                <input type="hidden" name="id" id="editId">
+                <div class="modal-body">
+                    <div id="alertaEditar"></div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="editNombre" class="form-label">Nombre de Entidad</label>
+                            <input type="text" class="form-control" id="editNombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="editTipo" class="form-label">Tipo</label>
+                            <select class="form-select" id="editTipo" name="tipo" required>
+                                <option value="">Seleccione tipo</option>
+                                <option value="Ministerio">Ministerio</option>
+                                <option value="Gobierno Regional">Gobierno Regional</option>
+                                <option value="Municipalidad Provincial">Municipalidad Provincial</option>
+                                <option value="Municipalidad Distrital">Municipalidad Distrital</option>
+                                <option value="Organismo Supervisor">Organismo Supervisor</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editNivelGobiernoId" class="form-label">Nivel de Gobierno</label>
+                            <select class="form-select" id="editNivelGobiernoId" name="nivelGobiernoId" required
+                                    onchange="mostrarOcultarRegion('editNivelGobiernoId')">
+                                <option value="">Seleccione nivel</option>
+                                <% for (NivelGobiernoEntidad nivel : niveles) { %>
+                                <option value="<%= nivel.getId() %>"><%= nivel.getNombre() %>
+                                </option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="editdiv-region">
+                            <label for="editRegionId" class="form-label">Región</label>
+                            <select class="form-select" id="editRegionId" name="regionId">
+                                <option value="">Seleccione región</option>
+                                <% for (RegionEntidad region : regiones) { %>
+                                <option value="<%= region.getId() %>"><%= region.getNombre() %>
+                                </option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editDireccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="editDireccion" name="direccion">
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editTelefono" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="editTelefono" name="telefono">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editEmail" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="editEmail" name="email">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editSitioWeb" class="form-label">Sitio Web</label>
+                        <input type="text" class="form-control" id="editSitioWeb" name="sitioWeb"
+                               placeholder="https://">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
                 </div>
             </form>
         </div>
@@ -417,8 +524,8 @@
                     relacionados.</p>
             </div>
             <div class="modal-footer">
-                <form action="<%= request.getContextPath() %>/admin.do" method="post">
-                    <input type="hidden" name="accion" value="eliminarEntidad">
+                <form action="<%= request.getContextPath() %>/entidades.do" method="post">
+                    <input type="hidden" name="accion" value="eliminar">
                     <input type="hidden" name="id" id="idEntidadEliminar">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-danger">Eliminar</button>
@@ -464,7 +571,7 @@
                     var region = data[4]; // Índice de la columna Región
                     var tipo = data[2];   // Índice de la columna Tipo
 
-                    var nivelOK = nivelFiltro === '' || nivel.includes(nivelFiltro === '1' ? 'Nacional' : nivelFiltro === '2' ? 'Regional' : 'Municipal');
+                    var nivelOK = nivelFiltro === '' || nivel.includes(nivelFiltro);
                     var regionOK = regionFiltro === '' || region.includes($('#filtroRegion option:selected').text());
                     var tipoOK = tipoFiltro === '' || tipo === tipoFiltro;
 
@@ -486,10 +593,10 @@
         });
     });
 
-    function mostrarRegion() {
-        var nivelGobierno = document.getElementById('nivelGobiernoId').value;
-        var divRegion = document.getElementById('div-region');
-        var selectRegion = document.getElementById('regionId');
+    function mostrarOcultarRegion(idSelect) {
+        var nivelGobierno = document.getElementById(idSelect).value;
+        var divRegion = document.getElementById(idSelect === 'nivelGobiernoId' ? 'div-region' : 'editdiv-region');
+        var selectRegion = document.getElementById(idSelect === 'nivelGobiernoId' ? 'regionId' : 'editRegionId');
 
         if (nivelGobierno === '1') { // Nacional
             divRegion.style.display = 'none';
@@ -508,6 +615,21 @@
 
         var eliminarModal = new bootstrap.Modal(document.getElementById('eliminarEntidadModal'));
         eliminarModal.show();
+    }
+
+    function editarEntidad(entidad) {
+        document.getElementById('editId').value = entidad.id;
+        document.getElementById('editNombre').value = entidad.nombre;
+        document.getElementById('editTipo').value = entidad.tipo;
+        document.getElementById('editDireccion').value = entidad.direccion;
+        document.getElementById('editNivelGobiernoId').value = entidad.nivelGobiernoId;
+        document.getElementById('editRegionId').value = entidad.regionId;
+        document.getElementById('editTelefono').value = entidad.telefono;
+        document.getElementById('editEmail').value = entidad.email;
+        document.getElementById('editSitioWeb').value = entidad.sitioWeb;
+
+        var editarModal = new bootstrap.Modal(document.getElementById('editarEntidadModal'));
+        editarModal.show();
     }
 </script>
 </body>

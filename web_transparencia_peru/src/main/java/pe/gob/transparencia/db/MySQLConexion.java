@@ -13,7 +13,7 @@ public class MySQLConexion {
             Class.forName("com.mysql.cj.jdbc.Driver");
             String url = "jdbc:mysql://localhost:3306/db_transparencia_peru?useSSL=false&useTimezone=true&serverTimezone=UTC";
             String usr = "root";
-            String psw = "cibertec";  // Ajusta la contraseña según tu configuración
+            String psw = "cibertec";  // Contraseña vacía por defecto, ajusta según sea necesario
             con = DriverManager.getConnection(url, usr, psw);
             if (con != null) {
                 System.out.println("Conexión exitosa a la base de datos");
@@ -52,7 +52,7 @@ public class MySQLConexion {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 String url = "jdbc:mysql://localhost:3306/db_transparencia_peru?useSSL=false&useTimezone=true&serverTimezone=UTC";
                 String usr = "root";
-                String psw = "cibertec";
+                String psw = "";  // Contraseña vacía por defecto, ajusta según sea necesario
                 testCon = DriverManager.getConnection(url, usr, psw);
                 if (testCon != null) {
                     dbDisponible = true;
