@@ -741,18 +741,30 @@ public class ServletAdmin extends HttpServlet {
         try {
             // Eliminar ciudadano
             CiudadanoModelo modelo = new CiudadanoModelo();
+
+            // Verificar que el ciudadano existe
+            CiudadanoEntidad ciudadano = modelo.buscarPorId(id);
+            if (ciudadano == null) {
+                session.setAttribute("mensaje", "Error: El ciudadano que intenta eliminar no existe.");
+                session.setAttribute("tipoMensaje", "warning");
+                response.sendRedirect(request.getContextPath() + "/admin/ciudadanos.jsp");
+                return;
+            }
+
+            // Proceder con la eliminación
             int resultado = modelo.eliminarCiudadano(id);
 
             if (resultado > 0) {
                 session.setAttribute("mensaje", "Ciudadano eliminado correctamente.");
                 session.setAttribute("tipoMensaje", "success");
             } else {
-                session.setAttribute("mensaje", "Error al eliminar ciudadano.");
+                session.setAttribute("mensaje", "Error al eliminar ciudadano: No se pudo completar la operación.");
                 session.setAttribute("tipoMensaje", "danger");
             }
         } catch (Exception e) {
-            session.setAttribute("mensaje", "Error en el sistema: " + e.getMessage());
+            session.setAttribute("mensaje", "Error al eliminar ciudadano: " + e.getMessage());
             session.setAttribute("tipoMensaje", "danger");
+            e.printStackTrace();
         }
 
         response.sendRedirect(request.getContextPath() + "/admin/ciudadanos.jsp");

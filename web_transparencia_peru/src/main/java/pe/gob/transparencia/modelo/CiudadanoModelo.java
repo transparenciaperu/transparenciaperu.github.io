@@ -321,21 +321,70 @@ public class CiudadanoModelo implements CiudadanoInterface {
         int resultado = 0;
         Connection cn = null;
         PreparedStatement ps = null;
+        ResultSet rs = null;
 
         try {
             cn = MySQLConexion.getConexion();
-            String sql = "DELETE FROM Ciudadano WHERE id = ?";
-            ps = cn.prepareStatement(sql);
+            cn.setAutoCommit(false); // Iniciamos una transacción para asegurar integridad
+
+            // 1. Verificar y eliminar respuestas a solicitudes del ciudadano
+            String sqlCheckRespuestas = "SELECT rs.id FROM RespuestaSolicitud rs " +
+                    "INNER JOIN SolicitudAcceso sa ON rs.solicitudAccesoId = sa.id " +
+                    "WHERE sa.ciudadanoId = ?";
+            ps = cn.prepareStatement(sqlCheckRespuestas);
+            ps.setInt(1, idCiudadano);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                // Si hay respuestas, las eliminamos
+                ps.close();
+                String sqlDeleteRespuestas = "DELETE FROM RespuestaSolicitud " +
+                        "WHERE solicitudAccesoId IN (SELECT id FROM SolicitudAcceso WHERE ciudadanoId = ?)";
+                ps = cn.prepareStatement(sqlDeleteRespuestas);
+                ps.setInt(1, idCiudadano);
+                ps.executeUpdate();
+            }
+
+            // 2. Eliminar todas las solicitudes de acceso del ciudadano
+            if (rs != null) rs.close();
+            ps.close();
+            String sqlDeleteSolicitudes = "DELETE FROM SolicitudAcceso WHERE ciudadanoId = ?";
+            ps = cn.prepareStatement(sqlDeleteSolicitudes);
+            ps.setInt(1, idCiudadano);
+            ps.executeUpdate();
+
+            // 3. Finalmente eliminamos al ciudadano
+            ps.close();
+            String sqlDeleteCiudadano = "DELETE FROM Ciudadano WHERE id = ?";
+            ps = cn.prepareStatement(sqlDeleteCiudadano);
             ps.setInt(1, idCiudadano);
 
             resultado = ps.executeUpdate();
 
+            // Si todo ha ido bien, confirmar los cambios
+            if (resultado > 0) {
+                cn.commit();
+            } else {
+                cn.rollback();
+            }
+
         } catch (Exception e) {
+            // En caso de error, revertimos los cambios
+            try {
+                if (cn != null) cn.rollback();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            System.out.println("Error al eliminar ciudadano: " + e.getMessage());
             e.printStackTrace();
         } finally {
             try {
+                if (rs != null) rs.close();
                 if (ps != null) ps.close();
-                if (cn != null) cn.close();
+                if (cn != null) {
+                    cn.setAutoCommit(true); // Restauramos el autocommit
+                    cn.close();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
