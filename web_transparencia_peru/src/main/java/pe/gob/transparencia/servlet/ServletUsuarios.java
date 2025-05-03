@@ -91,6 +91,14 @@ public class ServletUsuarios extends HttpServlet {
                     resultado = eliminarUsuario(request);
                     mensaje = (resultado > 0) ? "Usuario desactivado correctamente" : "Error al desactivar el usuario";
                     break;
+                case "desactivar":
+                    resultado = cambiarEstadoUsuario(request, false);
+                    mensaje = (resultado > 0) ? "Usuario desactivado correctamente" : "Error al desactivar el usuario";
+                    break;
+                case "activar":
+                    resultado = cambiarEstadoUsuario(request, true);
+                    mensaje = (resultado > 0) ? "Usuario activado correctamente" : "Error al activar el usuario";
+                    break;
                 default:
                     mensaje = "Acción no reconocida";
                     break;
@@ -239,6 +247,33 @@ public class ServletUsuarios extends HttpServlet {
         }
 
         return modelo.eliminarUsuario(id);
+    }
+
+    /**
+     * Cambia el estado de un usuario
+     */
+    private int cambiarEstadoUsuario(HttpServletRequest request, boolean activo) throws Exception {
+        // Obtener ID a cambiar
+        int id = Integer.parseInt(request.getParameter("id"));
+        HttpSession session = request.getSession();
+
+        // Verificar que no se esté cambiando el estado del usuario actual
+        UsuarioEntidad usuarioActual = (UsuarioEntidad) session.getAttribute("usuario");
+        if (usuarioActual != null && usuarioActual.getId() == id) {
+            throw new Exception("No puede cambiar el estado de su propio usuario");
+        }
+
+        // Cambiar estado de usuario
+        UsuarioModelo modelo = new UsuarioModelo();
+
+        // Verificar que el usuario existe
+        UsuarioEntidad usuario = modelo.buscarPorId(id);
+        if (usuario == null) {
+            throw new Exception("El usuario que intenta cambiar no existe");
+        }
+
+        usuario.setActivo(activo);
+        return modelo.actualizarUsuario(usuario);
     }
 
     /**

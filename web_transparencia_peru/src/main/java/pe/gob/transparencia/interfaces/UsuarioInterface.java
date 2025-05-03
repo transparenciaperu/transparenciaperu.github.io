@@ -23,6 +23,8 @@ public interface UsuarioInterface {
 
     public int eliminarUsuario(int idUsuario);
 
+    public int cambiarEstadoUsuario(int idUsuario, boolean activo);
+
     public boolean verificarUsuarioExistente(String codUsuario);
 
     public boolean verificarCorreoExistente(String correo);

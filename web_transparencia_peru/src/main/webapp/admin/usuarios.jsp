@@ -357,11 +357,19 @@
                                                 onclick="editarUsuario(<%= user.getId() %>, '<%= user.getUsuario().replace("'", "\\'") %>', '<%= user.getNombreCompleto().replace("'", "\\'") %>', '<%= user.getCorreo().replace("'", "\\'") %>', '<%= user.getCodRol() != null ? user.getCodRol() : "FUNCIONARIO" %>', <%= user.getActivo() ? "true" : "false" %>)">
                                             <i class="bi bi-pencil"></i>
                                         </button>
+                                        <% if (user.getActivo()) { %>
                                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip"
-                                                title="Eliminar"
-                                                onclick="confirmarEliminacion(<%= user.getId() %>, '<%= user.getNombreCompleto().replace("'", "\\'") %>')">
-                                            <i class="bi bi-trash"></i>
+                                                title="Desactivar"
+                                                onclick="confirmarCambioEstado(<%= user.getId() %>, '<%= user.getNombreCompleto().replace("'", "\\'") %>', false)">
+                                            <i class="bi bi-person-x"></i>
                                         </button>
+                                        <% } else { %>
+                                        <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip"
+                                                title="Activar"
+                                                onclick="confirmarCambioEstado(<%= user.getId() %>, '<%= user.getNombreCompleto().replace("'", "\\'") %>', true)">
+                                            <i class="bi bi-person-check"></i>
+                                        </button>
+                                        <% } %>
                                         <a href="<%= request.getContextPath() %>/usuarios.do?accion=ver&id=<%= user.getId() %>"
                                            class="btn btn-outline-info" data-bs-toggle="tooltip" title="Ver detalle">
                                             <i class="bi bi-eye"></i>
@@ -485,27 +493,28 @@
     </div>
 </div>
 
-<!-- Modal Confirmar Eliminación -->
-<div class="modal fade" id="eliminarUsuarioModal" tabindex="-1" aria-labelledby="eliminarUsuarioModalLabel"
+<!-- Modal Cambio de Estado -->
+<div class="modal fade" id="cambiarEstadoModal" tabindex="-1" aria-labelledby="cambiarEstadoModalLabel"
      aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="eliminarUsuarioModalLabel"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar
-                    Desactivación</h5>
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="cambiarEstadoModalLabel"><i class="bi bi-exclamation-triangle me-2"></i>Cambiar
+                    Estado</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>¿Está seguro que desea desactivar al usuario <strong id="nombreUsuarioEliminar"></strong>?</p>
-                <p>El usuario ya no podrá acceder al sistema, pero sus datos permanecerán almacenados.</p>
+                <p>¿Está seguro que desea cambiar el estado del usuario <strong
+                        id="nombreUsuarioCambiarEstado"></strong>?</p>
+                <p>El usuario <span id="mensajeEstado"></span>.</p>
             </div>
             <div class="modal-footer">
-                <form action="<%= request.getContextPath() %>/usuarios.do" method="post" id="formEliminarUsuario">
-                    <input type="hidden" name="accion" value="eliminar">
-                    <input type="hidden" name="id" id="idUsuarioEliminar">
+                <form action="<%= request.getContextPath() %>/usuarios.do" method="post" id="formCambiarEstado">
+                    <input type="hidden" name="accion" id="accionEstado">
+                    <input type="hidden" name="id" id="idUsuarioCambiarEstado">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Desactivar</button>
+                    <button type="submit" class="btn btn-warning">Cambiar Estado</button>
                 </form>
             </div>
         </div>

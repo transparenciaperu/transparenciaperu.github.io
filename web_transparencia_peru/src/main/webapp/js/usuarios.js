@@ -123,24 +123,33 @@ function editarUsuario(id, usuario, nombre, correo, rol, activo) {
 }
 
 /**
- * Función para confirmar la eliminación de un usuario
+ * Función para confirmar el cambio de estado de un usuario
  * @param {number} id - ID del usuario
  * @param {string} nombre - Nombre del usuario
+ * @param {boolean} activar - true para activar, false para desactivar
  */
-function confirmarEliminacion(id, nombre) {
-    console.log("Confirmando eliminación del usuario:", id, nombre);
+function confirmarCambioEstado(id, nombre, activar) {
+    console.log("Confirmando cambio de estado del usuario:", id, nombre, "Activar:", activar);
 
     try {
-        $('#idUsuarioEliminar').val(id);
-        $('#nombreUsuarioEliminar').text(nombre);
+        document.getElementById("nombreUsuarioCambiarEstado").innerText = nombre;
 
-        // Mostrar el modal de confirmación
-        var eliminarModal = new bootstrap.Modal(document.getElementById('eliminarUsuarioModal'));
-        eliminarModal.show();
+        if (activar) {
+            document.getElementById("mensajeEstado").innerText = "se activará y podrá acceder al sistema";
+            document.getElementById("accionEstado").value = "activar";
+        } else {
+            document.getElementById("mensajeEstado").innerText = "se desactivará y no podrá acceder al sistema";
+            document.getElementById("accionEstado").value = "desactivar";
+        }
 
-        console.log("Modal de confirmación mostrado correctamente");
+        document.getElementById("idUsuarioCambiarEstado").value = id;
+
+        var cambiarEstadoModal = new bootstrap.Modal(document.getElementById('cambiarEstadoModal'));
+        cambiarEstadoModal.show();
+
+        console.log("Modal de cambio de estado mostrado correctamente");
     } catch (error) {
-        console.error("Error al abrir el modal de confirmación:", error);
+        console.error("Error al abrir el modal de cambio de estado:", error);
         alert("Error al cargar la confirmación. Por favor, inténtelo de nuevo.");
     }
 }

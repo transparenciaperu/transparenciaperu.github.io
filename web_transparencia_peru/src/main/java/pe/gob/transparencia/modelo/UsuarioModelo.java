@@ -441,26 +441,59 @@ public class UsuarioModelo implements UsuarioInterface {
         return idRol;
     }
 
-    private int actualizarEstadoUsuario(String codUsuario, boolean activo) {
+    @Override
+    public int cambiarEstadoUsuario(int idUsuario, boolean activo) {
         int resultado = 0;
         Connection cn = null;
         PreparedStatement ps = null;
 
         try {
+            System.out.println("Actualizando estado de usuario #" + idUsuario + " a " + (activo ? "activo" : "inactivo"));
             cn = MySQLConexion.getConexion();
-            String sql = "UPDATE usuario SET activo = ? WHERE cod_usuario = ?";
-            ps = cn.prepareStatement(sql);
-            ps.setBoolean(1, activo);
-            ps.setString(2, codUsuario);
+            cn.setAutoCommit(false);
 
-            resultado = ps.executeUpdate();
+            // Verificar que el campo activo existe
+            DatabaseMetaData metaData = cn.getMetaData();
+            ResultSet columnsRS = metaData.getColumns(null, null, "usuario", "activo");
+            boolean campoActivoExiste = columnsRS.next();
+            columnsRS.close();
+
+            if (campoActivoExiste) {
+                String sql = "UPDATE usuario SET activo = ? WHERE id_usuario = ?";
+                ps = cn.prepareStatement(sql);
+                ps.setBoolean(1, activo);
+                ps.setInt(2, idUsuario);
+
+                resultado = ps.executeUpdate();
+
+                if (resultado > 0) {
+                    cn.commit();
+                    System.out.println("Estado de usuario #" + idUsuario + " actualizado con éxito a " + (activo ? "activo" : "inactivo"));
+                } else {
+                    cn.rollback();
+                    System.out.println("No se actualizó el estado del usuario #" + idUsuario);
+                }
+            } else {
+                // Si el campo no existe, no podemos actualizar el estado
+                System.out.println("No se pudo actualizar el estado del usuario porque el campo 'activo' no existe en la tabla");
+                cn.rollback();
+            }
 
         } catch (Exception e) {
+            try {
+                if (cn != null) cn.rollback();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            System.out.println("Error al actualizar el estado del usuario: " + e.getMessage());
             e.printStackTrace();
         } finally {
             try {
                 if (ps != null) ps.close();
-                if (cn != null) cn.close();
+                if (cn != null) {
+                    cn.setAutoCommit(true);
+                    cn.close();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -647,52 +680,7 @@ public class UsuarioModelo implements UsuarioInterface {
 
     @Override
     public int eliminarUsuario(int idUsuario) {
-        int resultado = 0;
-        Connection cn = null;
-        PreparedStatement ps = null;
-
-        try {
-            cn = MySQLConexion.getConexion();
-            cn.setAutoCommit(false); // Usamos transacción para asegurar integridad
-
-            System.out.println("Intentando eliminar usuario con ID: " + idUsuario);
-
-            // Implementación más segura: desactivar el usuario en lugar de eliminarlo
-            String sql = "UPDATE usuario SET activo = FALSE WHERE id_usuario = ?";
-            ps = cn.prepareStatement(sql);
-            ps.setInt(1, idUsuario);
-
-            resultado = ps.executeUpdate();
-
-            if (resultado > 0) {
-                System.out.println("Usuario desactivado correctamente (ID: " + idUsuario + ")");
-                cn.commit();
-            } else {
-                System.out.println("No se pudo desactivar el usuario (ID: " + idUsuario + ")");
-                cn.rollback();
-            }
-
-        } catch (Exception e) {
-            try {
-                if (cn != null) cn.rollback();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            System.out.println("Error al eliminar usuario: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            try {
-                if (ps != null) ps.close();
-                if (cn != null) {
-                    cn.setAutoCommit(true);
-                    cn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        return resultado;
+        return cambiarEstadoUsuario(idUsuario, false);
     }
 
     @Override
