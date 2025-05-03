@@ -49,6 +49,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 </head>
 <body>
 <!-- Navbar superior -->
@@ -138,6 +139,10 @@
                 <h1 class="h2">Gestión de Solicitudes de Acceso a Información</h1>
                 <div class="btn-toolbar">
                     <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#nuevaSolicitudModal">
+                            <i class="bi bi-file-earmark-plus me-1"></i> Nueva Solicitud
+                        </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip"
                                 data-bs-placement="bottom" title="Exportar solicitudes">
                             <i class="bi bi-file-earmark-excel me-1"></i> Exportar
@@ -315,7 +320,7 @@
                 <p>Esta acción eliminará también todas las respuestas asociadas y no se puede deshacer.</p>
             </div>
             <div class="modal-footer">
-                <form action="<%= request.getContextPath() %>/admin.do" method="post">
+                <form action="<%= request.getContextPath() %>/admin.do" method="post" id="eliminarSolicitudForm">
                     <input type="hidden" name="accion" value="eliminarSolicitud">
                     <input type="hidden" name="id" id="idSolicitudEliminar">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -326,11 +331,82 @@
     </div>
 </div>
 
+<!-- Modal Nueva Solicitud -->
+<div class="modal fade" id="nuevaSolicitudModal" tabindex="-1" aria-labelledby="nuevaSolicitudModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="nuevaSolicitudModalLabel"><i class="bi bi-file-earmark-plus me-2"></i>Nueva
+                    Solicitud de Acceso</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <form action="<%= request.getContextPath() %>/solicitud.do" method="post">
+                <input type="hidden" name="accion" value="registrar">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="ciudadanoId" class="form-label">Ciudadano</label>
+                        <select class="form-select" id="ciudadanoId" name="ciudadanoId" required>
+                            <option value="">Seleccione un ciudadano</option>
+                            <%
+                                // Obtener lista de ciudadanos
+                                pe.gob.transparencia.modelo.CiudadanoModelo ciudadanoModelo = new pe.gob.transparencia.modelo.CiudadanoModelo();
+                                List<CiudadanoEntidad> listaCiudadanos = ciudadanoModelo.listarCiudadanos();
+                                for (CiudadanoEntidad ciudadano : listaCiudadanos) {
+                            %>
+                            <option value="<%= ciudadano.getId() %>"><%= ciudadano.getNombreCompleto() %>
+                                - <%= ciudadano.getDni() %>
+                            </option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="entidadPublicaId" class="form-label">Entidad Pública</label>
+                        <select class="form-select" id="entidadPublicaId" name="entidadPublicaId" required>
+                            <option value="">Seleccione una entidad</option>
+                            <% for (EntidadPublicaEntidad entidad : listaEntidades) { %>
+                            <option value="<%= entidad.getId() %>"><%= entidad.getNombre() %>
+                            </option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipoSolicitudId" class="form-label">Tipo de Solicitud</label>
+                        <select class="form-select" id="tipoSolicitudId" name="tipoSolicitudId" required>
+                            <option value="">Seleccione un tipo</option>
+                            <%
+                                // Obtener lista de tipos de solicitud
+                                SolicitudAccesoModelo solicitudModeloTipos = new SolicitudAccesoModelo();
+                                List<pe.gob.transparencia.entidades.TipoSolicitudEntidad> listaTipos = solicitudModeloTipos.listarTiposSolicitud();
+                                for (pe.gob.transparencia.entidades.TipoSolicitudEntidad tipo : listaTipos) {
+                            %>
+                            <option value="<%= tipo.getId() %>"><%= tipo.getNombre() %>
+                            </option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción de la Solicitud</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="5" required
+                                  placeholder="Describa detalladamente la información que solicita..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Solicitud</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
     $(document).ready(function () {
@@ -351,6 +427,14 @@
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Inicializar selects con búsqueda
+        $('#ciudadanoId, #entidadPublicaId, #tipoSolicitudId').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $('#nuevaSolicitudModal'),
+            width: '100%',
+            placeholder: 'Seleccione una opción'
         });
 
         // Filtros personalizados
@@ -391,6 +475,11 @@
     function confirmarEliminacion(id) {
         document.getElementById('idSolicitudEliminar').value = id;
         document.getElementById('idSolicitudEliminarText').textContent = id;
+
+        // Configurar el evento de envío del formulario
+        document.getElementById('eliminarSolicitudForm').addEventListener('submit', function (e) {
+            console.log("Enviando formulario para eliminar solicitud con ID: " + id);
+        });
 
         var eliminarModal = new bootstrap.Modal(document.getElementById('eliminarSolicitudModal'));
         eliminarModal.show();

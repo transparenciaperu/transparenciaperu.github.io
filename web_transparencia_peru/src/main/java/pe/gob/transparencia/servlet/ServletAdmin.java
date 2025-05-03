@@ -169,11 +169,14 @@ public class ServletAdmin extends HttpServlet {
             case "eliminarPresupuesto":
                 eliminarPresupuesto(request, response);
                 break;
+            case "registrarSolicitud":
+                registrarSolicitud(request, response);
+                break;
             case "actualizarSolicitud":
                 actualizarSolicitud(request, response);
                 break;
             case "eliminarSolicitud":
-                eliminarSolicitud(request, response);
+                eliminarSolicitudSimple(request, response);
                 break;
             case "registrarInforme":
                 registrarInforme(request, response);
@@ -1041,14 +1044,71 @@ public class ServletAdmin extends HttpServlet {
         }
     }
 
+    private void registrarSolicitud(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Obtener parámetros
+        int ciudadanoId = Integer.parseInt(request.getParameter("ciudadanoId"));
+        int entidadPublicaId = Integer.parseInt(request.getParameter("entidadPublicaId"));
+        int tipoSolicitudId = Integer.parseInt(request.getParameter("tipoSolicitudId"));
+        String descripcion = request.getParameter("descripcion");
+        String redirect = request.getParameter("redirect");
+
+        HttpSession session = request.getSession();
+
+        try {
+            // Validar datos
+            if (ciudadanoId <= 0 || entidadPublicaId <= 0 || tipoSolicitudId <= 0 || descripcion == null || descripcion.trim().isEmpty()) {
+                session.setAttribute("mensaje", "Todos los campos son obligatorios para registrar una solicitud.");
+                session.setAttribute("tipoMensaje", "warning");
+                response.sendRedirect(request.getContextPath() + "/admin/solicitudes.jsp");
+                return;
+            }
+
+            // Crear objeto de solicitud
+            SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
+            solicitud.setCiudadanoId(ciudadanoId);
+            solicitud.setEntidadPublicaId(entidadPublicaId);
+            solicitud.setTipoSolicitudId(tipoSolicitudId);
+            solicitud.setDescripcion(descripcion);
+            solicitud.setFechaSolicitud(new java.util.Date()); // Fecha actual
+            solicitud.setEstadoSolicitudId(1); // Estado inicial: Pendiente
+
+            // Registrar solicitud usando el modelo
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            int resultado = modelo.registrarSolicitud(solicitud);
+
+            if (resultado > 0) {
+                session.setAttribute("mensaje", "Solicitud registrada correctamente.");
+                session.setAttribute("tipoMensaje", "success");
+            } else {
+                session.setAttribute("mensaje", "Error al registrar solicitud.");
+                session.setAttribute("tipoMensaje", "danger");
+            }
+        } catch (Exception e) {
+            session.setAttribute("mensaje", "Error en el sistema: " + e.getMessage());
+            session.setAttribute("tipoMensaje", "danger");
+            e.printStackTrace();
+        }
+
+        // Determinar la ruta de redirección basada en el parámetro redirect
+        String redirectPath = "/admin/solicitudes.jsp"; // Por defecto
+        if (redirect != null && !redirect.isEmpty()) {
+            redirectPath = "/admin/" + redirect;
+        }
+
+        // Redireccionar a la ruta correspondiente
+        response.sendRedirect(request.getContextPath() + redirectPath);
+    }
+
     private void actualizarSolicitud(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Obtener parámetros
         int id = Integer.parseInt(request.getParameter("id"));
         String descripcion = request.getParameter("descripcion");
+        int ciudadanoId = Integer.parseInt(request.getParameter("ciudadanoId"));
         int tipoSolicitudId = Integer.parseInt(request.getParameter("tipoSolicitudId"));
         int estadoSolicitudId = Integer.parseInt(request.getParameter("estadoSolicitudId"));
         int entidadPublicaId = Integer.parseInt(request.getParameter("entidadPublicaId"));
         String observaciones = request.getParameter("observaciones");
+        String fechaRespuestaStr = request.getParameter("fechaRespuesta");
 
         HttpSession session = request.getSession();
 
@@ -1066,23 +1126,23 @@ public class ServletAdmin extends HttpServlet {
 
             // Actualizar datos
             solicitud.setDescripcion(descripcion);
-
-            // Actualizar tipo de solicitud
-            TipoSolicitudEntidad tipoSolicitud = new TipoSolicitudEntidad();
-            tipoSolicitud.setId(tipoSolicitudId);
-            solicitud.setTipoSolicitud(tipoSolicitud);
-
-            // Actualizar estado de solicitud
-            EstadoSolicitudEntidad estadoSolicitud = new EstadoSolicitudEntidad();
-            estadoSolicitud.setId(estadoSolicitudId);
-            solicitud.setEstadoSolicitud(estadoSolicitud);
-
-            // Actualizar entidad pública
-            EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
-            entidadPublica.setId(entidadPublicaId);
-            solicitud.setEntidadPublica(entidadPublica);
-
+            solicitud.setCiudadanoId(ciudadanoId);
+            solicitud.setTipoSolicitudId(tipoSolicitudId);
+            solicitud.setEstadoSolicitudId(estadoSolicitudId);
+            solicitud.setEntidadPublicaId(entidadPublicaId);
             solicitud.setObservaciones(observaciones);
+
+            // Parsear y asignar fechaRespuesta si existe
+            if (fechaRespuestaStr != null && !fechaRespuestaStr.isEmpty()) {
+                try {
+                    java.sql.Date fechaRespuesta = java.sql.Date.valueOf(fechaRespuestaStr);
+                    solicitud.setFechaRespuesta(fechaRespuesta);
+                } catch (Exception e) {
+                    System.out.println("Error al parsear la fecha de respuesta: " + e.getMessage());
+                }
+            } else {
+                solicitud.setFechaRespuesta(null);
+            }
 
             // Actualizar solicitud
             int resultado = modelo.actualizarSolicitud(solicitud);
@@ -1104,12 +1164,62 @@ public class ServletAdmin extends HttpServlet {
     }
 
     private void eliminarSolicitud(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Obtener ID a eliminar e información de redirección
+        int id = Integer.parseInt(request.getParameter("id"));
+        String redirect = request.getParameter("redirect");
+        HttpSession session = request.getSession();
+
+        try {
+            System.out.println("Iniciando eliminación de solicitud con ID: " + id);
+
+            // Verificar que la solicitud existe antes de eliminarla
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            SolicitudAccesoEntidad solicitud = modelo.buscarPorId(id);
+
+            if (solicitud == null) {
+                session.setAttribute("mensaje", "Error: No se encontró la solicitud que intenta eliminar.");
+                session.setAttribute("tipoMensaje", "danger");
+                response.sendRedirect(request.getContextPath() + "/admin/solicitudes.jsp");
+                return;
+            }
+
+            // Eliminar solicitud y sus respuestas asociadas
+            int resultado = modelo.eliminarSolicitud(id);
+
+            if (resultado > 0) {
+                session.setAttribute("mensaje", "Solicitud eliminada correctamente.");
+                session.setAttribute("tipoMensaje", "success");
+                System.out.println("Solicitud eliminada correctamente: " + id);
+            } else {
+                session.setAttribute("mensaje", "Error al eliminar solicitud. No se pudo completar la operación.");
+                session.setAttribute("tipoMensaje", "danger");
+                System.out.println("Error al eliminar solicitud con ID: " + id);
+            }
+        } catch (Exception e) {
+            session.setAttribute("mensaje", "Error en el sistema al eliminar la solicitud: " + e.getMessage());
+            session.setAttribute("tipoMensaje", "danger");
+            System.out.println("Excepción al eliminar solicitud: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Determinar la ruta de redirección basada en el parámetro redirect
+        String redirectPath = "/admin/solicitudes.jsp"; // Por defecto
+        if (redirect != null && !redirect.isEmpty()) {
+            redirectPath = "/admin/" + redirect;
+        }
+
+        // Redireccionar a la ruta correspondiente
+        response.sendRedirect(request.getContextPath() + redirectPath);
+    }
+
+    // Método simplificado para eliminar solicitudes
+    private void eliminarSolicitudSimple(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Obtener ID a eliminar
         int id = Integer.parseInt(request.getParameter("id"));
         HttpSession session = request.getSession();
 
         try {
-            // Eliminar solicitud
+            // Eliminar solicitud usando el modelo
             SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
             int resultado = modelo.eliminarSolicitud(id);
 
@@ -1117,15 +1227,16 @@ public class ServletAdmin extends HttpServlet {
                 session.setAttribute("mensaje", "Solicitud eliminada correctamente.");
                 session.setAttribute("tipoMensaje", "success");
             } else {
-                session.setAttribute("mensaje", "Error al eliminar solicitud.");
+                session.setAttribute("mensaje", "Error al eliminar la solicitud.");
                 session.setAttribute("tipoMensaje", "danger");
             }
         } catch (Exception e) {
-            session.setAttribute("mensaje", "Error en el sistema: " + e.getMessage());
+            session.setAttribute("mensaje", "Error al eliminar la solicitud: " + e.getMessage());
             session.setAttribute("tipoMensaje", "danger");
             e.printStackTrace();
         }
 
+        // Redireccionar a la página de solicitudes
         response.sendRedirect(request.getContextPath() + "/admin/solicitudes.jsp");
     }
 

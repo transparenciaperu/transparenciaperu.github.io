@@ -456,7 +456,7 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
         }
 
         Connection cn = null;
-        CallableStatement cstm = null;
+        PreparedStatement pstm = null;
 
         try {
             cn = MySQLConexion.getConexion();
@@ -466,17 +466,23 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 return resultado;
             }
 
-            String sql = "{CALL sp_actualizar_estado_solicitud(?, ?)}";
-            cstm = cn.prepareCall(sql);
-            cstm.setInt(1, solicitudId);
-            cstm.setInt(2, nuevoEstadoId);
+            // Primero eliminamos la respuesta asociada, si existe
+            String sqlRespuesta = "DELETE FROM RespuestaSolicitud WHERE solicitudAccesoId = ?";
+            pstm = cn.prepareStatement(sqlRespuesta);
+            pstm.setInt(1, solicitudId);
+            pstm.executeUpdate();
 
-            resultado = cstm.executeUpdate();
+            // Luego actualizamos el estado de la solicitud
+            String sql = "UPDATE SolicitudAcceso SET estadoSolicitudId = ? WHERE id = ?";
+            pstm = cn.prepareStatement(sql);
+            pstm.setInt(1, nuevoEstadoId);
+            pstm.setInt(2, solicitudId);
+            resultado = pstm.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             try {
-                if (cstm != null) cstm.close();
+                if (pstm != null) pstm.close();
                 if (cn != null) cn.close();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -601,8 +607,8 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 return null;
             }
 
-            String sql = "SELECT id, solicitudId, usuarioId, fechaRespuesta, contenido, rutaArchivo " +
-                    "FROM RespuestaSolicitud WHERE solicitudId = ?";
+            String sql = "SELECT id, solicitudAccesoId, usuarioResponsable, fechaRespuesta, descripcion, archivoAdjunto " +
+                    "FROM RespuestaSolicitud WHERE solicitudAccesoId = ?";
             pstm = cn.prepareStatement(sql);
             pstm.setInt(1, solicitudId);
             rs = pstm.executeQuery();
@@ -610,11 +616,27 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             if (rs.next()) {
                 respuesta = new RespuestaSolicitudEntidad();
                 respuesta.setId(rs.getInt("id"));
-                respuesta.setSolicitudId(rs.getInt("solicitudId"));
-                respuesta.setUsuarioId(rs.getInt("usuarioId"));
+                respuesta.setSolicitudId(rs.getInt("solicitudAccesoId"));
+                // Extraer Id numerico si existe en el string, o usar 0
+                String usuarioResponsable = rs.getString("usuarioResponsable");
+                if (usuarioResponsable != null && !usuarioResponsable.isEmpty()) {
+                    // Intentar extraer solo dígitos
+                    String numericPart = usuarioResponsable.replaceAll("[^0-9]", "");
+                    if (!numericPart.isEmpty()) {
+                        try {
+                            respuesta.setUsuarioId(Integer.parseInt(numericPart));
+                        } catch (NumberFormatException e) {
+                            respuesta.setUsuarioId(0);
+                        }
+                    } else {
+                        respuesta.setUsuarioId(0);
+                    }
+                } else {
+                    respuesta.setUsuarioId(0);
+                }
                 respuesta.setFechaRespuesta(rs.getDate("fechaRespuesta"));
-                respuesta.setContenido(rs.getString("contenido"));
-                respuesta.setRutaArchivo(rs.getString("rutaArchivo"));
+                respuesta.setContenido(rs.getString("descripcion"));
+                respuesta.setRutaArchivo(rs.getString("archivoAdjunto"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -651,7 +673,7 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             }
 
             // Primero eliminamos la respuesta asociada, si existe
-            String sqlRespuesta = "DELETE FROM RespuestaSolicitud WHERE solicitudId = ?";
+            String sqlRespuesta = "DELETE FROM RespuestaSolicitud WHERE solicitudAccesoId = ?";
             pstm = cn.prepareStatement(sqlRespuesta);
             pstm.setInt(1, id);
             pstm.executeUpdate();
