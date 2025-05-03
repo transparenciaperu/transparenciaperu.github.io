@@ -10,11 +10,24 @@ public class MySQLConexion {
     public static Connection getConexion() {
         Connection con = null;
         try {
+            System.out.println("MySQLConexion - getConexion - Intentando conectar a la base de datos...");
+
             Class.forName("com.mysql.cj.jdbc.Driver");
-            String url = "jdbc:mysql://localhost:3306/db_transparencia_peru?useSSL=false&useTimezone=true&serverTimezone=UTC";
-            String usr = "root";
-            String psw = "cibertec";  // Contraseña vacía por defecto, ajusta según sea necesario
-            con = DriverManager.getConnection(url, usr, psw);
+
+            // Ajusta estos parámetros según tu configuración
+            String host = "localhost"; // Host de la base de datos
+            String port = "3306";      // Puerto estándar de MySQL
+            String database = "db_transparencia_peru"; // Nombre de la base de datos
+            String user = "root";     // Usuario de la base de datos
+            String password = "cibertec";     // Contraseña
+
+            String url = "jdbc:mysql://" + host + ":" + port + "/" + database +
+                    "?useSSL=false&useTimezone=true&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+
+            System.out.println("MySQLConexion - getConexion - URL de conexión: " + url);
+            System.out.println("MySQLConexion - getConexion - Usuario: " + user);
+
+            con = DriverManager.getConnection(url, user, password);
             if (con != null) {
                 System.out.println("Conexión exitosa a la base de datos");
                 dbDisponible = true;
@@ -50,10 +63,18 @@ public class MySQLConexion {
             Connection testCon = null;
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
-                String url = "jdbc:mysql://localhost:3306/db_transparencia_peru?useSSL=false&useTimezone=true&serverTimezone=UTC";
-                String usr = "root";
-                String psw = "";  // Contraseña vacía por defecto, ajusta según sea necesario
-                testCon = DriverManager.getConnection(url, usr, psw);
+
+                // Usar los mismos parámetros que en getConexion()
+                String host = "localhost";
+                String port = "3306";
+                String database = "db_transparencia_peru";
+                String user = "root";
+                String password = "cibertec";
+
+                String url = "jdbc:mysql://" + host + ":" + port + "/" + database +
+                        "?useSSL=false&useTimezone=true&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+
+                testCon = DriverManager.getConnection(url, user, password);
                 if (testCon != null) {
                     dbDisponible = true;
                 }

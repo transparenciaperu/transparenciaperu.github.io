@@ -7,6 +7,11 @@
 <%@ page import="pe.gob.transparencia.entidades.NivelGobiernoEntidad" %>
 <%@ page import="pe.gob.transparencia.entidades.RegionEntidad" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="pe.gob.transparencia.db.MySQLConexion" %>
+
 <%
     // Verificar si el usuario está en sesión y es admin
     HttpSession sesion = request.getSession(false);
@@ -17,70 +22,159 @@
     }
     UsuarioEntidad usuario = (UsuarioEntidad) sesion.getAttribute("usuario");
 
-    // Obtener la entidad desde el atributo de la petición
-    EntidadPublicaEntidad entidad = (EntidadPublicaEntidad) request.getAttribute("entidad");
+    // Entidad a mostrar
+    EntidadPublicaEntidad entidad = null;
 
-    // Si no está en request, intentar obtenerla de la sesión
-    if (entidad == null) {
-        entidad = (EntidadPublicaEntidad) sesion.getAttribute("entidadDetalle");
-        // Limpiar de la sesión después de obtenerla
-        if (entidad != null) {
-            sesion.removeAttribute("entidadDetalle");
-            System.out.println("EntidadDetalle.jsp - Entidad recuperada de la sesión. ID: " + entidad.getId() + ", Nombre: " + entidad.getNombre());
-        }
-    }
+    // Mensajes de diagnóstico
+    StringBuilder diagnostico = new StringBuilder();
 
-    // Si sigue siendo null, intentar obtener el ID y buscar directamente
-    if (entidad == null) {
-        String idStr = request.getParameter("id");
-        if (idStr != null && !idStr.isEmpty()) {
+    // 1. Obtener el ID de la URL
+    String idStr = request.getParameter("id");
+    diagnostico.append("<p>ID recibido: " + idStr + "</p>");
+
+    if (idStr != null && !idStr.isEmpty()) {
+        try {
+            int id = Integer.parseInt(idStr);
+            diagnostico.append("<p>ID convertido a entero: " + id + "</p>");
+
+            // 2. Intentar recuperar la entidad directamente de la base de datos
+            diagnostico.append("<h4>Consultando directamente la base de datos:</h4>");
+
+            Connection con = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
             try {
-                int id = Integer.parseInt(idStr);
-                EntidadPublicaModelo modeloEntidad = new EntidadPublicaModelo();
-                entidad = modeloEntidad.buscarPorId(id);
-                if (entidad != null) {
-                    System.out.println("EntidadDetalle.jsp - Entidad recuperada directamente de la BD. ID: " + entidad.getId());
+                con = MySQLConexion.getConexion();
+                if (con != null) {
+                    diagnostico.append("<p class='text-success'>✓ Conexión establecida correctamente</p>");
+
+                    // Verificar la estructura de la tabla EntidadPublica
+                    diagnostico.append("<h5>Estructura de la tabla EntidadPublica:</h5>");
+                    try {
+                        java.sql.DatabaseMetaData metaData = con.getMetaData();
+                        ResultSet columns = metaData.getColumns(null, null, "EntidadPublica", null);
+
+                        diagnostico.append("<table class='table table-sm table-bordered'>");
+                        diagnostico.append("<thead><tr><th>Columna</th><th>Tipo</th><th>Nullable</th></tr></thead><tbody>");
+
+                        boolean hasRucColumn = false;
+                        while (columns.next()) {
+                            String columnName = columns.getString("COLUMN_NAME");
+                            String columnType = columns.getString("TYPE_NAME");
+                            String nullable = columns.getString("IS_NULLABLE");
+
+                            diagnostico.append("<tr>");
+                            diagnostico.append("<td>" + columnName + "</td>");
+                            diagnostico.append("<td>" + columnType + "</td>");
+                            diagnostico.append("<td>" + nullable + "</td>");
+                            diagnostico.append("</tr>");
+
+                            if (columnName.equalsIgnoreCase("ruc")) {
+                                hasRucColumn = true;
+                            }
+                        }
+
+                        diagnostico.append("</tbody></table>");
+
+                        columns.close();
+                    } catch (Exception ex) {
+                        diagnostico.append("<p class='text-danger'>Error al obtener estructura de tabla: " + ex.getMessage() + "</p>");
+                    }
+
+                    // Consultar si la entidad existe
+                    String sqlCheck = "SELECT COUNT(*) as total FROM EntidadPublica WHERE id = ?";
+                    ps = con.prepareStatement(sqlCheck);
+                    ps.setInt(1, id);
+                    rs = ps.executeQuery();
+
+                    if (rs.next() && rs.getInt("total") > 0) {
+                        diagnostico.append("<p class='text-success'>✓ La entidad con ID " + id + " existe en la base de datos</p>");
+
+                        // Obtener datos completos
+                        rs.close();
+                        ps.close();
+
+                        String sql = "SELECT e.id, e.nombre, e.tipo, e.nivelGobiernoId, e.regionId, e.direccion, " +
+                                "e.telefono, e.email, e.sitioWeb " +
+                                "FROM EntidadPublica e " +
+                                "WHERE e.id = ?";
+
+                        ps = con.prepareStatement(sql);
+                        ps.setInt(1, id);
+                        rs = ps.executeQuery();
+
+                        if (rs.next()) {
+                            entidad = new EntidadPublicaEntidad();
+                            entidad.setId(rs.getInt("id"));
+                            entidad.setNombre(rs.getString("nombre"));
+                            entidad.setTipo(rs.getString("tipo"));
+                            entidad.setNivelGobiernoId(rs.getInt("nivelGobiernoId"));
+                            entidad.setRegionId(rs.getInt("regionId"));
+                            entidad.setDireccion(rs.getString("direccion"));
+                            entidad.setTelefono(rs.getString("telefono"));
+                            entidad.setEmail(rs.getString("email"));
+                            entidad.setSitioWeb(rs.getString("sitioWeb"));
+
+                            diagnostico.append("<p class='text-success'>✓ Entidad recuperada correctamente: " + entidad.getNombre() + "</p>");
+                        } else {
+                            diagnostico.append("<p class='text-danger'>✗ Error: No se pudo recuperar los datos de la entidad</p>");
+                        }
+                    } else {
+                        diagnostico.append("<p class='text-danger'>✗ Error: No existe una entidad con el ID " + id + "</p>");
+                    }
+                } else {
+                    diagnostico.append("<p class='text-danger'>✗ Error: No se pudo establecer conexión con la base de datos</p>");
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Exception ex) {
+                diagnostico.append("<p class='text-danger'>✗ Error en la consulta SQL: " + ex.getMessage() + "</p>");
+                ex.printStackTrace();
+            } finally {
+                try {
+                    if (rs != null) rs.close();
+                    if (ps != null) ps.close();
+                    if (con != null) con.close();
+                } catch (Exception ex) {
+                    // Ignorar
+                }
             }
+        } catch (NumberFormatException e) {
+            diagnostico.append("<p class='text-danger'>✗ Error: El ID proporcionado no es un número válido</p>");
         }
+    } else {
+        diagnostico.append("<p class='text-danger'>✗ Error: No se proporcionó un ID de entidad</p>");
     }
 
-    // Si definitivamente no hay entidad, redirigir a la lista
-    if (entidad == null) {
-        session.setAttribute("mensaje", "No se pudo encontrar la entidad solicitada.");
-        session.setAttribute("tipoMensaje", "warning");
-        response.sendRedirect(request.getContextPath() + "/admin/entidades.jsp");
-        return;
-    }
-
-    // Obtener niveles de gobierno
-    NivelGobiernoModelo nivelModelo = new NivelGobiernoModelo();
-    List<NivelGobiernoEntidad> niveles = nivelModelo.listar();
-
-    // Obtener regiones
-    RegionModelo regionModelo = new RegionModelo();
-    List<RegionEntidad> regiones = regionModelo.listar();
-
-    // Obtener nombre del nivel de gobierno
+    // Intentar obtener nombres de nivel de gobierno y región si tenemos la entidad
     String nivelGobiernoNombre = "No definido";
-    if (entidad.getNivelGobiernoId() > 0) {
-        for (NivelGobiernoEntidad nivel : niveles) {
-            if (nivel.getId() == entidad.getNivelGobiernoId()) {
-                nivelGobiernoNombre = nivel.getNombre();
-                break;
+    String regionNombre = "-";
+
+    if (entidad != null) {
+        // Obtener niveles de gobierno
+        NivelGobiernoModelo nivelModelo = new NivelGobiernoModelo();
+        List<NivelGobiernoEntidad> niveles = nivelModelo.listar();
+
+        // Obtener regiones
+        RegionModelo regionModelo = new RegionModelo();
+        List<RegionEntidad> regiones = regionModelo.listar();
+
+        // Obtener nombre del nivel de gobierno
+        if (entidad.getNivelGobiernoId() > 0) {
+            for (NivelGobiernoEntidad nivel : niveles) {
+                if (nivel.getId() == entidad.getNivelGobiernoId()) {
+                    nivelGobiernoNombre = nivel.getNombre();
+                    break;
+                }
             }
         }
-    }
 
-    // Obtener nombre de la región
-    String regionNombre = "-";
-    if (entidad.getRegionId() > 0) {
-        for (RegionEntidad region : regiones) {
-            if (region.getId() == entidad.getRegionId()) {
-                regionNombre = region.getNombre();
-                break;
+        // Obtener nombre de la región
+        if (entidad.getRegionId() > 0) {
+            for (RegionEntidad region : regiones) {
+                if (region.getId() == entidad.getRegionId()) {
+                    regionNombre = region.getNombre();
+                    break;
+                }
             }
         }
     }
@@ -90,11 +184,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle de Entidad - Portal de Transparencia Perú</title>
+    <title>Vista Directa de Entidad - Portal de Transparencia Perú</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+    <style>
+        .debug-info {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .text-success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .text-danger {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 <!-- Navbar superior -->
@@ -181,33 +294,63 @@
         <!-- Contenido principal -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom title-section">
-                <h1 class="h2">Detalle de Entidad Pública</h1>
+                <h1 class="h2">Vista Directa de Entidad</h1>
                 <div class="btn-toolbar">
                     <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="history.back()">
+                        <a href="<%= request.getContextPath() %>/admin/entidades.jsp"
+                           class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-arrow-left me-1"></i> Volver
-                        </button>
-                        <button type="button" class="btn btn-sm btn-primary"
-                                onclick="window.location.href='<%= request.getContextPath() %>/entidades.do?accion=formEditar&id=<%= entidad.getId() %>'">
-                            <i class="bi bi-pencil me-1"></i> Editar
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
 
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i> Esta es una página de vista directa que muestra los detalles de
+                la entidad.
+                <button class="btn btn-sm btn-outline-info float-end" onclick="toggleDiagnostico()">
+                    <i class="bi bi-bug"></i> Ver diagnóstico técnico
+                </button>
+            </div>
+
+            <div class="card shadow mb-4" id="diagnose-section" style="display: none;">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold">Diagnóstico de Acceso a Datos</h6>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleDiagnostico()">
+                        <i class="bi bi-x-lg"></i> Cerrar
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="debug-info">
+                        <%= diagnostico.toString() %>
+                    </div>
+                </div>
+            </div>
+
+            <% if (entidad != null) { %>
             <!-- Datos de la entidad -->
             <div class="card shadow mb-4 fade-in">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold"><i class="bi bi-building me-2"></i>Información de la Entidad</h6>
-                    <span class="badge bg-primary"><%= entidad.getTipo() %></span>
+                    <div>
+                        <a href="<%= request.getContextPath() %>/admin/entidades.jsp"
+                           class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-left me-1"></i> Volver
+                        </a>
+                        <span class="badge bg-primary"><%= entidad.getTipo() %></span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row mb-4">
                         <div class="col-md-8">
                             <h3><%= entidad.getNombre() %>
                             </h3>
-                            <p class="text-secondary">
+                            <p class="text-secondary mb-1">
                                 <i class="bi bi-geo-alt me-1"></i> <%= entidad.getDireccion() != null ? entidad.getDireccion() : "Sin dirección registrada" %>
+                            </p>
+                            <p class="mb-0">
+                                <strong>Nivel de Gobierno:</strong> <%= nivelGobiernoNombre %> |
+                                <strong>Región:</strong> <%= regionNombre %>
                             </p>
                         </div>
                         <div class="col-md-4 text-md-end">
@@ -233,19 +376,13 @@
                                     <h5 class="card-title">Información Gubernamental</h5>
                                     <ul class="list-group list-group-flush">
                                         <li class="list-group-item bg-transparent border-0 ps-0">
-                                            <strong><i class="bi bi-diagram-3 me-2"></i>Nivel de Gobierno:</strong>
-                                            <%= nivelGobiernoNombre %>
+                                            <strong><i class="bi bi-diagram-3 me-2"></i>ID Nivel de Gobierno:</strong>
+                                            <%= entidad.getNivelGobiernoId() %> (<%= nivelGobiernoNombre %>)
                                         </li>
                                         <li class="list-group-item bg-transparent border-0 ps-0">
-                                            <strong><i class="bi bi-geo me-2"></i>Región:</strong>
-                                            <%= regionNombre %>
+                                            <strong><i class="bi bi-geo me-2"></i>ID Región:</strong>
+                                            <%= entidad.getRegionId() %> (<%= regionNombre %>)
                                         </li>
-                                        <% if (entidad.getRuc() != null && !entidad.getRuc().isEmpty()) { %>
-                                        <li class="list-group-item bg-transparent border-0 ps-0">
-                                            <strong><i class="bi bi-card-text me-2"></i>RUC:</strong>
-                                            <%= entidad.getRuc() %>
-                                        </li>
-                                        <% } %>
                                     </ul>
                                 </div>
                             </div>
@@ -287,65 +424,27 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="mt-4">
-                        <h5>Acciones</h5>
+                </div>
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between">
                         <div class="btn-group">
-                            <button type="button" class="btn btn-outline-primary"
+                            <a href="<%= request.getContextPath() %>/admin/entidades.jsp" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Volver a la lista
+                            </a>
+                            <button type="button" class="btn btn-primary"
                                     onclick="window.location.href='<%= request.getContextPath() %>/entidades.do?accion=formEditar&id=<%= entidad.getId() %>'">
-                                <i class="bi bi-pencil me-1"></i> Editar
-                            </button>
-                            <button type="button" class="btn btn-outline-danger"
-                                    onclick="confirmarEliminacion(<%= entidad.getId() %>, '<%= entidad.getNombre().replace("'", "\\'") %>')">
-                                <i class="bi bi-trash me-1"></i> Eliminar
+                                <i class="bi bi-pencil me-1"></i> Editar entidad
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Presupuestos asociados (si los hubiera) -->
-            <div class="card shadow mb-4 fade-in">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold"><i class="bi bi-cash-coin me-2"></i>Presupuestos Asignados</h6>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Esta sección mostrará los presupuestos asociados a esta entidad.
-                        Actualmente no hay presupuestos registrados.
-                    </div>
-                </div>
+            <% } else { %>
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> No se pudo recuperar la información de la entidad.
             </div>
+            <% } %>
         </main>
-    </div>
-</div>
-
-<!-- Modal Confirmar Eliminación -->
-<div class="modal fade" id="eliminarEntidadModal" tabindex="-1" aria-labelledby="eliminarEntidadModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="eliminarEntidadModalLabel"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar
-                    Eliminación</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Está seguro que desea eliminar la entidad <strong id="nombreEntidadEliminar"></strong>?</p>
-                <p>Esta acción no se puede deshacer y podría afectar a presupuestos, solicitudes y otros datos
-                    relacionados.</p>
-            </div>
-            <div class="modal-footer">
-                <form action="<%= request.getContextPath() %>/entidades.do" method="post">
-                    <input type="hidden" name="accion" value="eliminar">
-                    <input type="hidden" name="id" id="idEntidadEliminar">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Eliminar</button>
-                </form>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -368,14 +467,14 @@
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-    function confirmarEliminacion(id, nombre) {
-        document.getElementById('idEntidadEliminar').value = id;
-        document.getElementById('nombreEntidadEliminar').textContent = nombre;
-
-        var eliminarModal = new bootstrap.Modal(document.getElementById('eliminarEntidadModal'));
-        eliminarModal.show();
+    function toggleDiagnostico() {
+        var section = document.getElementById('diagnose-section');
+        if (section.style.display === 'none') {
+            section.style.display = 'block';
+        } else {
+            section.style.display = 'none';
+        }
     }
 </script>
 </body>

@@ -305,11 +305,10 @@
                                                 onclick="confirmarEliminacion(<%= entidad.getId() %>, '<%= entidad.getNombre() != null ? entidad.getNombre().replace("'", "\\'") : "" %>')">
                                             <i class="bi bi-trash"></i>
                                         </button>
-                                        <button type="button" class="btn btn-outline-info" data-bs-toggle="tooltip"
-                                                title="Ver detalle"
-                                                onclick="window.location.href='<%= request.getContextPath() %>/entidades.do?accion=verDetalle&id=<%= entidad.getId() %>'">
+                                        <a href="<%= request.getContextPath() %>/admin/entidad_directa.jsp?id=<%= entidad.getId() %>"
+                                           class="btn btn-outline-info" data-bs-toggle="tooltip" title="Ver detalle">
                                             <i class="bi bi-eye"></i>
-                                        </button>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>

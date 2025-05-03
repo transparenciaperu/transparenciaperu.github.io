@@ -193,8 +193,26 @@ public class EntidadesServlet extends HttpServlet {
                 System.out.println("EntidadesServlet - verDetalleEntidad - Entidad recuperada: " + (entidad != null ? "ID " + entidad.getId() + ", Nombre: " + entidad.getNombre() : "NULL"));
 
                 if (entidad != null) {
+                    // Mostrar todos los datos de la entidad para debug
+                    System.out.println("EntidadesServlet - verDetalleEntidad - Detalles completos:");
+                    System.out.println("ID: " + entidad.getId());
+                    System.out.println("Nombre: " + entidad.getNombre());
+                    System.out.println("Tipo: " + entidad.getTipo());
+                    System.out.println("NivelGobiernoId: " + entidad.getNivelGobiernoId());
+                    System.out.println("RegionId: " + entidad.getRegionId());
+                    System.out.println("Direccion: " + entidad.getDireccion());
+                    System.out.println("Telefono: " + entidad.getTelefono());
+                    System.out.println("Email: " + entidad.getEmail());
+                    System.out.println("SitioWeb: " + entidad.getSitioWeb());
+                    System.out.println("RUC: " + entidad.getRuc());
+
                     request.setAttribute("entidad", entidad);
                     System.out.println("EntidadesServlet - verDetalleEntidad - Redirigiendo a la vista de detalle");
+
+                    // En lugar de usar el forward, guardar y recuperar de la sesión (alternativa temporal)
+                    HttpSession session = request.getSession();
+                    session.setAttribute("entidadDetalle", entidad);
+
                     request.getRequestDispatcher("/admin/entidad_detalle.jsp").forward(request, response);
                     return;
                 } else {
