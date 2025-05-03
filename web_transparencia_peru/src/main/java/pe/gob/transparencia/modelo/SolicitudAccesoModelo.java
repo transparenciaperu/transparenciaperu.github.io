@@ -5,6 +5,7 @@ import pe.gob.transparencia.entidades.SolicitudAccesoEntidad;
 import pe.gob.transparencia.entidades.CiudadanoEntidad;
 import pe.gob.transparencia.entidades.TipoSolicitudEntidad;
 import pe.gob.transparencia.entidades.EstadoSolicitudEntidad;
+import pe.gob.transparencia.entidades.EntidadPublicaEntidad;
 import pe.gob.transparencia.entidades.RespuestaSolicitudEntidad;
 import pe.gob.transparencia.interfaces.SolicitudAccesoInterface;
 
@@ -41,11 +42,13 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             }
 
             String sql = "SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, " +
-                    "t.nombre AS tipo_nombre, e.nombre AS estado_nombre " +
+                    "t.nombre AS tipo_nombre, e.nombre AS estado_nombre, " +
+                    "ep.nombre AS entidad_nombre, ep.id AS entidad_id " +
                     "FROM SolicitudAcceso s " +
                     "INNER JOIN Ciudadano c ON s.ciudadanoId = c.id " +
                     "INNER JOIN TipoSolicitud t ON s.tipoSolicitudId = t.id " +
                     "INNER JOIN EstadoSolicitud e ON s.estadoSolicitudId = e.id " +
+                    "LEFT JOIN EntidadPublica ep ON s.entidadPublicaId = ep.id " +
                     "ORDER BY s.fechaSolicitud DESC";
             pstm = cn.prepareStatement(sql);
             rs = pstm.executeQuery();
@@ -77,9 +80,14 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
                 estadoSolicitud.setNombre(rs.getString("estado_nombre"));
 
+                EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
+                entidadPublica.setId(rs.getInt("entidad_id"));
+                entidadPublica.setNombre(rs.getString("entidad_nombre"));
+
                 solicitud.setCiudadano(ciudadano);
                 solicitud.setTipoSolicitud(tipoSolicitud);
                 solicitud.setEstadoSolicitud(estadoSolicitud);
+                solicitud.setEntidadPublica(entidadPublica);
 
                 lista.add(solicitud);
             }
@@ -121,11 +129,13 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             }
 
             String sql = "SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, " +
-                    "t.nombre AS tipo_nombre, e.nombre AS estado_nombre " +
+                    "t.nombre AS tipo_nombre, e.nombre AS estado_nombre, " +
+                    "ep.nombre AS entidad_nombre, ep.id AS entidad_id " +
                     "FROM SolicitudAcceso s " +
                     "INNER JOIN Ciudadano c ON s.ciudadanoId = c.id " +
                     "INNER JOIN TipoSolicitud t ON s.tipoSolicitudId = t.id " +
                     "INNER JOIN EstadoSolicitud e ON s.estadoSolicitudId = e.id " +
+                    "LEFT JOIN EntidadPublica ep ON s.entidadPublicaId = ep.id " +
                     "WHERE s.ciudadanoId = ? " +
                     "ORDER BY s.fechaSolicitud DESC";
             pstm = cn.prepareStatement(sql);
@@ -159,9 +169,14 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
                 estadoSolicitud.setNombre(rs.getString("estado_nombre"));
 
+                EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
+                entidadPublica.setId(rs.getInt("entidad_id"));
+                entidadPublica.setNombre(rs.getString("entidad_nombre"));
+
                 solicitud.setCiudadano(ciudadano);
                 solicitud.setTipoSolicitud(tipoSolicitud);
                 solicitud.setEstadoSolicitud(estadoSolicitud);
+                solicitud.setEntidadPublica(entidadPublica);
 
                 lista.add(solicitud);
             }
@@ -203,11 +218,13 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             }
 
             String sql = "SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, " +
-                    "t.nombre AS tipo_nombre, e.nombre AS estado_nombre " +
+                    "t.nombre AS tipo_nombre, e.nombre AS estado_nombre, " +
+                    "ep.nombre AS entidad_nombre, ep.id AS entidad_id " +
                     "FROM SolicitudAcceso s " +
                     "INNER JOIN Ciudadano c ON s.ciudadanoId = c.id " +
                     "INNER JOIN TipoSolicitud t ON s.tipoSolicitudId = t.id " +
                     "INNER JOIN EstadoSolicitud e ON s.estadoSolicitudId = e.id " +
+                    "LEFT JOIN EntidadPublica ep ON s.entidadPublicaId = ep.id " +
                     "WHERE s.estadoSolicitudId = ? " +
                     "ORDER BY s.fechaSolicitud DESC";
             pstm = cn.prepareStatement(sql);
@@ -241,9 +258,14 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
                 estadoSolicitud.setNombre(rs.getString("estado_nombre"));
 
+                EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
+                entidadPublica.setId(rs.getInt("entidad_id"));
+                entidadPublica.setNombre(rs.getString("entidad_nombre"));
+
                 solicitud.setCiudadano(ciudadano);
                 solicitud.setTipoSolicitud(tipoSolicitud);
                 solicitud.setEstadoSolicitud(estadoSolicitud);
+                solicitud.setEntidadPublica(entidadPublica);
 
                 lista.add(solicitud);
             }
@@ -285,11 +307,13 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             }
 
             String sql = "SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, " +
-                    "t.nombre AS tipo_nombre, e.nombre AS estado_nombre " +
+                    "t.nombre AS tipo_nombre, e.nombre AS estado_nombre, " +
+                    "ep.nombre AS entidad_nombre, ep.id AS entidad_id " +
                     "FROM SolicitudAcceso s " +
                     "INNER JOIN Ciudadano c ON s.ciudadanoId = c.id " +
                     "INNER JOIN TipoSolicitud t ON s.tipoSolicitudId = t.id " +
                     "INNER JOIN EstadoSolicitud e ON s.estadoSolicitudId = e.id " +
+                    "LEFT JOIN EntidadPublica ep ON s.entidadPublicaId = ep.id " +
                     "WHERE s.id = ?";
             pstm = cn.prepareStatement(sql);
             pstm.setInt(1, id);
@@ -322,9 +346,14 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
                 estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
                 estadoSolicitud.setNombre(rs.getString("estado_nombre"));
 
+                EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
+                entidadPublica.setId(rs.getInt("entidad_id"));
+                entidadPublica.setNombre(rs.getString("entidad_nombre"));
+
                 solicitud.setCiudadano(ciudadano);
                 solicitud.setTipoSolicitud(tipoSolicitud);
                 solicitud.setEstadoSolicitud(estadoSolicitud);
+                solicitud.setEntidadPublica(entidadPublica);
             }
         } catch (SQLException e) {
             e.printStackTrace();

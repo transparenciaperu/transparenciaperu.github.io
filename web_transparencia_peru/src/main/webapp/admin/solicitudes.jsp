@@ -342,8 +342,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <form action="<%= request.getContextPath() %>/solicitud.do" method="post">
-                <input type="hidden" name="accion" value="registrar">
+            <form action="<%= request.getContextPath() %>/admin.do" method="post">
+                <input type="hidden" name="accion" value="registrarSolicitud">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="ciudadanoId" class="form-label">Ciudadano</label>
