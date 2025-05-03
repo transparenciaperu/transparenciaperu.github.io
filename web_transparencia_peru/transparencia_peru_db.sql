@@ -196,6 +196,28 @@ CREATE TABLE RespuestaSolicitud (
 );
 
 -- -----------------------------------------------------
+-- Tabla Informe
+-- -----------------------------------------------------
+CREATE TABLE Informe
+(
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    titulo          VARCHAR(255) NOT NULL,
+    tipo            VARCHAR(50)  NOT NULL,
+    anio            INT          NOT NULL,
+    fechaGeneracion DATE         NOT NULL,
+    nivelGobierno   VARCHAR(100),
+    descripcion     TEXT,
+    estado          VARCHAR(20)  NOT NULL DEFAULT 'Activo',
+    rutaArchivo     VARCHAR(255),
+    datosJson       TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Índices para tabla Informe
+CREATE INDEX idx_informe_tipo ON Informe (tipo);
+CREATE INDEX idx_informe_anio ON Informe (anio);
+CREATE INDEX idx_informe_nivel ON Informe (nivelGobierno);
+
+-- -----------------------------------------------------
 -- Tablas de Gestión de Roles y Usuarios del Sistema Interno
 -- -----------------------------------------------------
 
@@ -539,6 +561,18 @@ INSERT INTO Gasto (concepto, monto, fecha, presupuestoId, proyectoId, tipoGastoI
 ('Mejoramiento de pistas y veredas en San Isidro', 12000000.00, '2024-05-15', 25, 16, 5),
 ('Materiales y equipamiento para centro cultural en SJL', 14500000.00, '2024-08-10', 26, 17, 5),
 ('Sistema de videovigilancia para Santiago de Surco', 7800000.00, '2024-05-20', 27, 18, 3);
+
+-- Datos de ejemplo para Informes
+INSERT INTO Informe (titulo, tipo, anio, fechaGeneracion, nivelGobierno, descripcion, estado, rutaArchivo, datosJson)
+VALUES ('Presupuesto Nacional 2023', 'presupuesto', 2023, '2023-01-15', 'Nacional',
+        'Informe sobre el presupuesto asignado a nivel nacional para el año 2023', 'Activo', '',
+        '{"labels":["Nacional","Regional","Municipal"], "datos":[78.3,14.3,7.4]}'),
+       ('Ejecución Presupuestal Primer Trimestre 2023', 'ejecucion', 2023, '2023-04-10', 'Nacional',
+        'Informe de ejecución presupuestal del primer trimestre del año 2023', 'Activo', '',
+        '{"labels":["Ene","Feb","Mar"], "datos":[65,70,75]}'),
+       ('Solicitudes de Información 2023', 'solicitudes', 2023, '2023-05-20', 'Todos',
+        'Estadísticas de solicitudes de acceso a información del año 2023', 'Activo', '',
+        '{"labels":["Atendidas","En Proceso","Pendientes"], "datos":[68,22,10]}');
 
 -- =========================================
 -- PROCEDIMIENTOS ALMACENADOS (Gestión de Usuarios)

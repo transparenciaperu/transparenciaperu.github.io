@@ -4,19 +4,22 @@ import java.util.Date;
 
 public class RespuestaSolicitudEntidad {
     private int id;
-    private int solicitudAccesoId;
-    private String respuesta;
+    private int solicitudId;
+    private int usuarioId;
     private Date fechaRespuesta;
-    private SolicitudAccesoEntidad solicitudAcceso;
+    private String contenido;
+    private String rutaArchivo;
 
     public RespuestaSolicitudEntidad() {
     }
 
-    public RespuestaSolicitudEntidad(int id, int solicitudAccesoId, String respuesta, Date fechaRespuesta) {
+    public RespuestaSolicitudEntidad(int id, int solicitudId, int usuarioId, Date fechaRespuesta, String contenido, String rutaArchivo) {
         this.id = id;
-        this.solicitudAccesoId = solicitudAccesoId;
-        this.respuesta = respuesta;
+        this.solicitudId = solicitudId;
+        this.usuarioId = usuarioId;
         this.fechaRespuesta = fechaRespuesta;
+        this.contenido = contenido;
+        this.rutaArchivo = rutaArchivo;
     }
 
     public int getId() {
@@ -27,20 +30,20 @@ public class RespuestaSolicitudEntidad {
         this.id = id;
     }
 
-    public int getSolicitudAccesoId() {
-        return solicitudAccesoId;
+    public int getSolicitudId() {
+        return solicitudId;
     }
 
-    public void setSolicitudAccesoId(int solicitudAccesoId) {
-        this.solicitudAccesoId = solicitudAccesoId;
+    public void setSolicitudId(int solicitudId) {
+        this.solicitudId = solicitudId;
     }
 
-    public String getRespuesta() {
-        return respuesta;
+    public int getUsuarioId() {
+        return usuarioId;
     }
 
-    public void setRespuesta(String respuesta) {
-        this.respuesta = respuesta;
+    public void setUsuarioId(int usuarioId) {
+        this.usuarioId = usuarioId;
     }
 
     public Date getFechaRespuesta() {
@@ -51,11 +54,19 @@ public class RespuestaSolicitudEntidad {
         this.fechaRespuesta = fechaRespuesta;
     }
 
-    public SolicitudAccesoEntidad getSolicitudAcceso() {
-        return solicitudAcceso;
+    public String getContenido() {
+        return contenido;
     }
 
-    public void setSolicitudAcceso(SolicitudAccesoEntidad solicitudAcceso) {
-        this.solicitudAcceso = solicitudAcceso;
+    public void setContenido(String contenido) {
+        this.contenido = contenido;
+    }
+
+    public String getRutaArchivo() {
+        return rutaArchivo;
+    }
+
+    public void setRutaArchivo(String rutaArchivo) {
+        this.rutaArchivo = rutaArchivo;
     }
 }

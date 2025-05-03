@@ -18,7 +18,6 @@ import java.util.HashMap;
 
 public class PresupuestoModelo implements PresupuestoInterface {
 
-    @Override
     public List<PresupuestoEntidad> listarPresupuestos() {
         List<PresupuestoEntidad> lista = new ArrayList<>();
 
@@ -81,7 +80,6 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return lista;
     }
 
-    @Override
     public List<PresupuestoEntidad> listarPresupuestosPorEntidad(int entidadId) {
         List<PresupuestoEntidad> lista = new ArrayList<>();
 
@@ -146,7 +144,6 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return lista;
     }
 
-    @Override
     public List<PresupuestoEntidad> listarPresupuestosPorAnio(int anio) {
         List<PresupuestoEntidad> lista = new ArrayList<>();
 
@@ -211,7 +208,6 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return lista;
     }
 
-    @Override
     public PresupuestoEntidad obtenerPresupuesto(int id) {
         PresupuestoEntidad presupuesto = null;
 
@@ -274,7 +270,6 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return presupuesto;
     }
 
-    @Override
     public int registrarPresupuesto(PresupuestoEntidad presupuesto) {
         int resultado = 0;
 
@@ -316,7 +311,6 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return resultado;
     }
 
-    @Override
     public int actualizarPresupuesto(PresupuestoEntidad presupuesto) {
         int resultado = 0;
 
@@ -359,7 +353,6 @@ public class PresupuestoModelo implements PresupuestoInterface {
         return resultado;
     }
 
-    @Override
     public int eliminarPresupuesto(int id) {
         int resultado = 0;
 
@@ -1206,5 +1199,50 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 }
             }
         }
+    }
+
+    @Override
+    public PresupuestoEntidad buscarPorId(int id) {
+        return obtenerPresupuesto(id);
+    }
+
+    @Override
+    public int insertar(PresupuestoEntidad presupuesto) {
+        return registrarPresupuesto(presupuesto);
+    }
+
+    @Override
+    public int actualizar(PresupuestoEntidad presupuesto) {
+        return actualizarPresupuesto(presupuesto);
+    }
+
+    @Override
+    public int eliminar(int id) {
+        return eliminarPresupuesto(id);
+    }
+
+    @Override
+    public List<PresupuestoEntidad> listar() {
+        return listarPresupuestos();
+    }
+
+    @Override
+    public List<PresupuestoEntidad> listarPorAnio(int anio) {
+        return listarPresupuestosPorAnio(anio);
+    }
+
+    @Override
+    public List<PresupuestoEntidad> listarPorEntidad(int entidadId) {
+        return listarPresupuestosPorEntidad(entidadId);
+    }
+
+    @Override
+    public double obtenerTotalPorAnio(int anio) {
+        BigDecimal total = BigDecimal.ZERO;
+        List<PresupuestoEntidad> lista = listarPresupuestosPorAnio(anio);
+        for (PresupuestoEntidad presupuesto : lista) {
+            total = total.add(presupuesto.getMontoTotal());
+        }
+        return total.doubleValue();
     }
 }

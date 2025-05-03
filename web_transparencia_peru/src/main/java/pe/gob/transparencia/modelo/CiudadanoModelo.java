@@ -315,4 +315,32 @@ public class CiudadanoModelo implements CiudadanoInterface {
 
         return resultado;
     }
+
+    @Override
+    public int eliminarCiudadano(int idCiudadano) {
+        int resultado = 0;
+        Connection cn = null;
+        PreparedStatement ps = null;
+
+        try {
+            cn = MySQLConexion.getConexion();
+            String sql = "DELETE FROM Ciudadano WHERE id = ?";
+            ps = cn.prepareStatement(sql);
+            ps.setInt(1, idCiudadano);
+
+            resultado = ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (ps != null) ps.close();
+                if (cn != null) cn.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return resultado;
+    }
 }

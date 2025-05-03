@@ -5,251 +5,430 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import pe.gob.transparencia.entidades.CiudadanoEntidad;
+import pe.gob.transparencia.entidades.RespuestaSolicitudEntidad;
 import pe.gob.transparencia.entidades.SolicitudAccesoEntidad;
+import pe.gob.transparencia.entidades.UsuarioEntidad;
 import pe.gob.transparencia.modelo.SolicitudAccesoModelo;
-import pe.gob.transparencia.db.MySQLConexion;
 
 import java.io.IOException;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
 
-@WebServlet(name = "ServletSolicitudAcceso", urlPatterns = {"/ServletSolicitudAcceso"})
+@WebServlet(name = "ServletSolicitudAcceso", urlPatterns = {"/solicitud.do"})
 public class ServletSolicitudAcceso extends HttpServlet {
-    private SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+    private static final long serialVersionUID = 1L;
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public ServletSolicitudAcceso() {
+        super();
+    }
+
+    /**
+     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String accion = request.getParameter("accion");
-        
-        if (accion == null) {
-            accion = "inicio";
-        }
-        
-        switch (accion) {
-            case "inicio":
-                mostrarPaginaInicio(request, response);
-                break;
-            case "listar":
-                listarSolicitudes(request, response);
-                break;
-            case "misSolicitudes":
-                listarMisSolicitudes(request, response);
-                break;
-            case "detalle":
-                mostrarDetalleSolicitud(request, response);
-                break;
-            case "form":
-                mostrarFormularioNuevo(request, response);
-                break;
-            case "seguimiento":
-                mostrarSeguimiento(request, response);
-                break;
-            default:
-                mostrarPaginaInicio(request, response);
+        HttpSession session = request.getSession();
+
+        if (accion.equals("listar")) {
+            listarSolicitudes(request, response);
+        } else if (accion.equals("detalle")) {
+            detalleSolicitud(request, response);
+        } else if (accion.equals("verRespuesta")) {
+            verRespuesta(request, response);
+        } else if (accion.equals("prepararRespuesta")) {
+            prepararRespuesta(request, response);
         }
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    /**
+     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String accion = request.getParameter("accion");
-        
-        switch (accion) {
-            case "registrar":
-                registrarSolicitud(request, response);
-                break;
-            case "actualizar":
-                actualizarSolicitud(request, response);
-                break;
-            case "cambiarEstado":
-                cambiarEstadoSolicitud(request, response);
-                break;
-            default:
-                response.sendRedirect("ServletSolicitudAcceso");
+        HttpSession session = request.getSession();
+
+        if (accion.equals("registrar")) {
+            registrarSolicitud(request, response);
+        } else if (accion.equals("responder")) {
+            responderSolicitud(request, response);
+        } else if (accion.equals("cambiarEstado")) {
+            cambiarEstadoSolicitud(request, response);
+        } else if (accion.equals("registrarObservacion")) {
+            registrarObservacion(request, response);
         }
     }
 
-    private void mostrarPaginaInicio(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // Cargar algunas solicitudes recientes
-        List<SolicitudAccesoEntidad> solicitudes = modelo.listarSolicitudes();
-        request.setAttribute("solicitudes", solicitudes);
+    private void listarSolicitudes(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
 
-        // Para la sección de estadísticas
-        request.setAttribute("solicitudesTotal", solicitudes);
+        try {
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            List<SolicitudAccesoEntidad> solicitudes;
 
-        // Calcular el tiempo promedio de atención (en días)
-        double tiempoPromedio = 0;
-        int solicitudesAtendidas = 0;
-
-        for (SolicitudAccesoEntidad sol : solicitudes) {
-            if (sol.getEstadoSolicitudId() == 3) { // Estado "Atendida"
-                // Si tenemos fechaRespuesta, calculamos la diferencia en días
-                if (sol.getFechaRespuesta() != null && sol.getFechaSolicitud() != null) {
-                    long diferencia = sol.getFechaRespuesta().getTime() - sol.getFechaSolicitud().getTime();
-                    long dias = diferencia / (1000 * 60 * 60 * 24);
-                    tiempoPromedio += dias;
-                    solicitudesAtendidas++;
+            // Verificar el tipo de usuario para mostrar las solicitudes correspondientes
+            if (session.getAttribute("ciudadano") != null) {
+                // Si es ciudadano, mostrar solo sus solicitudes
+                CiudadanoEntidad ciudadano = (CiudadanoEntidad) session.getAttribute("ciudadano");
+                solicitudes = modelo.listarSolicitudesPorCiudadano(ciudadano.getId());
+                request.setAttribute("solicitudes", solicitudes);
+                request.getRequestDispatcher("/ciudadano/mis_solicitudes.jsp").forward(request, response);
+            } else if (session.getAttribute("usuario") != null) {
+                UsuarioEntidad usuario = (UsuarioEntidad) session.getAttribute("usuario");
+                if (usuario.getCodRol().equals("FUNCIONARIO")) {
+                    // Si es funcionario, mostrar solicitudes asignadas a su entidad
+                    // Aquí se podría filtrar por entidad del funcionario si estuviera implementado
+                    solicitudes = modelo.listarSolicitudes();
+                    request.setAttribute("solicitudes", solicitudes);
+                    request.getRequestDispatcher("/funcionario/solicitudes.jsp").forward(request, response);
+                } else if (usuario.getCodRol().equals("ADMIN")) {
+                    // Si es admin, mostrar todas las solicitudes
+                    solicitudes = modelo.listarSolicitudes();
+                    request.setAttribute("solicitudes", solicitudes);
+                    request.getRequestDispatcher("/admin/solicitudes.jsp").forward(request, response);
                 }
+            } else {
+                response.sendRedirect(request.getContextPath() + "/login_unificado.jsp");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("mensaje", "Error al listar solicitudes: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
         }
-
-        if (solicitudesAtendidas > 0) {
-            tiempoPromedio = tiempoPromedio / solicitudesAtendidas;
-        }
-
-        request.setAttribute("tiempoPromedioAtencion", tiempoPromedio);
-
-        // Contar entidades participantes
-        Set<Integer> entidadesUnicas = new HashSet<>();
-        for (SolicitudAccesoEntidad sol : solicitudes) {
-            entidadesUnicas.add(sol.getEntidadPublicaId());
-        }
-
-        int totalEntidades = entidadesUnicas.size();
-        request.setAttribute("totalEntidadesParticipantes", totalEntidades);
-
-        request.getRequestDispatcher("solicitud-acceso.jsp").forward(request, response);
     }
 
-    private void listarSolicitudes(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        List<SolicitudAccesoEntidad> solicitudes = modelo.listarSolicitudes();
-        request.setAttribute("solicitudes", solicitudes);
-        request.setAttribute("solicitudesTotal", solicitudes);
-
-        // Calcular tiempo promedio de atención
-        Connection cn = null;
-        CallableStatement cstm = null;
-        ResultSet rs = null;
-        double tiempoPromedio = 0.0;
+    private void registrarSolicitud(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
 
         try {
-            cn = MySQLConexion.getConexion();
-            cstm = cn.prepareCall("{CALL sp_obtener_tiempo_promedio_atencion()}");
-            rs = cstm.executeQuery();
+            // Obtener datos del formulario
+            int ciudadanoId = Integer.parseInt(request.getParameter("ciudadanoId"));
+            int entidadPublicaId = Integer.parseInt(request.getParameter("entidadPublicaId"));
+            int tipoSolicitudId = Integer.parseInt(request.getParameter("tipoSolicitudId"));
+            String descripcion = request.getParameter("descripcion");
 
-            if (rs.next()) {
-                tiempoPromedio = rs.getDouble("diasPromedio");
+            // Crear entidad
+            SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
+            solicitud.setCiudadanoId(ciudadanoId);
+            solicitud.setEntidadPublicaId(entidadPublicaId);
+            solicitud.setTipoSolicitudId(tipoSolicitudId);
+            solicitud.setDescripcion(descripcion);
+            solicitud.setFechaSolicitud(Date.valueOf(LocalDate.now()));
+            // Estado inicial: Pendiente (ID 1)
+            solicitud.setEstadoSolicitudId(1);
+
+            // Registrar solicitud
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            int idGenerado = modelo.registrarSolicitud(solicitud);
+
+            if (idGenerado > 0) {
+                session.setAttribute("mensaje", "Solicitud registrada correctamente con ID: " + idGenerado);
+                session.setAttribute("tipoMensaje", "success");
+                response.sendRedirect(request.getContextPath() + "/ciudadano/mis_solicitudes.jsp");
+            } else {
+                session.setAttribute("mensaje", "Error al registrar la solicitud");
+                session.setAttribute("tipoMensaje", "danger");
+                response.sendRedirect(request.getContextPath() + "/ciudadano/nueva_solicitud.jsp");
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (cstm != null) cstm.close();
-                if (cn != null) cn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            session.setAttribute("mensaje", "Error: " + e.getMessage());
+            session.setAttribute("tipoMensaje", "danger");
+            response.sendRedirect(request.getContextPath() + "/ciudadano/nueva_solicitud.jsp");
         }
+    }
 
-        request.setAttribute("tiempoPromedioAtencion", tiempoPromedio);
+    private void detalleSolicitud(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
 
-        // Calcular total de entidades participantes
-        int totalEntidades = 0;
         try {
-            cn = MySQLConexion.getConexion();
-            String sql = "SELECT COUNT(DISTINCT entidadPublicaId) AS totalEntidades FROM SolicitudAcceso";
-            PreparedStatement pstm = cn.prepareStatement(sql);
-            rs = pstm.executeQuery();
+            int solicitudId = Integer.parseInt(request.getParameter("id"));
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            // Cambiado a obtenerSolicitud en lugar de obtenerSolicitudPorId
+            SolicitudAccesoEntidad solicitud = modelo.obtenerSolicitud(solicitudId);
 
-            if (rs.next()) {
-                totalEntidades = rs.getInt("totalEntidades");
+            if (solicitud != null) {
+                request.setAttribute("solicitud", solicitud);
+
+                // Verificar tipo de usuario para redirigir a la vista correspondiente
+                if (session.getAttribute("ciudadano") != null) {
+                    CiudadanoEntidad ciudadano = (CiudadanoEntidad) session.getAttribute("ciudadano");
+
+                    // Verificar que la solicitud pertenezca al ciudadano
+                    if (solicitud.getCiudadanoId() == ciudadano.getId()) {
+                        request.getRequestDispatcher("/ciudadano/solicitud_detalle.jsp").forward(request, response);
+                    } else {
+                        session.setAttribute("mensaje", "No tiene permiso para ver esta solicitud");
+                        response.sendRedirect(request.getContextPath() + "/ciudadano/mis_solicitudes.jsp");
+                    }
+                } else if (session.getAttribute("usuario") != null) {
+                    UsuarioEntidad usuario = (UsuarioEntidad) session.getAttribute("usuario");
+
+                    if (usuario.getCodRol().equals("FUNCIONARIO")) {
+                        request.getRequestDispatcher("/funcionario/solicitudes-detalle.jsp").forward(request, response);
+                    } else if (usuario.getCodRol().equals("ADMIN")) {
+                        request.getRequestDispatcher("/admin/solicitud-detalle.jsp").forward(request, response);
+                    }
+                }
+            } else {
+                session.setAttribute("mensaje", "Solicitud no encontrada");
+                response.sendRedirect(request.getContextPath() + "/index.jsp");
             }
-
-            if (rs != null) rs.close();
-            if (pstm != null) pstm.close();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (cn != null) cn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            session.setAttribute("mensaje", "Error: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
         }
+    }
 
-        request.setAttribute("totalEntidadesParticipantes", totalEntidades);
+    private void prepararRespuesta(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
 
-        request.getRequestDispatcher("solicitud-acceso.jsp").forward(request, response);
+        try {
+            int solicitudId = Integer.parseInt(request.getParameter("id"));
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            // Cambiado a obtenerSolicitud en lugar de obtenerSolicitudPorId
+            SolicitudAccesoEntidad solicitud = modelo.obtenerSolicitud(solicitudId);
+
+            if (solicitud != null) {
+                request.setAttribute("solicitud", solicitud);
+
+                // Solo funcionarios y administradores pueden responder solicitudes
+                if (session.getAttribute("usuario") != null) {
+                    UsuarioEntidad usuario = (UsuarioEntidad) session.getAttribute("usuario");
+
+                    if (usuario.getCodRol().equals("FUNCIONARIO") || usuario.getCodRol().equals("ADMIN")) {
+                        request.getRequestDispatcher("/funcionario/responder_solicitud.jsp").forward(request, response);
+                    } else {
+                        session.setAttribute("mensaje", "No tiene permisos para realizar esta acción");
+                        response.sendRedirect(request.getContextPath() + "/index.jsp");
+                    }
+                } else {
+                    session.setAttribute("mensaje", "Debe iniciar sesión como funcionario para responder solicitudes");
+                    response.sendRedirect(request.getContextPath() + "/login_unificado.jsp");
+                }
+            } else {
+                session.setAttribute("mensaje", "Solicitud no encontrada");
+                response.sendRedirect(request.getContextPath() + "/index.jsp");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("mensaje", "Error: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
+        }
     }
-    
-    private void listarMisSolicitudes(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // Aquí se obtendría el ID del ciudadano de la sesión
-        // Por ahora usaremos un valor de ejemplo
-        int ciudadanoId = 1; // Este valor se debería obtener de la sesión
-        
-        List<SolicitudAccesoEntidad> solicitudes = modelo.listarSolicitudesPorCiudadano(ciudadanoId);
-        request.setAttribute("solicitudes", solicitudes);
-        request.getRequestDispatcher("mis-solicitudes.jsp").forward(request, response);
+
+    private void responderSolicitud(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+
+        try {
+            // Verificar que el usuario sea funcionario o admin
+            if (session.getAttribute("usuario") == null ||
+                    (!"FUNCIONARIO".equals(((UsuarioEntidad) session.getAttribute("usuario")).getCodRol()) &&
+                            !"ADMIN".equals(((UsuarioEntidad) session.getAttribute("usuario")).getCodRol()))) {
+                session.setAttribute("mensaje", "No tiene permiso para realizar esta acción");
+                response.sendRedirect(request.getContextPath() + "/index.jsp");
+                return;
+            }
+
+            UsuarioEntidad usuario = (UsuarioEntidad) session.getAttribute("usuario");
+
+            // Obtener datos del formulario
+            int solicitudId = Integer.parseInt(request.getParameter("solicitudId"));
+            String respuestaTexto = request.getParameter("respuestaTexto");
+            String tipoRespuesta = request.getParameter("tipoRespuesta");
+
+            // Implementación alternativa para manejar la respuesta
+            // Esto se adaptará según los métodos disponibles en SolicitudAccesoModelo
+            SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
+            solicitud.setId(solicitudId);
+            solicitud.setFechaRespuesta(Date.valueOf(LocalDate.now()));
+            solicitud.setObservaciones(respuestaTexto);
+
+            // Actualizar estado de la solicitud según el tipo de respuesta
+            int nuevoEstadoId;
+            switch (tipoRespuesta) {
+                case "completa":
+                case "parcial":
+                    nuevoEstadoId = 3; // Atendida
+                    break;
+                case "prorroga":
+                    nuevoEstadoId = 2; // En proceso
+                    break;
+                case "rechazo":
+                    nuevoEstadoId = 5; // Rechazada
+                    break;
+                default:
+                    nuevoEstadoId = 2; // En proceso por defecto
+                    break;
+            }
+
+            solicitud.setEstadoSolicitudId(nuevoEstadoId);
+
+            // Llamar al modelo para actualizar
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            // Actualizar el estado y guardar la respuesta en el mismo método
+            // Suponiendo que este método existe o se implementará
+            int resultadoActualizacion = modelo.actualizarEstadoSolicitud(solicitud.getId(), nuevoEstadoId);
+
+            if (resultadoActualizacion > 0) {
+                session.setAttribute("mensaje", "Respuesta registrada correctamente");
+                session.setAttribute("tipoMensaje", "success");
+            } else {
+                session.setAttribute("mensaje", "Error al registrar respuesta");
+                session.setAttribute("tipoMensaje", "danger");
+            }
+
+            // Redirigir según rol
+            if ("FUNCIONARIO".equals(usuario.getCodRol())) {
+                response.sendRedirect(request.getContextPath() + "/funcionario/solicitudes.jsp");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/solicitudes.jsp");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("mensaje", "Error: " + e.getMessage());
+            session.setAttribute("tipoMensaje", "danger");
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
+        }
     }
-    
-    private void mostrarDetalleSolicitud(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        SolicitudAccesoEntidad solicitud = modelo.obtenerSolicitud(id);
-        request.setAttribute("solicitud", solicitud);
-        request.getRequestDispatcher("detalle-solicitud.jsp").forward(request, response);
+
+    private void cambiarEstadoSolicitud(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+
+        try {
+            // Verificar que el usuario sea funcionario o admin
+            if (session.getAttribute("usuario") == null ||
+                    (!"FUNCIONARIO".equals(((UsuarioEntidad) session.getAttribute("usuario")).getCodRol()) &&
+                            !"ADMIN".equals(((UsuarioEntidad) session.getAttribute("usuario")).getCodRol()))) {
+                session.setAttribute("mensaje", "No tiene permiso para realizar esta acción");
+                response.sendRedirect(request.getContextPath() + "/index.jsp");
+                return;
+            }
+
+            // Obtener datos del formulario
+            int solicitudId = Integer.parseInt(request.getParameter("id"));
+            int nuevoEstadoId = Integer.parseInt(request.getParameter("estadoId"));
+            String observacion = request.getParameter("observacion");
+
+            // Actualizar estado de solicitud
+            SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
+            solicitud.setId(solicitudId);
+            solicitud.setEstadoSolicitudId(nuevoEstadoId);
+            solicitud.setObservaciones(observacion);
+
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            int resultadoActualizacion = modelo.actualizarEstadoSolicitud(solicitud.getId(), nuevoEstadoId);
+
+            if (resultadoActualizacion > 0) {
+                session.setAttribute("mensaje", "Estado de solicitud actualizado correctamente");
+                session.setAttribute("tipoMensaje", "success");
+            } else {
+                session.setAttribute("mensaje", "Error al actualizar estado de solicitud");
+                session.setAttribute("tipoMensaje", "danger");
+            }
+
+            // Redirigir al detalle de la solicitud
+            response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=detalle&id=" + solicitudId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("mensaje", "Error: " + e.getMessage());
+            session.setAttribute("tipoMensaje", "danger");
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
+        }
     }
-    
-    private void mostrarFormularioNuevo(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.getRequestDispatcher("form-solicitud.jsp").forward(request, response);
+
+    private void registrarObservacion(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+
+        try {
+            // Verificar que el usuario sea funcionario o admin
+            if (session.getAttribute("usuario") == null ||
+                    (!"FUNCIONARIO".equals(((UsuarioEntidad) session.getAttribute("usuario")).getCodRol()) &&
+                            !"ADMIN".equals(((UsuarioEntidad) session.getAttribute("usuario")).getCodRol()))) {
+                session.setAttribute("mensaje", "No tiene permiso para realizar esta acción");
+                response.sendRedirect(request.getContextPath() + "/index.jsp");
+                return;
+            }
+
+            // Obtener datos del formulario
+            int solicitudId = Integer.parseInt(request.getParameter("id"));
+            String observacion = request.getParameter("observacion");
+
+            // Actualizar observación de solicitud
+            SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
+            solicitud.setId(solicitudId);
+            solicitud.setObservaciones(observacion);
+
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            // Reusamos el método actualizarEstadoSolicitud que ya incluye actualizar observaciones
+            int resultadoActualizacion = modelo.actualizarEstadoSolicitud(solicitud.getId(), solicitud.getEstadoSolicitudId());
+
+            if (resultadoActualizacion > 0) {
+                session.setAttribute("mensaje", "Observación registrada correctamente");
+                session.setAttribute("tipoMensaje", "success");
+            } else {
+                session.setAttribute("mensaje", "Error al registrar observación");
+                session.setAttribute("tipoMensaje", "danger");
+            }
+
+            // Redirigir al detalle de la solicitud
+            response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=detalle&id=" + solicitudId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("mensaje", "Error: " + e.getMessage());
+            session.setAttribute("tipoMensaje", "danger");
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
+        }
     }
-    
-    private void mostrarSeguimiento(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        SolicitudAccesoEntidad solicitud = modelo.obtenerSolicitud(id);
-        request.setAttribute("solicitud", solicitud);
-        request.getRequestDispatcher("seguimiento-solicitud.jsp").forward(request, response);
-    }
-    
-    private void registrarSolicitud(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String descripcion = request.getParameter("descripcion");
-        int ciudadanoId = Integer.parseInt(request.getParameter("ciudadanoId"));
-        int tipoSolicitudId = Integer.parseInt(request.getParameter("tipoSolicitudId"));
-        
-        SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
-        solicitud.setFechaSolicitud(new Date());
-        solicitud.setDescripcion(descripcion);
-        solicitud.setCiudadanoId(ciudadanoId);
-        solicitud.setTipoSolicitudId(tipoSolicitudId);
-        solicitud.setEstadoSolicitudId(1); // Por defecto, estado "Pendiente" o el ID correspondiente
-        
-        modelo.registrarSolicitud(solicitud);
-        response.sendRedirect("ServletSolicitudAcceso?accion=misSolicitudes");
-    }
-    
-    private void actualizarSolicitud(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        String descripcion = request.getParameter("descripcion");
-        int tipoSolicitudId = Integer.parseInt(request.getParameter("tipoSolicitudId"));
-        
-        SolicitudAccesoEntidad solicitud = modelo.obtenerSolicitud(id);
-        solicitud.setDescripcion(descripcion);
-        solicitud.setTipoSolicitudId(tipoSolicitudId);
-        
-        modelo.actualizarSolicitud(solicitud);
-        response.sendRedirect("ServletSolicitudAcceso?accion=detalle&id=" + id);
-    }
-    
-    private void cambiarEstadoSolicitud(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        int nuevoEstadoId = Integer.parseInt(request.getParameter("estadoId"));
-        
-        modelo.actualizarEstadoSolicitud(id, nuevoEstadoId);
-        response.sendRedirect("ServletSolicitudAcceso?accion=detalle&id=" + id);
+
+    private void verRespuesta(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+
+        try {
+            int solicitudId = Integer.parseInt(request.getParameter("id"));
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            // En lugar de obtenerRespuestaPorSolicitud, usamos obtenerSolicitud
+            // y obtenemos la respuesta desde el objeto solicitud
+            SolicitudAccesoEntidad solicitud = modelo.obtenerSolicitud(solicitudId);
+
+            if (solicitud != null && solicitud.getFechaRespuesta() != null) {
+                // Si la solicitud tiene fecha de respuesta, consideramos que tiene respuesta
+                request.setAttribute("solicitud", solicitud);
+
+                // Verificar el tipo de usuario para dirigir a la vista correspondiente
+                if (session.getAttribute("ciudadano") != null) {
+                    CiudadanoEntidad ciudadano = (CiudadanoEntidad) session.getAttribute("ciudadano");
+
+                    // Verificar que la solicitud pertenezca al ciudadano
+                    if (solicitud.getCiudadanoId() == ciudadano.getId()) {
+                        request.getRequestDispatcher("/ciudadano/respuesta_detalle.jsp").forward(request, response);
+                    } else {
+                        session.setAttribute("mensaje", "No tiene permiso para ver esta respuesta");
+                        response.sendRedirect(request.getContextPath() + "/ciudadano/mis_solicitudes.jsp");
+                    }
+                } else if (session.getAttribute("usuario") != null) {
+                    // Si es usuario funcionario o admin, puede ver la respuesta
+                    request.getRequestDispatcher("/funcionario/respuesta_detalle.jsp").forward(request, response);
+                }
+            } else {
+                session.setAttribute("mensaje", "No se encontró respuesta para esta solicitud");
+                session.setAttribute("tipoMensaje", "warning");
+                response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=detalle&id=" + solicitudId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("mensaje", "Error: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
+        }
     }
 }

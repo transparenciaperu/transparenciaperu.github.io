@@ -1,19 +1,35 @@
 package pe.gob.transparencia.interfaces;
 
 import pe.gob.transparencia.entidades.PresupuestoEntidad;
-
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.math.BigDecimal;
 
 public interface PresupuestoInterface {
-    List<PresupuestoEntidad> listarPresupuestos();
-    List<PresupuestoEntidad> listarPresupuestosPorEntidad(int entidadId);
+    List<PresupuestoEntidad> listar();
+
+    PresupuestoEntidad buscarPorId(int id);
+
+    int insertar(PresupuestoEntidad presupuesto);
+
+    int actualizar(PresupuestoEntidad presupuesto);
+
+    int eliminar(int id);
+
+    // Métodos adicionales
+    List<PresupuestoEntidad> listarPorAnio(int anio);
+
     List<PresupuestoEntidad> listarPresupuestosPorAnio(int anio);
-    PresupuestoEntidad obtenerPresupuesto(int id);
-    int registrarPresupuesto(PresupuestoEntidad presupuesto);
-    int actualizarPresupuesto(PresupuestoEntidad presupuesto);
-    int eliminarPresupuesto(int id);
+
+    List<PresupuestoEntidad> listarPorEntidad(int entidadId);
+
+    List<PresupuestoEntidad> listarPresupuestosPorEntidad(int entidadId);
+
+    List<PresupuestoEntidad> listarPresupuestos();
+
+    double obtenerTotalPorAnio(int anio);
+
+    // Nuevos métodos para obtener datos dinámicamente
     List<Map<String, Object>> obtenerEvolucionAnual();
     List<Map<String, Object>> obtenerDatosProyectos();
     List<Map<String, Object>> obtenerDatosCategorias();

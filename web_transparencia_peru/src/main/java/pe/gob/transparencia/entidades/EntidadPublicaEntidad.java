@@ -8,6 +8,11 @@ public class EntidadPublicaEntidad {
     private String direccion;
     private String region;
     private String nivelGobierno;
+    private int nivelGobiernoId;
+    private int regionId;
+    private String telefono;
+    private String email;
+    private String sitioWeb;
 
     public EntidadPublicaEntidad() {
     }
@@ -75,5 +80,45 @@ public class EntidadPublicaEntidad {
 
     public void setNivelGobierno(String nivelGobierno) {
         this.nivelGobierno = nivelGobierno;
+    }
+
+    public int getNivelGobiernoId() {
+        return nivelGobiernoId;
+    }
+
+    public void setNivelGobiernoId(int nivelGobiernoId) {
+        this.nivelGobiernoId = nivelGobiernoId;
+    }
+
+    public int getRegionId() {
+        return regionId;
+    }
+
+    public void setRegionId(int regionId) {
+        this.regionId = regionId;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSitioWeb() {
+        return sitioWeb;
+    }
+
+    public void setSitioWeb(String sitioWeb) {
+        this.sitioWeb = sitioWeb;
     }
 }

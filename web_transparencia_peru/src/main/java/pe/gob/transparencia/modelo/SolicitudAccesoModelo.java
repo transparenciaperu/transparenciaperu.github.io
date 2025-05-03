@@ -5,6 +5,7 @@ import pe.gob.transparencia.entidades.SolicitudAccesoEntidad;
 import pe.gob.transparencia.entidades.CiudadanoEntidad;
 import pe.gob.transparencia.entidades.TipoSolicitudEntidad;
 import pe.gob.transparencia.entidades.EstadoSolicitudEntidad;
+import pe.gob.transparencia.entidades.RespuestaSolicitudEntidad;
 import pe.gob.transparencia.interfaces.SolicitudAccesoInterface;
 
 import java.sql.CallableStatement;
@@ -476,6 +477,196 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
         } finally {
             try {
                 if (cstm != null) cstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return resultado;
+    }
+
+    @Override
+    public SolicitudAccesoEntidad buscarPorId(int id) {
+        return obtenerSolicitud(id);
+    }
+
+    @Override
+    public List<TipoSolicitudEntidad> listarTiposSolicitud() {
+        List<TipoSolicitudEntidad> lista = new ArrayList<>();
+
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de tipos de solicitud.");
+            return lista;
+        }
+
+        Connection cn = null;
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+
+        try {
+            cn = MySQLConexion.getConexion();
+
+            if (cn == null) {
+                return lista;
+            }
+
+            String sql = "SELECT id, nombre FROM TipoSolicitud ORDER BY nombre";
+            pstm = cn.prepareStatement(sql);
+            rs = pstm.executeQuery();
+
+            while (rs.next()) {
+                TipoSolicitudEntidad tipo = new TipoSolicitudEntidad();
+                tipo.setId(rs.getInt("id"));
+                tipo.setNombre(rs.getString("nombre"));
+                lista.add(tipo);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstm != null) pstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return lista;
+    }
+
+    @Override
+    public List<EstadoSolicitudEntidad> listarEstadosSolicitud() {
+        List<EstadoSolicitudEntidad> lista = new ArrayList<>();
+
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de estados de solicitud.");
+            return lista;
+        }
+
+        Connection cn = null;
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+
+        try {
+            cn = MySQLConexion.getConexion();
+
+            if (cn == null) {
+                return lista;
+            }
+
+            String sql = "SELECT id, nombre FROM EstadoSolicitud ORDER BY id";
+            pstm = cn.prepareStatement(sql);
+            rs = pstm.executeQuery();
+
+            while (rs.next()) {
+                EstadoSolicitudEntidad estado = new EstadoSolicitudEntidad();
+                estado.setId(rs.getInt("id"));
+                estado.setNombre(rs.getString("nombre"));
+                lista.add(estado);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstm != null) pstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return lista;
+    }
+
+    @Override
+    public RespuestaSolicitudEntidad buscarRespuestaPorSolicitudId(int solicitudId) {
+        RespuestaSolicitudEntidad respuesta = null;
+
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando null para respuesta de solicitud.");
+            return null;
+        }
+
+        Connection cn = null;
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+
+        try {
+            cn = MySQLConexion.getConexion();
+
+            if (cn == null) {
+                return null;
+            }
+
+            String sql = "SELECT id, solicitudId, usuarioId, fechaRespuesta, contenido, rutaArchivo " +
+                    "FROM RespuestaSolicitud WHERE solicitudId = ?";
+            pstm = cn.prepareStatement(sql);
+            pstm.setInt(1, solicitudId);
+            rs = pstm.executeQuery();
+
+            if (rs.next()) {
+                respuesta = new RespuestaSolicitudEntidad();
+                respuesta.setId(rs.getInt("id"));
+                respuesta.setSolicitudId(rs.getInt("solicitudId"));
+                respuesta.setUsuarioId(rs.getInt("usuarioId"));
+                respuesta.setFechaRespuesta(rs.getDate("fechaRespuesta"));
+                respuesta.setContenido(rs.getString("contenido"));
+                respuesta.setRutaArchivo(rs.getString("rutaArchivo"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstm != null) pstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return respuesta;
+    }
+
+    @Override
+    public int eliminarSolicitud(int id) {
+        int resultado = 0;
+
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. No se puede eliminar solicitud.");
+            return resultado;
+        }
+
+        Connection cn = null;
+        PreparedStatement pstm = null;
+
+        try {
+            cn = MySQLConexion.getConexion();
+
+            if (cn == null) {
+                return resultado;
+            }
+
+            // Primero eliminamos la respuesta asociada, si existe
+            String sqlRespuesta = "DELETE FROM RespuestaSolicitud WHERE solicitudId = ?";
+            pstm = cn.prepareStatement(sqlRespuesta);
+            pstm.setInt(1, id);
+            pstm.executeUpdate();
+
+            // Luego eliminamos la solicitud
+            pstm.close();
+            String sql = "DELETE FROM SolicitudAcceso WHERE id = ?";
+            pstm = cn.prepareStatement(sql);
+            pstm.setInt(1, id);
+            resultado = pstm.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (pstm != null) pstm.close();
                 if (cn != null) cn.close();
             } catch (SQLException e) {
                 e.printStackTrace();

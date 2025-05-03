@@ -192,20 +192,19 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip"
-                                                title="Editar"
-                                                onclick="editarUsuario(<%= user.getId() %>, '<%= user.getUsuario() %>', '<%= user.getNombreCompleto() %>', '<%= user.getCorreo() %>', '<%= user.getCodRol() %>', <%= user.getActivo() %>)">
+                                        <a href="<%= request.getContextPath() %>/admin.do?accion=editarUsuario&id=<%= user.getId() %>"
+                                           class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
                                             <i class="bi bi-pencil"></i>
-                                        </button>
+                                        </a>
                                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip"
                                                 title="Eliminar"
                                                 onclick="confirmarEliminacion(<%= user.getId() %>, '<%= user.getNombreCompleto() %>')">
                                             <i class="bi bi-trash"></i>
                                         </button>
-                                        <button type="button" class="btn btn-outline-info" data-bs-toggle="tooltip"
-                                                title="Ver detalle">
+                                        <a href="<%= request.getContextPath() %>/admin.do?accion=verDetalleUsuario&id=<%= user.getId() %>"
+                                           class="btn btn-outline-info" data-bs-toggle="tooltip" title="Ver detalle">
                                             <i class="bi bi-eye"></i>
-                                        </button>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>

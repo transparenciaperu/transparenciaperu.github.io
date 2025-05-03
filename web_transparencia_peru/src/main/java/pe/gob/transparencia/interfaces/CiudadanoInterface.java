@@ -20,4 +20,6 @@ public interface CiudadanoInterface {
     public int actualizarCiudadano(int idCiudadano, String nombres, String apellidos, String dni, String correo, String telefono, String direccion);
 
     public int actualizarPassword(int idCiudadano, String nuevoPassword);
+
+    public int eliminarCiudadano(int idCiudadano);
 }
