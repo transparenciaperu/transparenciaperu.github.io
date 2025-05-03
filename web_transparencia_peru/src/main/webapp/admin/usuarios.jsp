@@ -2,6 +2,8 @@
 <%@ page import="pe.gob.transparencia.entidades.UsuarioEntidad" %>
 <%@ page import="pe.gob.transparencia.modelo.UsuarioModelo" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.sql.*" %>
+<%@ page import="pe.gob.transparencia.db.MySQLConexion" %>
 <%
     // Verificar si el usuario está en sesión y es admin
     HttpSession sesion = request.getSession(false);
@@ -22,9 +24,156 @@
         session.removeAttribute("tipoMensaje");
     }
 
-    // Obtener lista de usuarios desde el modelo
-    UsuarioModelo modelo = new UsuarioModelo();
-    List<UsuarioEntidad> listaUsuarios = modelo.listarUsuarios();
+    // Asegurar que existe al menos un usuario administrador 
+    try {
+        Connection conn = MySQLConexion.getConexion();
+        if (conn != null) {
+            // Verificar si hay usuarios
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM usuario");
+            ResultSet rs = ps.executeQuery();
+            int countUsuarios = 0;
+            if (rs.next()) {
+                countUsuarios = rs.getInt(1);
+            }
+
+            // Si no hay usuarios, crear uno administrador
+            if (countUsuarios == 0) {
+                System.out.println("No hay usuarios en la base de datos. Creando un administrador por defecto...");
+
+                // 1. Verificar si existe la tabla rol
+                try {
+                    ps.close();
+                    ps = conn.prepareStatement("SELECT COUNT(*) FROM rol");
+                    rs = ps.executeQuery();
+                    int countRoles = 0;
+                    if (rs.next()) {
+                        countRoles = rs.getInt(1);
+                    }
+
+                    // Si no hay roles, crearlos
+                    if (countRoles == 0) {
+                        System.out.println("Creando roles...");
+                        ps.close();
+                        ps = conn.prepareStatement("INSERT INTO rol (cod_rol, descrip_rol) VALUES (?, ?)");
+                        ps.setString(1, "ADMIN");
+                        ps.setString(2, "Administrador con acceso total al sistema");
+                        ps.executeUpdate();
+                        ps.setString(1, "FUNCIONARIO");
+                        ps.setString(2, "Funcionario encargado de la gestión de transparencia");
+                        ps.executeUpdate();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error al verificar roles: " + e.getMessage());
+                }
+
+                // 2. Crear persona
+                ps.close();
+                ps = conn.prepareStatement(
+                        "INSERT INTO persona (nombre_completo, correo, dni, genero, fech_nac) VALUES (?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS
+                );
+                ps.setString(1, "Administrador del Sistema");
+                ps.setString(2, "admin@transparencia.gob.pe");
+                ps.setString(3, "00000000");
+                ps.setString(4, "M");
+                ps.setDate(5, new java.sql.Date(System.currentTimeMillis()));
+                ps.executeUpdate();
+
+                rs = ps.getGeneratedKeys();
+                int idPersona = 0;
+                if (rs.next()) {
+                    idPersona = rs.getInt(1);
+                }
+
+                // 3. Obtener id del rol ADMIN
+                ps.close();
+                rs.close();
+                ps = conn.prepareStatement("SELECT id_rol FROM rol WHERE cod_rol = ?");
+                ps.setString(1, "ADMIN");
+                rs = ps.executeQuery();
+                int idRol = 0;
+                if (rs.next()) {
+                    idRol = rs.getInt("id_rol");
+                }
+
+                // 4. Crear usuario
+                if (idPersona > 0 && idRol > 0) {
+                    ps.close();
+                    ps = conn.prepareStatement(
+                            "INSERT INTO usuario (cod_usuario, id_persona, id_rol, clave, activo) VALUES (?, ?, ?, ?, ?)"
+                    );
+                    ps.setString(1, "admin");
+                    ps.setInt(2, idPersona);
+                    ps.setInt(3, idRol);
+                    ps.setString(4, "admin");  // Contraseña: admin
+                    ps.setBoolean(5, true);
+                    ps.executeUpdate();
+
+                    System.out.println("Usuario administrador creado - Usuario: admin, Clave: admin");
+                }
+            }
+
+            if (ps != null) ps.close();
+            if (rs != null) rs.close();
+            if (conn != null) conn.close();
+        }
+    } catch (Exception e) {
+        System.out.println("Error al verificar/crear usuario administrador: " + e.getMessage());
+        e.printStackTrace();
+    }
+
+    // Obtener lista de usuarios - MÉTODO MEJORADO DIRECTO A BD
+    List<UsuarioEntidad> listaUsuarios = new java.util.ArrayList<>();
+    Connection conn = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+
+    try {
+        conn = MySQLConexion.getConexion();
+        if (conn != null) {
+            String sql = "SELECT u.id_usuario, u.cod_usuario, p.nombre_completo, p.correo, r.cod_rol, r.descrip_rol, " +
+                    "CASE WHEN u.activo IS NULL THEN TRUE ELSE u.activo END as activo " +
+                    "FROM usuario u " +
+                    "LEFT JOIN persona p ON u.id_persona = p.id_persona " +
+                    "LEFT JOIN rol r ON u.id_rol = r.id_rol";
+
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            int count = 0;
+            while (rs.next()) {
+                count++;
+                UsuarioEntidad user = new UsuarioEntidad();
+                user.setId(rs.getInt("id_usuario"));
+                user.setUsuario(rs.getString("cod_usuario"));
+                user.setNombreCompleto(rs.getString("nombre_completo"));
+                user.setCorreo(rs.getString("correo"));
+                user.setCodRol(rs.getString("cod_rol"));
+                user.setDescripRol(rs.getString("descrip_rol"));
+                user.setActivo(rs.getBoolean("activo"));
+
+                listaUsuarios.add(user);
+            }
+
+            System.out.println("Usuarios recuperados directamente de la base de datos: " + count);
+        }
+    } catch (Exception e) {
+        System.out.println("Error al obtener usuarios de la base de datos: " + e.getMessage());
+        e.printStackTrace();
+    } finally {
+        try {
+            if (rs != null) rs.close();
+            if (ps != null) ps.close();
+            if (conn != null) conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Si no hay usuarios, mostrar una alerta pero crear una lista vacía
+    if (listaUsuarios == null) {
+        listaUsuarios = new java.util.ArrayList<>();
+    }
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -150,6 +299,17 @@
                     <h6 class="m-0 font-weight-bold">Listado de Usuarios</h6>
                 </div>
                 <div class="card-body">
+                    <% if (listaUsuarios.isEmpty()) { %>
+                    <div class="alert alert-warning">
+                        <strong>No se encontraron usuarios en la base de datos.</strong>
+                        <p>Verifica que la conexión a la base de datos esté correctamente configurada.</p>
+                    </div>
+                    <% } else { %>
+                    <div class="alert alert-info">
+                        <strong>Se encontraron <%= listaUsuarios.size() %> usuarios en la base de datos.</strong>
+                    </div>
+                    <% } %>
+
                     <div class="table-responsive">
                         <table class="table table-bordered" id="tablaUsuarios" width="100%" cellspacing="0">
                             <thead>
@@ -175,33 +335,34 @@
                                 <td><%= user.getCorreo() %>
                                 </td>
                                 <td>
-                                    <% if (user.getCodRol().equals("ADMIN")) { %>
+                                    <% if (user.getCodRol() != null && user.getCodRol().equals("ADMIN")) { %>
                                     <span class="badge bg-danger">Administrador</span>
-                                    <% } else if (user.getCodRol().equals("FUNCIONARIO")) { %>
+                                    <% } else if (user.getCodRol() != null && user.getCodRol().equals("FUNCIONARIO")) { %>
                                     <span class="badge bg-primary">Funcionario</span>
                                     <% } else { %>
-                                    <span class="badge bg-secondary"><%= user.getCodRol() %></span>
+                                    <span class="badge bg-secondary"><%= user.getCodRol() != null ? user.getCodRol() : "Sin rol" %></span>
                                     <% } %>
                                 </td>
                                 <td>
                                     <% if (user.getActivo()) { %>
                                     <span class="badge bg-success">Activo</span>
                                     <% } else { %>
-                                    <span class="badge bg-secondary">Inactivo</span>
+                                    <span class="badge bg-danger">Inactivo</span>
                                     <% } %>
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="<%= request.getContextPath() %>/admin.do?accion=editarUsuario&id=<%= user.getId() %>"
-                                           class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip"
+                                                title="Editar"
+                                                onclick="editarUsuario(<%= user.getId() %>, '<%= user.getUsuario().replace("'", "\\'") %>', '<%= user.getNombreCompleto().replace("'", "\\'") %>', '<%= user.getCorreo().replace("'", "\\'") %>', '<%= user.getCodRol() != null ? user.getCodRol() : "FUNCIONARIO" %>', <%= user.getActivo() ? "true" : "false" %>)">
                                             <i class="bi bi-pencil"></i>
-                                        </a>
+                                        </button>
                                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip"
                                                 title="Eliminar"
-                                                onclick="confirmarEliminacion(<%= user.getId() %>, '<%= user.getNombreCompleto() %>')">
+                                                onclick="confirmarEliminacion(<%= user.getId() %>, '<%= user.getNombreCompleto().replace("'", "\\'") %>')">
                                             <i class="bi bi-trash"></i>
                                         </button>
-                                        <a href="<%= request.getContextPath() %>/admin.do?accion=verDetalleUsuario&id=<%= user.getId() %>"
+                                        <a href="<%= request.getContextPath() %>/usuarios.do?accion=ver&id=<%= user.getId() %>"
                                            class="btn btn-outline-info" data-bs-toggle="tooltip" title="Ver detalle">
                                             <i class="bi bi-eye"></i>
                                         </a>
@@ -229,8 +390,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <form action="<%= request.getContextPath() %>/admin.do" method="post">
-                <input type="hidden" name="accion" value="registrarUsuario">
+            <form action="<%= request.getContextPath() %>/usuarios.do" method="post" id="formNuevoUsuario">
+                <input type="hidden" name="accion" value="registrar">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="usuario" class="form-label">Usuario</label>
@@ -281,8 +442,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <form action="<%= request.getContextPath() %>/admin.do" method="post">
-                <input type="hidden" name="accion" value="actualizarUsuario">
+            <form action="<%= request.getContextPath() %>/usuarios.do" method="post" id="formEditarUsuario">
+                <input type="hidden" name="accion" value="actualizar">
                 <input type="hidden" name="id" id="editId">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -331,20 +492,20 @@
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="eliminarUsuarioModalLabel"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar
-                    Eliminación</h5>
+                    Desactivación</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>¿Está seguro que desea eliminar al usuario <strong id="nombreUsuarioEliminar"></strong>?</p>
-                <p>Esta acción no se puede deshacer.</p>
+                <p>¿Está seguro que desea desactivar al usuario <strong id="nombreUsuarioEliminar"></strong>?</p>
+                <p>El usuario ya no podrá acceder al sistema, pero sus datos permanecerán almacenados.</p>
             </div>
             <div class="modal-footer">
-                <form action="<%= request.getContextPath() %>/admin.do" method="post">
-                    <input type="hidden" name="accion" value="eliminarUsuario">
+                <form action="<%= request.getContextPath() %>/usuarios.do" method="post" id="formEliminarUsuario">
+                    <input type="hidden" name="accion" value="eliminar">
                     <input type="hidden" name="id" id="idUsuarioEliminar">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    <button type="submit" class="btn btn-danger">Desactivar</button>
                 </form>
             </div>
         </div>
@@ -372,47 +533,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-
-<script>
-    $(document).ready(function () {
-        // Inicializar DataTables
-        $('#tablaUsuarios').DataTable({
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-            },
-            pageLength: 10,
-            responsive: true,
-            order: [[0, 'asc']]
-        });
-
-        // Inicializar tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        });
-    });
-
-    // Función para editar usuario
-    function editarUsuario(id, usuario, nombre, correo, rol, activo) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editUsuario').value = usuario;
-        document.getElementById('editNombre').value = nombre;
-        document.getElementById('editCorreo').value = correo;
-        document.getElementById('editRol').value = rol;
-        document.getElementById('editActivo').checked = activo;
-
-        var editarModal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
-        editarModal.show();
-    }
-
-    // Función para confirmar eliminación
-    function confirmarEliminacion(id, nombre) {
-        document.getElementById('idUsuarioEliminar').value = id;
-        document.getElementById('nombreUsuarioEliminar').textContent = nombre;
-
-        var eliminarModal = new bootstrap.Modal(document.getElementById('eliminarUsuarioModal'));
-        eliminarModal.show();
-    }
-</script>
+<script src="<%= request.getContextPath() %>/js/usuarios.js"></script>
 </body>
 </html>

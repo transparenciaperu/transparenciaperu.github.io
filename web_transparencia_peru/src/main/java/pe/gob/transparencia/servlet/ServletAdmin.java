@@ -36,6 +36,7 @@ public class ServletAdmin extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String accion = request.getParameter("accion");
         HttpSession session = request.getSession();
+        System.out.println("ServletAdmin doGet - acción: " + accion);
 
         // Verificar autenticación
         if (session.getAttribute("usuario") == null ||
@@ -120,6 +121,7 @@ public class ServletAdmin extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String accion = request.getParameter("accion");
         HttpSession session = request.getSession();
+        System.out.println("ServletAdmin doPost - acción: " + accion);
 
         // Verificar autenticación
         if (session.getAttribute("usuario") == null ||
@@ -216,7 +218,7 @@ public class ServletAdmin extends HttpServlet {
             nuevoUsuario.setUsuario(usuario);
             nuevoUsuario.setNombreCompleto(nombre);
             nuevoUsuario.setCorreo(correo);
-            nuevoUsuario.setClave(clave); // En implementación real, esto debería estar encriptado
+            nuevoUsuario.setClave(clave);
             nuevoUsuario.setCodRol(rol);
             nuevoUsuario.setActivo(activo);
 
@@ -227,8 +229,14 @@ public class ServletAdmin extends HttpServlet {
             if (resultado > 0) {
                 session.setAttribute("mensaje", "Usuario registrado correctamente.");
                 session.setAttribute("tipoMensaje", "success");
+            } else if (resultado == -1) {
+                session.setAttribute("mensaje", "El nombre de usuario ya existe en el sistema.");
+                session.setAttribute("tipoMensaje", "danger");
+            } else if (resultado == -2) {
+                session.setAttribute("mensaje", "El correo electrónico ya está registrado en el sistema.");
+                session.setAttribute("tipoMensaje", "danger");
             } else {
-                session.setAttribute("mensaje", "Error al registrar usuario. El usuario o correo ya podría existir.");
+                session.setAttribute("mensaje", "Error al registrar usuario.");
                 session.setAttribute("tipoMensaje", "danger");
             }
         } catch (Exception e) {
@@ -279,7 +287,7 @@ public class ServletAdmin extends HttpServlet {
             usuarioActual.setCorreo(correo);
             // Solo actualizar clave si se proporcionó una nueva
             if (clave != null && !clave.isEmpty()) {
-                usuarioActual.setClave(clave); // En implementación real, esto debería estar encriptado
+                usuarioActual.setClave(clave);
             }
             usuarioActual.setCodRol(rol);
             usuarioActual.setActivo(activo);
@@ -290,6 +298,12 @@ public class ServletAdmin extends HttpServlet {
             if (resultado > 0) {
                 session.setAttribute("mensaje", "Usuario actualizado correctamente.");
                 session.setAttribute("tipoMensaje", "success");
+            } else if (resultado == -1) {
+                session.setAttribute("mensaje", "Error: El nombre de usuario ya existe en el sistema.");
+                session.setAttribute("tipoMensaje", "danger");
+            } else if (resultado == -2) {
+                session.setAttribute("mensaje", "Error: El correo electrónico ya está registrado en el sistema.");
+                session.setAttribute("tipoMensaje", "danger");
             } else {
                 session.setAttribute("mensaje", "Error al actualizar usuario.");
                 session.setAttribute("tipoMensaje", "danger");
@@ -311,7 +325,7 @@ public class ServletAdmin extends HttpServlet {
             // Verificar que no se esté eliminando al usuario actual
             UsuarioEntidad usuarioActual = (UsuarioEntidad) session.getAttribute("usuario");
             if (usuarioActual != null && usuarioActual.getId() == id) {
-                session.setAttribute("mensaje", "No puede eliminar su propio usuario.");
+                session.setAttribute("mensaje", "No puede desactivar su propio usuario.");
                 session.setAttribute("tipoMensaje", "warning");
                 response.sendRedirect(request.getContextPath() + "/admin/usuarios.jsp");
                 return;
@@ -319,18 +333,29 @@ public class ServletAdmin extends HttpServlet {
 
             // Eliminar usuario
             UsuarioModelo modelo = new UsuarioModelo();
+
+            // Verificar que el usuario existe
+            UsuarioEntidad usuario = modelo.buscarPorId(id);
+            if (usuario == null) {
+                session.setAttribute("mensaje", "Error: El usuario que intenta desactivar no existe.");
+                session.setAttribute("tipoMensaje", "warning");
+                response.sendRedirect(request.getContextPath() + "/admin/usuarios.jsp");
+                return;
+            }
+
             int resultado = modelo.eliminarUsuario(id);
 
             if (resultado > 0) {
-                session.setAttribute("mensaje", "Usuario eliminado correctamente.");
+                session.setAttribute("mensaje", "Usuario desactivado correctamente.");
                 session.setAttribute("tipoMensaje", "success");
             } else {
-                session.setAttribute("mensaje", "Error al eliminar usuario.");
+                session.setAttribute("mensaje", "Error al desactivar usuario: No se pudo completar la operación.");
                 session.setAttribute("tipoMensaje", "danger");
             }
         } catch (Exception e) {
-            session.setAttribute("mensaje", "Error en el sistema: " + e.getMessage());
+            session.setAttribute("mensaje", "Error al desactivar usuario: " + e.getMessage());
             session.setAttribute("tipoMensaje", "danger");
+            e.printStackTrace();
         }
 
         response.sendRedirect(request.getContextPath() + "/admin/usuarios.jsp");

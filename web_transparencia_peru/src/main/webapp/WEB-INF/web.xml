@@ -3,4 +3,32 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
+
+    <!-- Listener de inicialización -->
+    <listener>
+        <listener-class>pe.gob.transparencia.listeners.AppInitializer</listener-class>
+    </listener>
+
+    <!-- Servlet de Inicialización -->
+    <servlet>
+        <servlet-name>InicializacionServlet</servlet-name>
+        <servlet-class>pe.gob.transparencia.servlet.InicializacionServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <!-- Mapeo del servlet de inicialización (sin ruta, solo se carga al inicio) -->
+    <servlet-mapping>
+        <servlet-name>InicializacionServlet</servlet-name>
+        <url-pattern>/inicializacion</url-pattern>
+    </servlet-mapping>
+
+    <!-- Configuración de sesión -->
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+
+    <!-- Página de inicio -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
 </web-app>
