@@ -952,6 +952,7 @@ public class ServletAdmin extends HttpServlet {
             }
 
             System.out.println("Registrando presupuesto: Año=" + anio + ", Entidad=" + entidadPublicaId + ", Monto=" + montoTotal);
+            System.out.println("Fecha=" + fechaAprobacionStr + ", Descripción=" + descripcion);
 
             // Crear objeto de presupuesto
             PresupuestoEntidad nuevoPpto = new PresupuestoEntidad();
@@ -967,6 +968,7 @@ public class ServletAdmin extends HttpServlet {
                 try {
                     java.sql.Date fechaAprobacion = java.sql.Date.valueOf(fechaAprobacionStr);
                     nuevoPpto.setFechaAprobacion(fechaAprobacion);
+                    System.out.println("Fecha de aprobación convertida: " + fechaAprobacion);
                 } catch (Exception e) {
                     System.out.println("Error al convertir la fecha: " + e.getMessage());
                     // Continuar sin fecha si hay error
@@ -1030,14 +1032,14 @@ public class ServletAdmin extends HttpServlet {
                 return;
             }
 
+            System.out.println("Datos de actualización: ID=" + idStr + ", Año=" + anioStr + ", Entidad=" + entidadPublicaIdStr + ", Monto=" + montoTotalStr);
+            System.out.println("Fecha=" + fechaAprobacionStr + ", Descripción=" + descripcion);
+
             // Convertir a tipos adecuados
             int id = Integer.parseInt(idStr);
             int anio = Integer.parseInt(anioStr);
             int entidadPublicaId = Integer.parseInt(entidadPublicaIdStr);
             double montoTotal = Double.parseDouble(montoTotalStr);
-
-            System.out.println("Actualizando presupuesto: ID=" + id + ", Año=" + anio + ", Entidad=" + entidadPublicaId + ", Monto=" + montoTotal);
-            System.out.println("Fecha: " + fechaAprobacionStr + ", Descripción: " + descripcion);
 
             // Obtener presupuesto actual
             PresupuestoModelo modelo = new PresupuestoModelo();
@@ -1063,6 +1065,7 @@ public class ServletAdmin extends HttpServlet {
                 try {
                     java.sql.Date fechaAprobacion = java.sql.Date.valueOf(fechaAprobacionStr);
                     presupuesto.setFechaAprobacion(fechaAprobacion);
+                    System.out.println("Fecha de aprobación convertida: " + fechaAprobacion);
                 } catch (Exception e) {
                     System.out.println("Error al convertir la fecha: " + e.getMessage());
                     // Mantener fecha anterior o null si hay error
@@ -1072,7 +1075,7 @@ public class ServletAdmin extends HttpServlet {
             }
 
             // Actualizar presupuesto
-            int resultado = modelo.actualizar(presupuesto);
+            int resultado = modelo.actualizarPresupuesto(presupuesto);
 
             if (resultado > 0) {
                 session.setAttribute("mensaje", "Presupuesto actualizado correctamente.");
@@ -1122,7 +1125,7 @@ public class ServletAdmin extends HttpServlet {
             }
 
             // Eliminar presupuesto
-            int resultado = modelo.eliminar(id);
+            int resultado = modelo.eliminarPresupuesto(id);
 
             if (resultado > 0) {
                 session.setAttribute("mensaje", "Presupuesto eliminado correctamente.");

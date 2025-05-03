@@ -882,6 +882,82 @@ BEGIN
 END $$
 DELIMITER ;
 
+-- Procedimiento para registrar presupuesto
+DELIMITER
+$$
+CREATE PROCEDURE sp_registrar_presupuesto(
+    IN p_anio INT,
+    IN p_montoTotal DECIMAL (15,2),
+    IN p_entidadPublicaId INT,
+    IN p_fechaAprobacion DATE,
+    IN p_descripcion TEXT
+)
+BEGIN
+    -- Buscar el ID del periodo fiscal para el año especificado
+    DECLARE
+        v_periodoId INT;
+
+    SELECT id
+    INTO v_periodoId
+    FROM PeriodoFiscal
+    WHERE anio = p_anio LIMIT 1;
+
+-- Insertar el nuevo presupuesto
+    INSERT INTO Presupuesto (anio, montoTotal, entidadPublicaId, periodoFiscalId, fechaAprobacion, descripcion)
+    VALUES (p_anio, p_montoTotal, p_entidadPublicaId, v_periodoId, p_fechaAprobacion, p_descripcion);
+END $$
+DELIMITER ;
+
+-- Procedimiento para actualizar presupuesto
+DELIMITER
+$$
+CREATE PROCEDURE sp_actualizar_presupuesto(
+    IN p_id INT,
+    IN p_anio INT,
+    IN p_montoTotal DECIMAL (15,2),
+    IN p_entidadPublicaId INT,
+    IN p_fechaAprobacion DATE,
+    IN p_descripcion TEXT
+)
+BEGIN
+    -- Buscar el ID del periodo fiscal para el año especificado
+    DECLARE
+        v_periodoId INT;
+
+    SELECT id
+    INTO v_periodoId
+    FROM PeriodoFiscal
+    WHERE anio = p_anio LIMIT 1;
+
+-- Actualizar el presupuesto existente
+    UPDATE Presupuesto
+    SET anio             = p_anio,
+        montoTotal       = p_montoTotal,
+        entidadPublicaId = p_entidadPublicaId,
+        periodoFiscalId  = v_periodoId,
+        fechaAprobacion  = p_fechaAprobacion,
+        descripcion      = p_descripcion
+    WHERE id = p_id;
+END $$
+DELIMITER ;
+
+-- Procedimiento para eliminar presupuesto
+DELIMITER
+$$
+CREATE PROCEDURE sp_eliminar_presupuesto(IN p_id INT)
+BEGIN
+    -- Primero eliminar los gastos asociados al presupuesto
+    DELETE
+    FROM Gasto
+    WHERE presupuestoId = p_id;
+
+-- Luego eliminar el presupuesto
+    DELETE
+    FROM Presupuesto
+    WHERE id = p_id;
+END $$
+DELIMITER ;
+
 -- =========================================
 -- FIN DEL SCRIPT
 -- =========================================

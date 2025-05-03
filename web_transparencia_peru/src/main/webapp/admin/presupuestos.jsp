@@ -721,7 +721,7 @@
                     $('#detalleId').text(data.id);
                     $('#detalleAnio').text(data.anio);
                     $('#detalleEntidad').text(data.entidadPublica.nombre);
-                    $('#detalleMonto').text(formatCurrency(data.montoTotal));
+                    $('#detalleMonto').text(String.format("S/. %.2f", data.montoTotal));
                     $('#detalleTipoEntidad').text(data.entidadPublica.tipo || 'Entidad Pública');
                     $('#detalleNivelGobierno').text(data.entidadPublica.nivelGobierno || 'Nacional');
                     var fechaAprobacion = data.fechaAprobacion;
@@ -774,7 +774,7 @@
                 $('#detalleEntidad').text(data[2]);
                 // Limpiar formateo del monto (quitar símbolos y espacios)
                 var montoLimpio = data[3].replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
-                $('#detalleMonto').text(formatCurrency(parseFloat(montoLimpio) || 0));
+                $('#detalleMonto').text(String.format("S/. %.2f", parseFloat(montoLimpio) || 0));
                 $('#detalleTipoEntidad').text('Entidad Pública');
                 $('#detalleNivelGobierno').text('Nacional');
                 var fechaAprobacion = data[4];
@@ -812,11 +812,25 @@
 
     // Función auxiliar para formatear montos como moneda
     function formatCurrency(amount) {
-        return new Intl.NumberFormat('es-PE', {
-            style: 'currency',
-            currency: 'PEN',
-            minimumFractionDigits: 2
-        }).format(amount);
+        try {
+            // Asegurar que amount es un número
+            if (typeof amount === 'string') {
+                amount = parseFloat(amount.replace(/[^\d.-]/g, ''));
+            }
+
+            if (isNaN(amount)) {
+                amount = 0;
+            }
+
+            return new Intl.NumberFormat('es-PE', {
+                style: 'currency',
+                currency: 'PEN',
+                minimumFractionDigits: 2
+            }).format(amount);
+        } catch (e) {
+            console.error("Error al formatear moneda:", e);
+            return "S/. 0.00";
+        }
     }
 </script>
 </body>
