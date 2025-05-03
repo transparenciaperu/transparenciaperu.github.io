@@ -53,7 +53,21 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 presupuesto.setAnio(rs.getInt("anio"));
                 presupuesto.setMontoTotal(rs.getBigDecimal("montoTotal"));
                 presupuesto.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
-                
+
+                try {
+                    presupuesto.setFechaAprobacion(rs.getDate("fechaAprobacion"));
+                } catch (SQLException e) {
+                    // Si la columna no existe, simplemente continuar
+                    System.out.println("Nota: La columna fechaAprobacion puede no existir en la tabla Presupuesto");
+                }
+
+                try {
+                    presupuesto.setDescripcion(rs.getString("descripcion"));
+                } catch (SQLException e) {
+                    // Si la columna no existe, simplemente continuar
+                    System.out.println("Nota: La columna descripcion puede no existir en la tabla Presupuesto");
+                }
+
                 EntidadPublicaEntidad entidad = new EntidadPublicaEntidad();
                 entidad.setId(rs.getInt("entidadPublicaId"));
                 entidad.setNombre(rs.getString("entidad_nombre"));
@@ -117,7 +131,21 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 presupuesto.setAnio(rs.getInt("anio"));
                 presupuesto.setMontoTotal(rs.getBigDecimal("montoTotal"));
                 presupuesto.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
-                
+
+                try {
+                    presupuesto.setFechaAprobacion(rs.getDate("fechaAprobacion"));
+                } catch (SQLException e) {
+                    // Si la columna no existe, simplemente continuar
+                    System.out.println("Nota: La columna fechaAprobacion puede no existir en la tabla Presupuesto");
+                }
+
+                try {
+                    presupuesto.setDescripcion(rs.getString("descripcion"));
+                } catch (SQLException e) {
+                    // Si la columna no existe, simplemente continuar
+                    System.out.println("Nota: La columna descripcion puede no existir en la tabla Presupuesto");
+                }
+
                 EntidadPublicaEntidad entidad = new EntidadPublicaEntidad();
                 entidad.setId(rs.getInt("entidadPublicaId"));
                 entidad.setNombre(rs.getString("entidad_nombre"));
@@ -181,7 +209,21 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 presupuesto.setAnio(rs.getInt("anio"));
                 presupuesto.setMontoTotal(rs.getBigDecimal("montoTotal"));
                 presupuesto.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
-                
+
+                try {
+                    presupuesto.setFechaAprobacion(rs.getDate("fechaAprobacion"));
+                } catch (SQLException e) {
+                    // Si la columna no existe, simplemente continuar
+                    System.out.println("Nota: La columna fechaAprobacion puede no existir en la tabla Presupuesto");
+                }
+
+                try {
+                    presupuesto.setDescripcion(rs.getString("descripcion"));
+                } catch (SQLException e) {
+                    // Si la columna no existe, simplemente continuar
+                    System.out.println("Nota: La columna descripcion puede no existir en la tabla Presupuesto");
+                }
+
                 EntidadPublicaEntidad entidad = new EntidadPublicaEntidad();
                 entidad.setId(rs.getInt("entidadPublicaId"));
                 entidad.setNombre(rs.getString("entidad_nombre"));
@@ -245,7 +287,21 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 presupuesto.setAnio(rs.getInt("anio"));
                 presupuesto.setMontoTotal(rs.getBigDecimal("montoTotal"));
                 presupuesto.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
-                
+
+                try {
+                    presupuesto.setFechaAprobacion(rs.getDate("fechaAprobacion"));
+                } catch (SQLException e) {
+                    // Si la columna no existe, simplemente continuar
+                    System.out.println("Nota: La columna fechaAprobacion puede no existir en la tabla Presupuesto");
+                }
+
+                try {
+                    presupuesto.setDescripcion(rs.getString("descripcion"));
+                } catch (SQLException e) {
+                    // Si la columna no existe, simplemente continuar
+                    System.out.println("Nota: La columna descripcion puede no existir en la tabla Presupuesto");
+                }
+
                 EntidadPublicaEntidad entidad = new EntidadPublicaEntidad();
                 entidad.setId(rs.getInt("entidadPublicaId"));
                 entidad.setNombre(rs.getString("entidad_nombre"));
@@ -290,11 +346,17 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 return resultado;
             }
 
-            String sql = "{CALL sp_registrar_presupuesto(?, ?, ?)}";
+            String sql = "{CALL sp_registrar_presupuesto(?, ?, ?, ?, ?)}";
             cstm = cn.prepareCall(sql);
             cstm.setInt(1, presupuesto.getAnio());
             cstm.setBigDecimal(2, presupuesto.getMontoTotal());
             cstm.setInt(3, presupuesto.getEntidadPublicaId());
+            if (presupuesto.getFechaAprobacion() != null) {
+                cstm.setDate(4, new java.sql.Date(presupuesto.getFechaAprobacion().getTime()));
+            } else {
+                cstm.setNull(4, java.sql.Types.DATE);
+            }
+            cstm.setString(5, presupuesto.getDescripcion());
             
             resultado = cstm.executeUpdate();
         } catch (SQLException e) {
@@ -331,12 +393,18 @@ public class PresupuestoModelo implements PresupuestoInterface {
                 return resultado;
             }
 
-            String sql = "{CALL sp_actualizar_presupuesto(?, ?, ?, ?)}";
+            String sql = "{CALL sp_actualizar_presupuesto(?, ?, ?, ?, ?, ?)}";
             cstm = cn.prepareCall(sql);
             cstm.setInt(1, presupuesto.getId());
             cstm.setInt(2, presupuesto.getAnio());
             cstm.setBigDecimal(3, presupuesto.getMontoTotal());
             cstm.setInt(4, presupuesto.getEntidadPublicaId());
+            if (presupuesto.getFechaAprobacion() != null) {
+                cstm.setDate(5, new java.sql.Date(presupuesto.getFechaAprobacion().getTime()));
+            } else {
+                cstm.setNull(5, java.sql.Types.DATE);
+            }
+            cstm.setString(6, presupuesto.getDescripcion());
             
             resultado = cstm.executeUpdate();
         } catch (SQLException e) {

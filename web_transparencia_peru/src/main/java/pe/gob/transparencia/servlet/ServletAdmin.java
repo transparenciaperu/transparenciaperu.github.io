@@ -835,15 +835,81 @@ public class ServletAdmin extends HttpServlet {
             PresupuestoEntidad presupuesto = modelo.buscarPorId(id);
 
             if (presupuesto != null) {
+                // Verificar si se solicita formato JSON
+                String formatoRespuesta = request.getParameter("format");
+                if ("json".equals(formatoRespuesta)) {
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+
+                    // Crear respuesta JSON simple
+                    StringBuilder jsonBuilder = new StringBuilder();
+                    jsonBuilder.append("{");
+                    jsonBuilder.append("\"id\": ").append(presupuesto.getId()).append(",");
+                    jsonBuilder.append("\"anio\": ").append(presupuesto.getAnio()).append(",");
+                    jsonBuilder.append("\"montoTotal\": ").append(presupuesto.getMontoTotal()).append(",");
+                    jsonBuilder.append("\"entidadPublicaId\": ").append(presupuesto.getEntidadPublicaId()).append(",");
+
+                    // Incluir fecha de aprobación y descripción si existen
+                    if (presupuesto.getFechaAprobacion() != null) {
+                        jsonBuilder.append("\"fechaAprobacion\": \"").append(presupuesto.getFechaAprobacion()).append("\",");
+                    } else {
+                        jsonBuilder.append("\"fechaAprobacion\": null,");
+                    }
+
+                    if (presupuesto.getDescripcion() != null) {
+                        jsonBuilder.append("\"descripcion\": \"")
+                                .append(presupuesto.getDescripcion().replace("\"", "\\\""))
+                                .append("\",");
+                    } else {
+                        jsonBuilder.append("\"descripcion\": null,");
+                    }
+
+                    // Añadir datos de la entidad pública
+                    jsonBuilder.append("\"entidadPublica\": {");
+                    jsonBuilder.append("\"id\": ").append(presupuesto.getEntidadPublica().getId()).append(",");
+                    jsonBuilder.append("\"nombre\": \"").append(presupuesto.getEntidadPublica().getNombre().replace("\"", "\\\"")).append("\",");
+
+                    // Añadir tipo y nivel de gobierno con verificaciones para evitar NPE
+                    String tipo = presupuesto.getEntidadPublica().getTipo();
+                    String nivelGobierno = presupuesto.getEntidadPublica().getNivelGobierno();
+
+                    jsonBuilder.append("\"tipo\": \"").append(tipo != null ? tipo.replace("\"", "\\\"") : "Entidad Pública").append("\",");
+                    jsonBuilder.append("\"nivelGobierno\": \"").append(nivelGobierno != null ? nivelGobierno.replace("\"", "\\\"") : "Nacional").append("\"");
+                    jsonBuilder.append("}");
+                    jsonBuilder.append("}");
+
+                    response.getWriter().write(jsonBuilder.toString());
+                    return;
+                }
+
+                // Si no se solicita JSON, enviar a la página de detalle
                 request.setAttribute("presupuesto", presupuesto);
                 request.getRequestDispatcher("/admin/detalle_presupuesto.jsp").forward(request, response);
             } else {
+                // Si no se encuentra el presupuesto
+                if ("json".equals(request.getParameter("format"))) {
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("{\"error\": \"Presupuesto no encontrado\"}");
+                    return;
+                }
+
+                // Si no es JSON, redirigir con mensaje de error
                 HttpSession session = request.getSession();
                 session.setAttribute("mensaje", "Presupuesto no encontrado");
                 session.setAttribute("tipoMensaje", "danger");
                 response.sendRedirect(request.getContextPath() + "/admin/presupuestos.jsp");
             }
         } catch (Exception e) {
+            // En caso de error
+            if ("json".equals(request.getParameter("format"))) {
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("{\"error\": \"Error al procesar la solicitud: " + e.getMessage() + "\"}");
+                return;
+            }
+
+            // Si no es JSON, redirigir con mensaje de error
             HttpSession session = request.getSession();
             session.setAttribute("mensaje", "Error: " + e.getMessage());
             session.setAttribute("tipoMensaje", "danger");
@@ -854,40 +920,85 @@ public class ServletAdmin extends HttpServlet {
 
     private void registrarPresupuesto(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Obtener parámetros
-        int anio = Integer.parseInt(request.getParameter("anio"));
-        int entidadPublicaId = Integer.parseInt(request.getParameter("entidadPublicaId"));
-        double montoTotal = Double.parseDouble(request.getParameter("montoTotal"));
-        String fechaAprobacionStr = request.getParameter("fechaAprobacion");
-        String descripcion = request.getParameter("descripcion");
-        String estado = request.getParameter("estado");
-        String periodoFiscalIdStr = request.getParameter("periodoFiscalId");
-
         HttpSession session = request.getSession();
 
         try {
+            // Validar y obtener los parámetros
+            String anioStr = request.getParameter("anio");
+            String entidadPublicaIdStr = request.getParameter("entidadPublicaId");
+            String montoTotalStr = request.getParameter("montoTotal");
+            String fechaAprobacionStr = request.getParameter("fechaAprobacion");
+            String descripcion = request.getParameter("descripcion");
+
+            if (anioStr == null || anioStr.isEmpty() || entidadPublicaIdStr == null || entidadPublicaIdStr.isEmpty() ||
+                    montoTotalStr == null || montoTotalStr.isEmpty()) {
+                session.setAttribute("mensaje", "Error: Todos los campos obligatorios deben ser completados.");
+                session.setAttribute("tipoMensaje", "danger");
+                response.sendRedirect(request.getContextPath() + "/admin/presupuestos.jsp");
+                return;
+            }
+
+            // Convertir a tipos adecuados
+            int anio = Integer.parseInt(anioStr);
+            int entidadPublicaId = Integer.parseInt(entidadPublicaIdStr);
+            double montoTotal = Double.parseDouble(montoTotalStr);
+
+            // Validar valores
+            if (montoTotal <= 0) {
+                session.setAttribute("mensaje", "Error: El monto total debe ser mayor que cero.");
+                session.setAttribute("tipoMensaje", "danger");
+                response.sendRedirect(request.getContextPath() + "/admin/presupuestos.jsp");
+                return;
+            }
+
+            System.out.println("Registrando presupuesto: Año=" + anio + ", Entidad=" + entidadPublicaId + ", Monto=" + montoTotal);
+
             // Crear objeto de presupuesto
             PresupuestoEntidad nuevoPpto = new PresupuestoEntidad();
             nuevoPpto.setAnio(anio);
-
-            EntidadPublicaEntidad entidad = new EntidadPublicaEntidad();
-            entidad.setId(entidadPublicaId);
-            nuevoPpto.setEntidadPublica(entidad);
             nuevoPpto.setEntidadPublicaId(entidadPublicaId);
+            nuevoPpto.setDescripcion(descripcion);
 
-            // Convertir double a BigDecimal
+            // Convertir double to BigDecimal
             nuevoPpto.setMontoTotal(new java.math.BigDecimal(String.valueOf(montoTotal)));
 
-            // Registrar presupuesto usando el modelo
+            // Convertir y establecer fecha si existe
+            if (fechaAprobacionStr != null && !fechaAprobacionStr.isEmpty()) {
+                try {
+                    java.sql.Date fechaAprobacion = java.sql.Date.valueOf(fechaAprobacionStr);
+                    nuevoPpto.setFechaAprobacion(fechaAprobacion);
+                } catch (Exception e) {
+                    System.out.println("Error al convertir la fecha: " + e.getMessage());
+                    // Continuar sin fecha si hay error
+                }
+            }
+
+            // Verificar que no exista ya un presupuesto para esta entidad y año
             PresupuestoModelo modelo = new PresupuestoModelo();
-            int resultado = modelo.insertar(nuevoPpto);
+            List<PresupuestoEntidad> presupuestosEntidad = modelo.listarPorEntidad(entidadPublicaId);
+            for (PresupuestoEntidad p : presupuestosEntidad) {
+                if (p.getAnio() == anio) {
+                    session.setAttribute("mensaje", "Error: Ya existe un presupuesto para esta entidad y año.");
+                    session.setAttribute("tipoMensaje", "danger");
+                    response.sendRedirect(request.getContextPath() + "/admin/presupuestos.jsp");
+                    return;
+                }
+            }
+
+            // Registrar presupuesto usando el modelo
+            int resultado = modelo.registrarPresupuesto(nuevoPpto);
 
             if (resultado > 0) {
                 session.setAttribute("mensaje", "Presupuesto registrado correctamente.");
                 session.setAttribute("tipoMensaje", "success");
             } else {
-                session.setAttribute("mensaje", "Error al registrar presupuesto.");
+                session.setAttribute("mensaje", "Error al registrar presupuesto: No se pudo completar la operación.");
                 session.setAttribute("tipoMensaje", "danger");
             }
+        } catch (NumberFormatException e) {
+            session.setAttribute("mensaje", "Error: Los valores numéricos no son válidos: " + e.getMessage());
+            session.setAttribute("tipoMensaje", "danger");
+            e.printStackTrace();
         } catch (Exception e) {
             session.setAttribute("mensaje", "Error en el sistema: " + e.getMessage());
             session.setAttribute("tipoMensaje", "danger");
@@ -899,18 +1010,35 @@ public class ServletAdmin extends HttpServlet {
 
     private void actualizarPresupuesto(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Obtener parámetros
-        int id = Integer.parseInt(request.getParameter("id"));
-        int anio = Integer.parseInt(request.getParameter("anio"));
-        int entidadPublicaId = Integer.parseInt(request.getParameter("entidadPublicaId"));
-        double montoTotal = Double.parseDouble(request.getParameter("montoTotal"));
-        String fechaAprobacionStr = request.getParameter("fechaAprobacion");
-        String descripcion = request.getParameter("descripcion");
-        String estado = request.getParameter("estado");
-        String periodoFiscalIdStr = request.getParameter("periodoFiscalId");
-
         HttpSession session = request.getSession();
 
         try {
+            // Validar y obtener los parámetros
+            String idStr = request.getParameter("id");
+            String anioStr = request.getParameter("anio");
+            String entidadPublicaIdStr = request.getParameter("entidadPublicaId");
+            String montoTotalStr = request.getParameter("montoTotal");
+            String fechaAprobacionStr = request.getParameter("fechaAprobacion");
+            String descripcion = request.getParameter("descripcion");
+
+            if (idStr == null || idStr.isEmpty() || anioStr == null || anioStr.isEmpty() ||
+                    entidadPublicaIdStr == null || entidadPublicaIdStr.isEmpty() ||
+                    montoTotalStr == null || montoTotalStr.isEmpty()) {
+                session.setAttribute("mensaje", "Error: Todos los campos obligatorios deben ser completados.");
+                session.setAttribute("tipoMensaje", "danger");
+                response.sendRedirect(request.getContextPath() + "/admin/presupuestos.jsp");
+                return;
+            }
+
+            // Convertir a tipos adecuados
+            int id = Integer.parseInt(idStr);
+            int anio = Integer.parseInt(anioStr);
+            int entidadPublicaId = Integer.parseInt(entidadPublicaIdStr);
+            double montoTotal = Double.parseDouble(montoTotalStr);
+
+            System.out.println("Actualizando presupuesto: ID=" + id + ", Año=" + anio + ", Entidad=" + entidadPublicaId + ", Monto=" + montoTotal);
+            System.out.println("Fecha: " + fechaAprobacionStr + ", Descripción: " + descripcion);
+
             // Obtener presupuesto actual
             PresupuestoModelo modelo = new PresupuestoModelo();
             PresupuestoEntidad presupuesto = modelo.buscarPorId(id);
@@ -924,14 +1052,24 @@ public class ServletAdmin extends HttpServlet {
 
             // Actualizar datos
             presupuesto.setAnio(anio);
-
-            EntidadPublicaEntidad entidad = new EntidadPublicaEntidad();
-            entidad.setId(entidadPublicaId);
-            presupuesto.setEntidadPublica(entidad);
             presupuesto.setEntidadPublicaId(entidadPublicaId);
+            presupuesto.setDescripcion(descripcion);
 
             // Convertir double a BigDecimal
             presupuesto.setMontoTotal(new java.math.BigDecimal(String.valueOf(montoTotal)));
+
+            // Convertir y establecer fecha si existe
+            if (fechaAprobacionStr != null && !fechaAprobacionStr.isEmpty()) {
+                try {
+                    java.sql.Date fechaAprobacion = java.sql.Date.valueOf(fechaAprobacionStr);
+                    presupuesto.setFechaAprobacion(fechaAprobacion);
+                } catch (Exception e) {
+                    System.out.println("Error al convertir la fecha: " + e.getMessage());
+                    // Mantener fecha anterior o null si hay error
+                }
+            } else {
+                presupuesto.setFechaAprobacion(null);
+            }
 
             // Actualizar presupuesto
             int resultado = modelo.actualizar(presupuesto);
@@ -940,9 +1078,13 @@ public class ServletAdmin extends HttpServlet {
                 session.setAttribute("mensaje", "Presupuesto actualizado correctamente.");
                 session.setAttribute("tipoMensaje", "success");
             } else {
-                session.setAttribute("mensaje", "Error al actualizar presupuesto.");
+                session.setAttribute("mensaje", "Error al actualizar presupuesto: No se pudo completar la operación.");
                 session.setAttribute("tipoMensaje", "danger");
             }
+        } catch (NumberFormatException e) {
+            session.setAttribute("mensaje", "Error: Los valores numéricos no son válidos: " + e.getMessage());
+            session.setAttribute("tipoMensaje", "danger");
+            e.printStackTrace();
         } catch (Exception e) {
             session.setAttribute("mensaje", "Error en el sistema: " + e.getMessage());
             session.setAttribute("tipoMensaje", "danger");
@@ -954,21 +1096,45 @@ public class ServletAdmin extends HttpServlet {
 
     private void eliminarPresupuesto(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Obtener ID a eliminar
-        int id = Integer.parseInt(request.getParameter("id"));
         HttpSession session = request.getSession();
 
         try {
-            // Eliminar presupuesto
+            // Validar y obtener el ID
+            String idStr = request.getParameter("id");
+            if (idStr == null || idStr.isEmpty()) {
+                session.setAttribute("mensaje", "Error: No se especificó el ID del presupuesto a eliminar.");
+                session.setAttribute("tipoMensaje", "danger");
+                response.sendRedirect(request.getContextPath() + "/admin/presupuestos.jsp");
+                return;
+            }
+
+            int id = Integer.parseInt(idStr);
+
+            // Verificar que el presupuesto existe
             PresupuestoModelo modelo = new PresupuestoModelo();
+            PresupuestoEntidad presupuesto = modelo.buscarPorId(id);
+
+            if (presupuesto == null) {
+                session.setAttribute("mensaje", "Error: El presupuesto que intenta eliminar no existe.");
+                session.setAttribute("tipoMensaje", "warning");
+                response.sendRedirect(request.getContextPath() + "/admin/presupuestos.jsp");
+                return;
+            }
+
+            // Eliminar presupuesto
             int resultado = modelo.eliminar(id);
 
             if (resultado > 0) {
                 session.setAttribute("mensaje", "Presupuesto eliminado correctamente.");
                 session.setAttribute("tipoMensaje", "success");
             } else {
-                session.setAttribute("mensaje", "Error al eliminar presupuesto.");
+                session.setAttribute("mensaje", "Error al eliminar presupuesto: No se pudo completar la operación.");
                 session.setAttribute("tipoMensaje", "danger");
             }
+        } catch (NumberFormatException e) {
+            session.setAttribute("mensaje", "Error: El ID del presupuesto no es válido.");
+            session.setAttribute("tipoMensaje", "danger");
+            e.printStackTrace();
         } catch (Exception e) {
             session.setAttribute("mensaje", "Error en el sistema: " + e.getMessage());
             session.setAttribute("tipoMensaje", "danger");

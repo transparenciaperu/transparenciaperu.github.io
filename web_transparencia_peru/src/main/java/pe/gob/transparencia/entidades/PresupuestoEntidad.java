@@ -1,6 +1,7 @@
 package pe.gob.transparencia.entidades;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 
 public class PresupuestoEntidad {
     private int id;
@@ -8,6 +9,8 @@ public class PresupuestoEntidad {
     private BigDecimal montoTotal;
     private int entidadPublicaId;
     private EntidadPublicaEntidad entidadPublica;
+    private Date fechaAprobacion;
+    private String descripcion;
 
     public PresupuestoEntidad() {
     }
@@ -57,5 +60,21 @@ public class PresupuestoEntidad {
 
     public void setEntidadPublica(EntidadPublicaEntidad entidadPublica) {
         this.entidadPublica = entidadPublica;
+    }
+
+    public Date getFechaAprobacion() {
+        return fechaAprobacion;
+    }
+
+    public void setFechaAprobacion(Date fechaAprobacion) {
+        this.fechaAprobacion = fechaAprobacion;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 }

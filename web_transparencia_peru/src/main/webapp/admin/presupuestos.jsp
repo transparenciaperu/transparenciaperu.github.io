@@ -218,7 +218,6 @@
                                 <th>Entidad Pública</th>
                                 <th>Monto Total</th>
                                 <th>Fecha Aprobación</th>
-                                <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                             </thead>
@@ -233,32 +232,29 @@
                                 </td>
                                 <td><%= formatoMoneda.format(presupuesto.getMontoTotal()) %>
                                 </td>
-                                <td><%= presupuesto.getFechaAprobacion() != null ? formatoFecha.format(presupuesto.getFechaAprobacion()) : "No disponible" %>
-                                </td>
                                 <td>
-                                    <% if (presupuesto.getEstado() != null) { %>
-                                    <span class="badge <%= presupuesto.getEstado().equals("Activo") ? "bg-success" : (presupuesto.getEstado().equals("Planificado") ? "bg-primary" : "bg-secondary") %>">
-                                            <%= presupuesto.getEstado() %>
-                                        </span>
+                                    <% if (presupuesto.getFechaAprobacion() != null) { %>
+                                    <%= formatoFecha.format(presupuesto.getFechaAprobacion()) %>
                                     <% } else { %>
-                                    <span class="badge bg-secondary">No definido</span>
+                                    No disponible
                                     <% } %>
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="<%= request.getContextPath() %>/admin.do?accion=editarPresupuesto&id=<%= presupuesto.getId() %>"
-                                           class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip"
+                                                title="Editar" onclick="editarPresupuesto(<%= presupuesto.getId() %>)">
                                             <i class="bi bi-pencil"></i>
-                                        </a>
+                                        </button>
                                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip"
                                                 title="Eliminar"
                                                 onclick="confirmarEliminacion(<%= presupuesto.getId() %>, '<%= presupuesto.getAnio() %> - <%= presupuesto.getEntidadPublica().getNombre() %>')">
                                             <i class="bi bi-trash"></i>
                                         </button>
-                                        <a href="<%= request.getContextPath() %>/admin.do?accion=verDetallePresupuesto&id=<%= presupuesto.getId() %>"
-                                           class="btn btn-outline-info" data-bs-toggle="tooltip" title="Ver detalle">
+                                        <button type="button" class="btn btn-outline-info" data-bs-toggle="tooltip"
+                                                title="Ver detalle"
+                                                onclick="verDetallePresupuesto(<%= presupuesto.getId() %>)">
                                             <i class="bi bi-eye"></i>
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -283,7 +279,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <form action="<%= request.getContextPath() %>/admin.do" method="post">
+            <form action="<%= request.getContextPath() %>/admin.do" method="post" id="formNuevoPresupuesto">
                 <input type="hidden" name="accion" value="registrarPresupuesto">
                 <div class="modal-body">
                     <div class="row mb-3">
@@ -315,32 +311,12 @@
                             <div class="input-group">
                                 <span class="input-group-text">S/.</span>
                                 <input type="number" class="form-control" id="montoTotal" name="montoTotal" step="0.01"
-                                       min="0" required>
+                                       min="0" value="0.00" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label for="fechaAprobacion" class="form-label">Fecha Aprobación</label>
                             <input type="date" class="form-control" id="fechaAprobacion" name="fechaAprobacion">
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="periodoFiscalId" class="form-label">Periodo Fiscal</label>
-                            <select class="form-select" id="periodoFiscalId" name="periodoFiscalId">
-                                <option value="">Seleccione periodo</option>
-                                <option value="3">2024</option>
-                                <option value="2">2023</option>
-                                <option value="1">2022</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="estado" class="form-label">Estado</label>
-                            <select class="form-select" id="estado" name="estado">
-                                <option value="Activo">Activo</option>
-                                <option value="Planificado">Planificado</option>
-                                <option value="Cerrado">Cerrado</option>
-                            </select>
                         </div>
                     </div>
 
@@ -374,12 +350,135 @@
                 <p>Esta acción eliminará también todos los gastos asociados y no se puede deshacer.</p>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <form action="<%= request.getContextPath() %>/admin.do" method="post">
                     <input type="hidden" name="accion" value="eliminarPresupuesto">
                     <input type="hidden" name="id" id="idPresupuestoEliminar">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-danger">Eliminar</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Presupuesto -->
+<div class="modal fade" id="editarPresupuestoModal" tabindex="-1" aria-labelledby="editarPresupuestoModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editarPresupuestoModalLabel"><i class="bi bi-pencil-square me-2"></i>Editar
+                    Presupuesto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <form action="<%= request.getContextPath() %>/admin.do" method="post">
+                <input type="hidden" name="accion" value="actualizarPresupuesto">
+                <input type="hidden" name="id" id="editId">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editAnio" class="form-label">Año</label>
+                            <select class="form-select" id="editAnio" name="anio" required>
+                                <option value="">Seleccione año</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editEntidadPublicaId" class="form-label">Entidad Pública</label>
+                            <select class="form-select" id="editEntidadPublicaId" name="entidadPublicaId" required>
+                                <option value="">Seleccione entidad</option>
+                                <% for (EntidadPublicaEntidad entidad : listaEntidades) { %>
+                                <option value="<%= entidad.getId() %>"><%= entidad.getNombre() %>
+                                </option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editMontoTotal" class="form-label">Monto Total</label>
+                            <div class="input-group">
+                                <span class="input-group-text">S/.</span>
+                                <input type="number" class="form-control" id="editMontoTotal" name="montoTotal"
+                                       step="0.01"
+                                       min="0" value="0.00" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editFechaAprobacion" class="form-label">Fecha Aprobación</label>
+                            <input type="date" class="form-control" id="editFechaAprobacion" name="fechaAprobacion">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editDescripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="editDescripcion" name="descripcion" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalle Presupuesto -->
+<div class="modal fade" id="detallePresupuestoModal" tabindex="-1" aria-labelledby="detallePresupuestoModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="detallePresupuestoModalLabel"><i class="bi bi-info-circle me-2"></i>Detalle
+                    de Presupuesto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="loadingSpinner" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando detalles del presupuesto...</p>
+                </div>
+                <div id="detallePresupuestoContent" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2">Información General</h5>
+                            <p><strong>ID:</strong> <span id="detalleId"></span></p>
+                            <p><strong>Año Fiscal:</strong> <span id="detalleAnio"></span></p>
+                            <p><strong>Monto Total:</strong> <span id="detalleMonto"></span></p>
+                            <p><strong>Fecha Aprobación:</strong> <span id="detalleFechaAprobacion"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2">Entidad Responsable</h5>
+                            <p><strong>Entidad:</strong> <span id="detalleEntidad"></span></p>
+                            <p><strong>Tipo:</strong> <span id="detalleTipoEntidad"></span></p>
+                            <p><strong>Nivel de Gobierno:</strong> <span id="detalleNivelGobierno"></span></p>
+                        </div>
+                    </div>
+                    <div class="border-top pt-3 mt-2">
+                        <h5 class="border-bottom pb-2">Descripción</h5>
+                        <p id="detalleDescripcion"></p>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i> Este presupuesto representa los fondos asignados a la
+                        entidad para el año fiscal indicado.
+                    </div>
+                </div>
+                <div id="errorMessage" class="alert alert-danger" style="display: none;">
+                    <i class="bi bi-exclamation-triangle me-2"></i> <span id="errorText"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnEditarDesdeDetalle">Editar</button>
             </div>
         </div>
     </div>
@@ -400,9 +499,9 @@
             },
             pageLength: 10,
             responsive: true,
-            order: [[0, 'asc']],
+            order: [[1, 'desc']], // Ordenar por año descendente
             columnDefs: [
-                {targets: 6, orderable: false} // Deshabilitar ordenamiento en columna de acciones
+                {targets: 5, orderable: false} // Deshabilitar ordenamiento en columna de acciones
             ]
         });
 
@@ -444,6 +543,27 @@
             $('#filtroMonto').val('');
             tabla.search('').columns().search('').draw();
         });
+
+        // Validación de formulario de nuevo presupuesto
+        $("#formNuevoPresupuesto").on('submit', function (e) {
+            var anio = $("#anio").val();
+            var entidadId = $("#entidadPublicaId").val();
+            var monto = $("#montoTotal").val();
+
+            if (!anio || !entidadId || !monto) {
+                alert("Por favor complete todos los campos obligatorios.");
+                e.preventDefault();
+                return false;
+            }
+
+            if (parseFloat(monto) <= 0) {
+                alert("El monto debe ser mayor que cero.");
+                e.preventDefault();
+                return false;
+            }
+
+            return true;
+        });
     });
 
     // Función para confirmar eliminación
@@ -453,6 +573,250 @@
 
         var eliminarModal = new bootstrap.Modal(document.getElementById('eliminarPresupuestoModal'));
         eliminarModal.show();
+    }
+
+    // Función para editar presupuesto en modal
+    function editarPresupuesto(id) {
+        // Mostrar loading spinner
+        $('#editId').val(id);
+
+        // Hacer una solicitud AJAX para obtener los datos del presupuesto
+        $.ajax({
+            url: "<%= request.getContextPath() %>/admin.do",
+            type: "GET",
+            data: {
+                accion: "verDetallePresupuesto",
+                id: id,
+                format: "json"
+            },
+            dataType: "json",
+            success: function (data) {
+                // Si obtenemos datos correctamente, llenar el formulario
+                if (data && data.id) {
+                    $('#editAnio').val(data.anio);
+                    $('#editEntidadPublicaId').val(data.entidadPublicaId);
+                    $('#editMontoTotal').val(data.montoTotal);
+                    $('#editDescripcion').val(data.descripcion || '');
+
+                    // Formatear la fecha para input date (YYYY-MM-DD)
+                    if (data.fechaAprobacion) {
+                        // Extraer solo YYYY-MM-DD si la fecha tiene más información
+                        let fechaFormateada = data.fechaAprobacion.split('T')[0];
+                        $('#editFechaAprobacion').val(fechaFormateada);
+                    } else {
+                        $('#editFechaAprobacion').val('');
+                    }
+                } else {
+                    // Si no hay datos JSON válidos, buscar en la tabla
+                    buscarDatosEnTabla(id);
+                }
+
+                // Mostrar el modal
+                var editarModal = new bootstrap.Modal(document.getElementById('editarPresupuestoModal'));
+                editarModal.show();
+            },
+            error: function () {
+                // En caso de error, intentar obtener datos de la tabla
+                buscarDatosEnTabla(id);
+
+                // Mostrar el modal
+                var editarModal = new bootstrap.Modal(document.getElementById('editarPresupuestoModal'));
+                editarModal.show();
+            }
+        });
+    }
+
+    // Función auxiliar para buscar datos en la tabla cuando falla AJAX
+    function buscarDatosEnTabla(id) {
+        var table = $('#tablaPresupuestos').DataTable();
+        var encontrado = false;
+
+        // Recorrer todas las filas buscando el ID
+        table.rows().every(function () {
+            var data = this.data();
+            if (data[0] == id) {
+                // Encontramos la fila con el ID buscado
+                $('#editAnio').val(data[1]); // Columna de año
+
+                // Usar el elemento select para encontrar la opción que corresponde a esta entidad
+                var nombreEntidad = data[2];
+                $("#editEntidadPublicaId option").each(function () {
+                    if ($(this).text().trim() === nombreEntidad) {
+                        $('#editEntidadPublicaId').val($(this).val());
+                        return false;
+                    }
+                });
+
+                // Limpiar formateo del monto (quitar símbolos y espacios)
+                var montoLimpio = data[3].replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+                $('#editMontoTotal').val(parseFloat(montoLimpio) || 0);
+
+                // Fecha de aprobación - Columna 4
+                var fechaAprobacion = data[4];
+                if (fechaAprobacion && fechaAprobacion !== "No disponible") {
+                    var partsFecha = fechaAprobacion.split('/');
+                    if (partsFecha.length === 3) {
+                        var fechaFormateada = partsFecha[2] + '-' +
+                            (partsFecha[1].length === 1 ? '0' + partsFecha[1] : partsFecha[1]) + '-' +
+                            (partsFecha[0].length === 1 ? '0' + partsFecha[0] : partsFecha[0]);
+                        $('#editFechaAprobacion').val(fechaFormateada);
+                    } else {
+                        $('#editFechaAprobacion').val(fechaAprobacion);
+                    }
+                } else {
+                    $('#editFechaAprobacion').val('');
+                }
+
+                // No podemos recuperar descripción desde la tabla
+                $('#editDescripcion').val('');
+
+                encontrado = true;
+                return false; // Salir del loop
+            }
+        });
+
+        if (!encontrado) {
+            // Si no encontramos datos, establecemos valores predeterminados
+            $('#editAnio').val(new Date().getFullYear());
+            $('#editMontoTotal').val(0);
+            $('#editFechaAprobacion').val('');
+            $('#editDescripcion').val('');
+        }
+
+        // Mostrar el modal
+        var editarModal = new bootstrap.Modal(document.getElementById('editarPresupuestoModal'));
+        editarModal.show();
+    }
+
+    // Función para ver detalle de presupuesto
+    function verDetallePresupuesto(id) {
+        // Mostrar modal con spinner de carga
+        $('#loadingSpinner').show();
+        $('#detallePresupuestoContent').hide();
+        $('#errorMessage').hide();
+
+        // Almacenar el ID para el botón de edición
+        $('#btnEditarDesdeDetalle').data('id', id);
+
+        // Configurar evento del botón editar
+        $('#btnEditarDesdeDetalle').off('click').on('click', function () {
+            var detalleModal = bootstrap.Modal.getInstance(document.getElementById('detallePresupuestoModal'));
+            detalleModal.hide();
+            editarPresupuesto($(this).data('id'));
+        });
+
+        // Hacer una solicitud AJAX para obtener los datos del presupuesto
+        $.ajax({
+            url: "<%= request.getContextPath() %>/admin.do",
+            type: "GET",
+            data: {
+                accion: "verDetallePresupuesto",
+                id: id,
+                format: "json"
+            },
+            dataType: "json",
+            success: function (data) {
+                // Si obtenemos datos correctamente, llenar el modal
+                if (data && data.id) {
+                    $('#detalleId').text(data.id);
+                    $('#detalleAnio').text(data.anio);
+                    $('#detalleEntidad').text(data.entidadPublica.nombre);
+                    $('#detalleMonto').text(formatCurrency(data.montoTotal));
+                    $('#detalleTipoEntidad').text(data.entidadPublica.tipo || 'Entidad Pública');
+                    $('#detalleNivelGobierno').text(data.entidadPublica.nivelGobierno || 'Nacional');
+                    var fechaAprobacion = data.fechaAprobacion;
+                    if (fechaAprobacion && fechaAprobacion !== "No disponible") {
+                        var partsFecha = fechaAprobacion.split('/');
+                        if (partsFecha.length === 3) {
+                            var fechaFormateada = partsFecha[2] + '-' +
+                                (partsFecha[1].length === 1 ? '0' + partsFecha[1] : partsFecha[1]) + '-' +
+                                (partsFecha[0].length === 1 ? '0' + partsFecha[0] : partsFecha[0]);
+                            $('#detalleFechaAprobacion').text(fechaFormateada);
+                        } else {
+                            $('#detalleFechaAprobacion').text(fechaAprobacion);
+                        }
+                    } else {
+                        $('#detalleFechaAprobacion').text("No disponible");
+                    }
+                    $('#detalleDescripcion').text(data.descripcion || "Sin descripción");
+
+                    // Mostrar contenido
+                    $('#loadingSpinner').hide();
+                    $('#detallePresupuestoContent').show();
+                } else {
+                    // Si no hay datos JSON válidos, buscar en la tabla
+                    buscarDetalleEnTabla(id);
+                }
+            },
+            error: function () {
+                // En caso de error, intentar obtener datos de la tabla
+                buscarDetalleEnTabla(id);
+            }
+        });
+
+        // Mostrar el modal
+        var detalleModal = new bootstrap.Modal(document.getElementById('detallePresupuestoModal'));
+        detalleModal.show();
+    }
+
+    // Función auxiliar para buscar detalles en la tabla cuando falla AJAX
+    function buscarDetalleEnTabla(id) {
+        var table = $('#tablaPresupuestos').DataTable();
+        var encontrado = false;
+
+        // Recorrer todas las filas buscando el ID
+        table.rows().every(function () {
+            var data = this.data();
+            if (data[0] == id) {
+                // Encontramos la fila con el ID buscado
+                $('#detalleId').text(data[0]);
+                $('#detalleAnio').text(data[1]);
+                $('#detalleEntidad').text(data[2]);
+                // Limpiar formateo del monto (quitar símbolos y espacios)
+                var montoLimpio = data[3].replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+                $('#detalleMonto').text(formatCurrency(parseFloat(montoLimpio) || 0));
+                $('#detalleTipoEntidad').text('Entidad Pública');
+                $('#detalleNivelGobierno').text('Nacional');
+                var fechaAprobacion = data[4];
+                if (fechaAprobacion && fechaAprobacion !== "No disponible") {
+                    var partsFecha = fechaAprobacion.split('/');
+                    if (partsFecha.length === 3) {
+                        var fechaFormateada = partsFecha[2] + '-' +
+                            (partsFecha[1].length === 1 ? '0' + partsFecha[1] : partsFecha[1]) + '-' +
+                            (partsFecha[0].length === 1 ? '0' + partsFecha[0] : partsFecha[0]);
+                        $('#detalleFechaAprobacion').text(fechaFormateada);
+                    } else {
+                        $('#detalleFechaAprobacion').text(fechaAprobacion);
+                    }
+                } else {
+                    $('#detalleFechaAprobacion').text("No disponible");
+                }
+                $('#detalleDescripcion').text(data[5] !== undefined ? data[5] : "Sin descripción");
+
+                // Mostrar contenido
+                $('#loadingSpinner').hide();
+                $('#detallePresupuestoContent').show();
+
+                encontrado = true;
+                return false; // Salir del loop
+            }
+        });
+
+        if (!encontrado) {
+            // Si no encontramos datos, mostrar mensaje de error
+            $('#loadingSpinner').hide();
+            $('#errorText').text('No se pudo cargar la información del presupuesto.');
+            $('#errorMessage').show();
+        }
+    }
+
+    // Función auxiliar para formatear montos como moneda
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('es-PE', {
+            style: 'currency',
+            currency: 'PEN',
+            minimumFractionDigits: 2
+        }).format(amount);
     }
 </script>
 </body>
