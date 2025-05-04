@@ -315,61 +315,86 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <%
-                                        List<DocumentoTransparenciaEntidad> documentosPlaneamiento = documentosPorCategoria.get("planeamiento");
-                                        if (documentosPlaneamiento != null && !documentosPlaneamiento.isEmpty()) {
-                                            for (DocumentoTransparenciaEntidad documento : documentosPlaneamiento) {
-                                    %>
-                                    <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
-                                        <td><%= documento.getTitulo() %>
-                                        </td>
-                                        <td><%= documento.getDescripcion() %>
-                                        </td>
+                                    <tr>
+                                        <td>Instrumentos de Gestión</td>
+                                        <td>ROF, MOF, CAP, MAPRO, Indicadores de Desempeño</td>
+                                        <td>15/01/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
                                         <td>
-                                            <% if (documento.getFechaPublicacion() != null) { %>
-                                            <%= formatoFecha.format(documento.getFechaPublicacion()) %>
-                                            <% } else { %>
-                                            -
-                                            <% } %>
-                                        </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
-                                        </td>
-                                        <td>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
                                             <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
+                                                    data-bs-target="#verDocumentoModal">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-                                            <% } %>
-                                            <button class="btn btn-sm btn-<%= documento.getEstado().equals("Publicado") ? "success" : "primary" %>"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="<%= documento.getEstado().equals("Publicado") ? "#editarDocumentoModal" : "#publicarDocumentoModal" %>"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-<%= documento.getEstado().equals("Publicado") ? "pencil" : "upload" %>"></i><%= documento.getEstado().equals("Publicado") ? "" : " Publicar" %>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
                                             </button>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
                                             <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
+                                                    data-bs-target="#eliminarDocumentoModal">
                                                 <i class="bi bi-trash"></i>
                                             </button>
-                                            <% } %>
                                         </td>
                                     </tr>
-                                    <%
-                                        }
-                                    } else {
-                                    %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td>Plan Estratégico Institucional</td>
+                                        <td>Plan Estratégico Institucional 2023-2026</td>
+                                        <td>20/01/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#verDocumentoModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarDocumentoModal">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
-                                    <% } %>
+                                    <tr>
+                                        <td>Plan Operativo Institucional</td>
+                                        <td>Plan Operativo Institucional 2024</td>
+                                        <td>05/02/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#verDocumentoModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarDocumentoModal">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Organigrama</td>
+                                        <td>Estructura organizacional de la entidad</td>
+                                        <td>10/02/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#verDocumentoModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarDocumentoModal">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -401,61 +426,78 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <%
-                                        List<DocumentoTransparenciaEntidad> documentosPresupuesto = documentosPorCategoria.get("presupuesto");
-                                        if (documentosPresupuesto != null && !documentosPresupuesto.isEmpty()) {
-                                            for (DocumentoTransparenciaEntidad documento : documentosPresupuesto) {
-                                    %>
-                                    <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
-                                        <td><%= documento.getTitulo() %>
-                                        </td>
-                                        <td><%= documento.getDescripcion() %>
-                                        </td>
+                                    <tr>
+                                        <td>Información Presupuestal</td>
+                                        <td>Presupuesto Institucional de Apertura (PIA) 2024</td>
+                                        <td>10/01/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
                                         <td>
-                                            <% if (documento.getFechaPublicacion() != null) { %>
-                                            <%= formatoFecha.format(documento.getFechaPublicacion()) %>
-                                            <% } else { %>
-                                            -
-                                            <% } %>
-                                        </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
-                                        </td>
-                                        <td>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
                                             <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
+                                                    data-bs-target="#verDocumentoModal">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-                                            <% } %>
-                                            <button class="btn btn-sm btn-<%= documento.getEstado().equals("Publicado") ? "success" : "primary" %>"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="<%= documento.getEstado().equals("Publicado") ? "#editarDocumentoModal" : "#publicarDocumentoModal" %>"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-<%= documento.getEstado().equals("Publicado") ? "pencil" : "upload" %>"></i><%= documento.getEstado().equals("Publicado") ? "" : " Publicar" %>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
                                             </button>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
                                             <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
+                                                    data-bs-target="#eliminarDocumentoModal">
                                                 <i class="bi bi-trash"></i>
                                             </button>
-                                            <% } %>
                                         </td>
                                     </tr>
-                                    <%
-                                        }
-                                    } else {
-                                    %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td>Información Presupuestal</td>
+                                        <td>Presupuesto Institucional Modificado (PIM) - I Trimestre 2024</td>
+                                        <td>10/04/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#verDocumentoModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarDocumentoModal">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
-                                    <% } %>
+                                    <tr>
+                                        <td>Ejecución de Gastos</td>
+                                        <td>Ejecución del Presupuesto de Gastos - I Trimestre 2024</td>
+                                        <td>15/04/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#verDocumentoModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarDocumentoModal">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <td>Ejecución de Ingresos</td>
+                                        <td>Ejecución del Presupuesto de Ingresos - I Trimestre 2024</td>
+                                        <td>-</td>
+                                        <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-upload"></i> Publicar
+                                            </button>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -567,61 +609,66 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <%
-                                        List<DocumentoTransparenciaEntidad> documentosContrataciones = documentosPorCategoria.get("contrataciones");
-                                        if (documentosContrataciones != null && !documentosContrataciones.isEmpty()) {
-                                            for (DocumentoTransparenciaEntidad documento : documentosContrataciones) {
-                                    %>
-                                    <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
-                                        <td><%= documento.getTitulo() %>
-                                        </td>
-                                        <td><%= documento.getDescripcion() %>
-                                        </td>
+                                    <tr>
+                                        <td>Procesos de Selección</td>
+                                        <td>Procesos de Selección de Bienes y Servicios - I Trimestre 2024</td>
+                                        <td>15/04/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
                                         <td>
-                                            <% if (documento.getFechaPublicacion() != null) { %>
-                                            <%= formatoFecha.format(documento.getFechaPublicacion()) %>
-                                            <% } else { %>
-                                            -
-                                            <% } %>
-                                        </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
-                                        </td>
-                                        <td>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
                                             <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
+                                                    data-bs-target="#verDocumentoModal">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-                                            <% } %>
-                                            <button class="btn btn-sm btn-<%= documento.getEstado().equals("Publicado") ? "success" : "primary" %>"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="<%= documento.getEstado().equals("Publicado") ? "#editarDocumentoModal" : "#publicarDocumentoModal" %>"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-<%= documento.getEstado().equals("Publicado") ? "pencil" : "upload" %>"></i><%= documento.getEstado().equals("Publicado") ? "" : " Publicar" %>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
                                             </button>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
                                             <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
+                                                    data-bs-target="#eliminarDocumentoModal">
                                                 <i class="bi bi-trash"></i>
                                             </button>
-                                            <% } %>
                                         </td>
                                     </tr>
-                                    <%
-                                        }
-                                    } else {
-                                    %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td>Ordenes de Compra</td>
+                                        <td>Órdenes de Compra y Servicio - I Trimestre 2024</td>
+                                        <td>20/04/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#verDocumentoModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarDocumentoModal">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
-                                    <% } %>
+                                    <tr>
+                                        <td>Penalidades Aplicadas</td>
+                                        <td>Registro de penalidades aplicadas a proveedores - I Trimestre 2024</td>
+                                        <td>25/04/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#verDocumentoModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarDocumentoModal">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -653,61 +700,58 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <%
-                                        List<DocumentoTransparenciaEntidad> documentosPersonal = documentosPorCategoria.get("personal");
-                                        if (documentosPersonal != null && !documentosPersonal.isEmpty()) {
-                                            for (DocumentoTransparenciaEntidad documento : documentosPersonal) {
-                                    %>
-                                    <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
-                                        <td><%= documento.getTitulo() %>
-                                        </td>
-                                        <td><%= documento.getDescripcion() %>
-                                        </td>
+                                    <tr>
+                                        <td>Remuneraciones</td>
+                                        <td>Remuneraciones, bonificaciones y beneficios del personal</td>
+                                        <td>15/03/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
                                         <td>
-                                            <% if (documento.getFechaPublicacion() != null) { %>
-                                            <%= formatoFecha.format(documento.getFechaPublicacion()) %>
-                                            <% } else { %>
-                                            -
-                                            <% } %>
-                                        </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
-                                        </td>
-                                        <td>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
                                             <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
+                                                    data-bs-target="#verDocumentoModal">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-                                            <% } %>
-                                            <button class="btn btn-sm btn-<%= documento.getEstado().equals("Publicado") ? "success" : "primary" %>"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="<%= documento.getEstado().equals("Publicado") ? "#editarDocumentoModal" : "#publicarDocumentoModal" %>"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-<%= documento.getEstado().equals("Publicado") ? "pencil" : "upload" %>"></i><%= documento.getEstado().equals("Publicado") ? "" : " Publicar" %>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
                                             </button>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
                                             <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
+                                                    data-bs-target="#eliminarDocumentoModal">
                                                 <i class="bi bi-trash"></i>
                                             </button>
-                                            <% } %>
                                         </td>
                                     </tr>
-                                    <%
-                                        }
-                                    } else {
-                                    %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td>Personal por modalidad</td>
+                                        <td>Relación de personal contratado (CAS, Locación, etc.)</td>
+                                        <td>20/03/2024</td>
+                                        <td><span class="badge bg-success">Publicado</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#verDocumentoModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#editarDocumentoModal">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarDocumentoModal">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
-                                    <% } %>
+                                    <tr class="table-warning">
+                                        <td>Personal para I Trimestre 2024</td>
+                                        <td>Actualización trimestral de datos de personal</td>
+                                        <td>-</td>
+                                        <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#publicarDocumentoModal">
+                                                <i class="bi bi-upload"></i> Publicar
+                                            </button>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -804,27 +848,44 @@
                             <h5 class="modal-title" id="verDocumentoModalLabel">Detalles del Documento</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body" id="verDocumentoModalBody">
-                            <!-- Contenido de carga por defecto -->
-                            <div class="text-center" id="loadingDocumento">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Cargando...</span>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <h5>Marco Legal</h5>
+                                    <p class="text-muted">Normas de creación, organización y funcionamiento</p>
+                                    <div class="mb-2">
+                                        <strong>Categoría:</strong> Datos Generales
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Fecha de publicación:</strong> 15/01/2024
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Última actualización:</strong> 15/01/2024
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Publicado por:</strong> José García Morales
+                                    </div>
                                 </div>
-                                <p class="mt-2">Cargando detalles del documento...</p>
+                                <div class="col-md-4 text-end">
+                                    <span class="badge bg-success mb-2">Publicado</span>
+                                    <div class="btn-group-vertical w-100">
+                                        <a href="#" class="btn btn-outline-primary mb-2">
+                                            <i class="bi bi-download me-1"></i> Descargar Documento
+                                        </a>
+                                        <button class="btn btn-outline-secondary" data-bs-toggle="modal"
+                                                data-bs-target="#editarDocumentoModal" data-dismiss="modal">
+                                            <i class="bi bi-pencil me-1"></i> Editar Documento
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Detalles del documento (se mostrará mediante JavaScript) -->
-                            <div id="detallesDocumento" class="d-none">
-                                <div class="row mb-3">
-                                    <div class="col-md-8" id="infoDocumento">
-                                        <!-- Aquí se cargarán los detalles del documento -->
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="document-preview">
-                                    <div class="ratio ratio-16x9">
-                                        <iframe id="visorDocumento" src="" frameborder="0"></iframe>
-                                    </div>
+                            <hr>
+
+                            <div class="document-preview">
+                                <div class="ratio ratio-16x9">
+                                    <iframe src="https://docs.google.com/viewer?url=https://example.com/sample.pdf&embedded=true"
+                                            frameborder="0"></iframe>
                                 </div>
                             </div>
                         </div>
@@ -847,7 +908,7 @@
                         <form id="formEditarDocumento" action="<%= request.getContextPath() %>/funcionario.do"
                               method="post" enctype="multipart/form-data">
                             <input type="hidden" name="accion" value="editarDocumento">
-                            <input type="hidden" name="documentoId" id="editDocumentoId" value="">
+                            <input type="hidden" name="documentoId" value="1">
                             <div class="modal-body">
                                 <div class="mb-3">
                                     <label for="editCategoriaDocumento" class="form-label">Categoría</label>
@@ -865,13 +926,13 @@
                                 <div class="mb-3">
                                     <label for="editTituloDocumento" class="form-label">Título del Documento</label>
                                     <input type="text" class="form-control" id="editTituloDocumento"
-                                           name="tituloDocumento" value="" required>
+                                           name="tituloDocumento" value="Marco Legal" required>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="editDescripcionDocumento" class="form-label">Descripción</label>
                                     <textarea class="form-control" id="editDescripcionDocumento"
-                                              name="descripcionDocumento" rows="3" required></textarea>
+                                              name="descripcionDocumento" rows="3" required>Normas de creación, organización y funcionamiento</textarea>
                                 </div>
 
                                 <div class="mb-3">
@@ -923,23 +984,16 @@
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                 <strong>¡Atención!</strong> Esta acción no se puede deshacer.
                             </div>
-                            <p>¿Está seguro que desea eliminar el documento <strong
-                                    id="nombreDocumentoEliminar"></strong>?</p>
+                            <p>¿Está seguro que desea eliminar el documento <strong>"Marco Legal"</strong>?</p>
                             <p>Este documento será eliminado del portal de transparencia y ya no estará disponible para
                                 los ciudadanos.</p>
                         </div>
-                        <form id="formEliminarDocumento" action="<%= request.getContextPath() %>/funcionario.do"
-                              method="post">
-                            <input type="hidden" name="accion" value="eliminarDocumento">
-                            <input type="hidden" name="id" id="documentoIdEliminar" value="0">
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar
-                                </button>
-                                <button type="submit" class="btn btn-danger" id="confirmarEliminacion">
-                                    <i class="bi bi-trash me-1"></i> Eliminar Documento
-                                </button>
-                            </div>
-                        </form>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-danger" id="confirmarEliminacion">
+                                <i class="bi bi-trash me-1"></i> Eliminar Documento
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -990,122 +1044,20 @@
 <script>
     $(document).ready(function () {
         // Manejar la eliminación de documentos
-        $('#eliminarDocumentoModal').on('show.bs.modal', function (e) {
+        $('#confirmarEliminacion').click(function () {
             // Aquí iría la lógica para eliminar el documento
-            const button = $(e.relatedTarget);
-            const id = button.data('id') || 0;
-            const titulo = button.data('titulo');
+            // Por ahora, simplemente cerramos el modal y mostramos un mensaje
+            $('#eliminarDocumentoModal').modal('hide');
 
-            if (id && id > 0) {
-                $('#documentoIdEliminar').val(id);
-                $('#nombreDocumentoEliminar').text('"' + (titulo || 'documento seleccionado') + '"');
-            } else {
-                $('#documentoIdEliminar').val(0);
-                $('#nombreDocumentoEliminar').text('documento');
-            }
-        });
+            const alerta = `<div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> El documento ha sido eliminado correctamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
 
-        // Manejar el modal de visualización de documento
-        $('#verDocumentoModal').on('show.bs.modal', function (e) {
-            const button = $(e.relatedTarget);
-            const documentoId = button.data('id') || 0;
+            $('main').prepend(alerta);
 
-            // Mostrar spinner de carga y ocultar detalles
-            $('#loadingDocumento').removeClass('d-none');
-            $('#detallesDocumento').addClass('d-none');
-
-            if (documentoId && documentoId > 0) {
-                // En un caso real, aquí se haría una petición AJAX para obtener los detalles del documento
-                // del servidor usando el ID
-
-                // Simulamos una demora de carga real (500ms)
-                setTimeout(function () {
-                    // Obtener información del documento de la fila seleccionada
-                    const titulo = button.closest('tr').find('td:nth-child(1)').text().trim();
-                    const descripcion = button.closest('tr').find('td:nth-child(2)').text().trim();
-                    const fechaPublicacion = button.closest('tr').find('td:nth-child(3)').text().trim();
-                    const estado = button.closest('tr').find('td:nth-child(4)').text().trim();
-                    const categoria = $('#' + button.closest('.tab-pane').attr('id') + '-tab').text().trim();
-
-                    // Llenar la información en el modal
-                    let html = `
-                        <h5>${titulo}</h5>
-                        <p class="text-muted mb-3">${descripcion}</p>
-                        <div class="mb-2">
-                            <strong>ID del documento:</strong> ${documentoId}
-                        </div>
-                        <div class="mb-2">
-                            <strong>Categoría:</strong> ${categoria}
-                        </div>
-                        <div class="mb-2">
-                            <strong>Fecha de publicación:</strong> ${fechaPublicacion}
-                        </div>
-                        <div class="mb-2">
-                            <strong>Estado:</strong> ${estado}
-                        </div>
-                    `;
-
-                    $('#infoDocumento').html(html);
-                    $('#visorDocumento').attr('src', 'https://docs.google.com/viewer?embedded=true');
-
-                    // Ocultar spinner y mostrar detalles
-                    $('#loadingDocumento').addClass('d-none');
-                    $('#detallesDocumento').removeClass('d-none');
-                }, 500);
-            }
-        });
-
-        // Manejar el modal de edición
-        $('#editarDocumentoModal').on('show.bs.modal', function (e) {
-            const button = $(e.relatedTarget);
-            const id = button.data('id') || '';
-
-            if (id) {
-                // Establecer el ID del documento a editar
-                $('#editDocumentoId').val(id);
-
-                // Debería hacerse una petición AJAX para obtener todos los datos del documento
-                // Por ahora, obtenemos los datos visibles en la tabla
-                const fila = button.closest('tr');
-                const titulo = fila.find('td:nth-child(1)').text().trim();
-                const descripcion = fila.find('td:nth-child(2)').text().trim();
-                let fechaPublicacion = fila.find('td:nth-child(3)').text().trim();
-
-                // Convertir fecha del formato dd/mm/yyyy a yyyy-mm-dd para el input date
-                if (fechaPublicacion && fechaPublicacion !== 'No disponible' && fechaPublicacion !== '-') {
-                    const partes = fechaPublicacion.split('/');
-                    if (partes.length === 3) {
-                        fechaPublicacion = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                    } else {
-                        // Si la fecha no tiene el formato esperado, usamos la fecha actual
-                        const hoy = new Date();
-                        fechaPublicacion = hoy.toISOString().split('T')[0];
-                    }
-                } else {
-                    // Si no hay fecha, usar la fecha actual
-                    const hoy = new Date();
-                    fechaPublicacion = hoy.toISOString().split('T')[0];
-                }
-
-                $('#editTituloDocumento').val(titulo);
-                $('#editDescripcionDocumento').val(descripcion);
-                $('#editFechaPublicacion').val(fechaPublicacion);
-                $('#editPeriodoReferencia').val(''); // Dejamos en blanco si no tenemos el dato
-            }
-        });
-
-        // Manejar el formulario de eliminación
-        $('#formEliminarDocumento').on('submit', function (e) {
-            // Validar que haya un ID de documento antes de enviar
-            const idDocumento = $('#documentoIdEliminar').val();
-
-            if (!idDocumento || idDocumento === '0' || idDocumento === 0) {
-                e.preventDefault();
-                alert('Error: No se ha seleccionado ningún documento para eliminar');
-            } else if (isNaN(parseInt(idDocumento))) {
-                e.preventDefault();
-                alert('Error: No se ha seleccionado ningún documento para eliminar');
-            }
+            // Eliminar la fila correspondiente en la tabla (en un caso real esto se haría después de confirmar la eliminación desde el servidor)
+            // $("tr").has("button[data-id='1']").remove();
         });
 
         // Configurar datos dinámicos al abrir los modales

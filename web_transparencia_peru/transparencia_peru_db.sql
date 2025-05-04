@@ -574,6 +574,75 @@ VALUES ('Presupuesto Nacional 2023', 'presupuesto', 2023, '2023-01-15', 'Naciona
         'Estadísticas de solicitudes de acceso a información del año 2023', 'Activo', '',
         '{"labels":["Atendidas","En Proceso","Pendientes"], "datos":[68,22,10]}');
 
+-- Crear la tabla DocumentoTransparencia
+CREATE TABLE DocumentoTransparencia
+(
+    id                 INT AUTO_INCREMENT PRIMARY KEY,
+    titulo             VARCHAR(255) NOT NULL,
+    descripcion        TEXT,
+    categoria          VARCHAR(100) NOT NULL,
+    periodoReferencia  VARCHAR(100),
+    fechaPublicacion   DATE         NOT NULL,
+    fechaActualizacion TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    rutaArchivo        VARCHAR(255),
+    tipoArchivo        VARCHAR(50),
+    estado             VARCHAR(50)  NOT NULL DEFAULT 'Publicado',
+    usuarioId          INT,
+    entidadPublicaId   INT,
+    FOREIGN KEY (usuarioId) REFERENCES usuario (id_usuario),
+    FOREIGN KEY (entidadPublicaId) REFERENCES EntidadPublica (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Insertar algunos documentos de ejemplo para probar
+INSERT INTO DocumentoTransparencia (titulo, descripcion, categoria, periodoReferencia, fechaPublicacion, rutaArchivo,
+                                    tipoArchivo, estado, usuarioId, entidadPublicaId)
+VALUES ('Marco Legal', 'Normas de creación, organización y funcionamiento', 'datos-generales', '2024', '2024-01-15',
+        'uploads/documentos/marco_legal.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('Directorio de funcionarios públicos', 'Información detallada de los funcionarios', 'datos-generales', '2024',
+        '2024-02-05', 'uploads/documentos/directorio_funcionarios.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('Declaraciones Juradas', 'Declaraciones juradas de ingresos y de bienes y rentas', 'datos-generales', '2024',
+        '2024-03-10', 'uploads/documentos/declaraciones_juradas.pdf', 'application/pdf', 'Pendiente de actualización',
+        1, 1),
+       ('Información Adicional', 'Comunicados, avisos y otra información relevante', 'datos-generales', '2024',
+        '2024-04-28', 'uploads/documentos/info_adicional.pdf', 'application/pdf', 'Publicado', 1, 1),
+
+       ('Instrumentos de Gestión', 'ROF, MOF, CAP, MAPRO, Indicadores de Desempeño', 'planeamiento', '2024',
+        '2024-01-15', 'uploads/documentos/instrumentos_gestion.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('Plan Estratégico Institucional', 'Plan Estratégico Institucional 2023-2026', 'planeamiento', '2023-2026',
+        '2024-01-20', 'uploads/documentos/pei_2023_2026.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('Plan Operativo Institucional', 'Plan Operativo Institucional 2024', 'planeamiento', '2024', '2024-02-05',
+        'uploads/documentos/poi_2024.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('Organigrama', 'Estructura organizacional de la entidad', 'planeamiento', '2024', '2024-02-10',
+        'uploads/documentos/organigrama.pdf', 'application/pdf', 'Publicado', 1, 1),
+
+       ('Presupuesto Institucional de Apertura', 'Presupuesto Institucional de Apertura (PIA) 2024', 'presupuesto',
+        '2024', '2024-01-10', 'uploads/documentos/pia_2024.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('Presupuesto Institucional Modificado', 'Presupuesto Institucional Modificado (PIM) - I Trimestre 2024',
+        'presupuesto', 'I Trimestre 2024', '2024-04-10', 'uploads/documentos/pim_q1_2024.pdf', 'application/pdf',
+        'Publicado', 1, 1),
+       ('Ejecución de Gastos', 'Ejecución del Presupuesto de Gastos - I Trimestre 2024', 'presupuesto',
+        'I Trimestre 2024', '2024-04-15', 'uploads/documentos/ejecucion_gastos_q1_2024.pdf', 'application/pdf',
+        'Publicado', 1, 1),
+
+       ('Proyectos de Inversión', 'Listado de Proyectos de Inversión Pública 2024', 'proyectos', '2024', '2024-01-20',
+        'uploads/documentos/proyectos_inversion_2024.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('INFOBRAS', 'Estado de las Obras Públicas en Ejecución', 'proyectos', 'I Trimestre 2024', '2024-04-15',
+        'uploads/documentos/infobras_q1_2024.pdf', 'application/pdf', 'Publicado', 1, 1),
+
+       ('Procesos de Selección', 'Procesos de Selección de Bienes y Servicios - I Trimestre 2024', 'contrataciones',
+        'I Trimestre 2024', '2024-04-15', 'uploads/documentos/procesos_seleccion_q1_2024.pdf', 'application/pdf',
+        'Publicado', 1, 1),
+       ('Órdenes de Compra', 'Órdenes de Compra y Servicio - I Trimestre 2024', 'contrataciones', 'I Trimestre 2024',
+        '2024-04-20', 'uploads/documentos/ordenes_compra_q1_2024.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('Penalidades Aplicadas', 'Registro de penalidades aplicadas a proveedores - I Trimestre 2024', 'contrataciones',
+        'I Trimestre 2024', '2024-04-25', 'uploads/documentos/penalidades_q1_2024.pdf', 'application/pdf', 'Publicado',
+        1, 1),
+
+       ('Remuneraciones', 'Remuneraciones, bonificaciones y beneficios del personal', 'personal', '2024', '2024-03-15',
+        'uploads/documentos/remuneraciones_2024.pdf', 'application/pdf', 'Publicado', 1, 1),
+       ('Personal por modalidad', 'Relación de personal contratado (CAS, Locación, etc.)', 'personal', '2024',
+        '2024-03-20', 'uploads/documentos/personal_modalidad_2024.pdf', 'application/pdf', 'Publicado', 1, 1);
+
 -- =========================================
 -- PROCEDIMIENTOS ALMACENADOS (Gestión de Usuarios)
 -- =========================================
@@ -588,8 +657,8 @@ CREATE PROCEDURE sp_registrar_persona(
     IN p_fech_nac DATE
 )
 BEGIN
-    INSERT INTO persona (nombre_completo, correo, dni, genero, fech_nac)
-    VALUES (p_nombre_completo, p_correo, p_dni, p_genero, p_fech_nac);
+INSERT INTO persona (nombre_completo, correo, dni, genero, fech_nac)
+VALUES (p_nombre_completo, p_correo, p_dni, p_genero, p_fech_nac);
 END $$
 DELIMITER ;
 
@@ -602,8 +671,8 @@ CREATE PROCEDURE sp_registrar_usuario(
     IN p_clave VARCHAR (255)
 )
 BEGIN
-    INSERT INTO usuario (cod_usuario, id_persona, id_rol, clave)
-    VALUES (p_cod_usuario, p_id_persona, p_id_rol, p_clave);
+INSERT INTO usuario (cod_usuario, id_persona, id_rol, clave)
+VALUES (p_cod_usuario, p_id_persona, p_id_rol, p_clave);
 END $$
 DELIMITER ;
 
@@ -614,16 +683,16 @@ CREATE PROCEDURE sp_autenticar_usuario(
     IN p_clave VARCHAR (255)
 )
 BEGIN
-    SELECT u.id_usuario,
-           u.cod_usuario,
-           p.nombre_completo,
-           r.cod_rol,
-           r.descrip_rol
-    FROM usuario u
-             INNER JOIN persona p ON u.id_persona = p.id_persona
-             INNER JOIN rol r ON u.id_rol = r.id_rol
-    WHERE u.cod_usuario = p_cod_usuario
-      AND u.clave = p_clave;
+SELECT u.id_usuario,
+       u.cod_usuario,
+       p.nombre_completo,
+       r.cod_rol,
+       r.descrip_rol
+FROM usuario u
+         INNER JOIN persona p ON u.id_persona = p.id_persona
+         INNER JOIN rol r ON u.id_rol = r.id_rol
+WHERE u.cod_usuario = p_cod_usuario
+  AND u.clave = p_clave;
 END $$
 DELIMITER ;
 
@@ -634,9 +703,9 @@ CREATE PROCEDURE sp_autenticar_ciudadano(
     IN p_password VARCHAR(255)
 )
 BEGIN
-    SELECT id, nombres, apellidos, dni, correo, telefono, direccion, fechaRegistro
-    FROM Ciudadano
-    WHERE correo = p_correo AND password = p_password;
+SELECT id, nombres, apellidos, dni, correo, telefono, direccion, fechaRegistro
+FROM Ciudadano
+WHERE correo = p_correo AND password = p_password;
 END $$
 DELIMITER ;
 
@@ -652,8 +721,8 @@ CREATE PROCEDURE sp_registrar_ciudadano(
     IN p_password VARCHAR(255)
 )
 BEGIN
-    INSERT INTO Ciudadano (nombres, apellidos, dni, correo, telefono, direccion, fechaRegistro, password)
-    VALUES (p_nombres, p_apellidos, p_dni, p_correo, p_telefono, p_direccion, CURDATE(), p_password);
+INSERT INTO Ciudadano (nombres, apellidos, dni, correo, telefono, direccion, fechaRegistro, password)
+VALUES (p_nombres, p_apellidos, p_dni, p_correo, p_telefono, p_direccion, CURDATE(), p_password);
 END $$
 DELIMITER ;
 
@@ -661,16 +730,16 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE sp_listar_usuarios()
 BEGIN
-    SELECT u.id_usuario,
-           u.cod_usuario,
-           p.nombre_completo,
-           p.correo,
-           p.dni,
-           r.descrip_rol
-    FROM usuario u
-             INNER JOIN persona p ON u.id_persona = p.id_persona
-             INNER JOIN rol r ON u.id_rol = r.id_rol
-    ORDER BY u.id_usuario;
+SELECT u.id_usuario,
+       u.cod_usuario,
+       p.nombre_completo,
+       p.correo,
+       p.dni,
+       r.descrip_rol
+FROM usuario u
+         INNER JOIN persona p ON u.id_persona = p.id_persona
+         INNER JOIN rol r ON u.id_rol = r.id_rol
+ORDER BY u.id_usuario;
 END $$
 DELIMITER ;
 
@@ -680,12 +749,12 @@ CREATE PROCEDURE sp_listar_entidades_por_nivel(
     IN p_nivel_id INT
 )
 BEGIN
-    SELECT e.id, e.nombre, e.tipo, n.nombre as nivel, r.nombre as region, e.direccion, e.telefono, e.email, e.sitioWeb
-    FROM EntidadPublica e
-             INNER JOIN NivelGobierno n ON e.nivelGobiernoId = n.id
-             LEFT JOIN Region r ON e.regionId = r.id
-    WHERE e.nivelGobiernoId = p_nivel_id
-    ORDER BY e.nombre;
+SELECT e.id, e.nombre, e.tipo, n.nombre as nivel, r.nombre as region, e.direccion, e.telefono, e.email, e.sitioWeb
+FROM EntidadPublica e
+         INNER JOIN NivelGobierno n ON e.nivelGobiernoId = n.id
+         LEFT JOIN Region r ON e.regionId = r.id
+WHERE e.nivelGobiernoId = p_nivel_id
+ORDER BY e.nombre;
 END $$
 DELIMITER ;
 
@@ -693,9 +762,9 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE sp_listar_niveles_gobierno()
 BEGIN
-    SELECT id, nombre, descripcion
-    FROM NivelGobierno
-    ORDER BY id;
+SELECT id, nombre, descripcion
+FROM NivelGobierno
+ORDER BY id;
 END $$
 DELIMITER ;
 
@@ -705,13 +774,13 @@ CREATE PROCEDURE sp_estadisticas_por_nivel(
     IN p_anio INT
 )
 BEGIN
-    SELECT ng.nombre as nivel, SUM(p.montoTotal) as presupuesto_total, COUNT(p.id) as cantidad_entidades
-    FROM Presupuesto p
-             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
-             INNER JOIN NivelGobierno ng ON e.nivelGobiernoId = ng.id
-    WHERE p.anio = p_anio
-    GROUP BY ng.nombre
-    ORDER BY presupuesto_total DESC;
+SELECT ng.nombre as nivel, SUM(p.montoTotal) as presupuesto_total, COUNT(p.id) as cantidad_entidades
+FROM Presupuesto p
+         INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+         INNER JOIN NivelGobierno ng ON e.nivelGobiernoId = ng.id
+WHERE p.anio = p_anio
+GROUP BY ng.nombre
+ORDER BY presupuesto_total DESC;
 END $$
 DELIMITER ;
 
@@ -722,12 +791,12 @@ CREATE PROCEDURE sp_presupuesto_por_nivel_y_anio(
     IN p_nivel_id INT
 )
 BEGIN
-    SELECT p.anio, SUM(p.montoTotal) as presupuesto_total
-    FROM Presupuesto p
-             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
-    WHERE e.nivelGobiernoId = p_nivel_id
-    GROUP BY p.anio
-    ORDER BY p.anio;
+SELECT p.anio, SUM(p.montoTotal) as presupuesto_total
+FROM Presupuesto p
+         INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+WHERE e.nivelGobiernoId = p_nivel_id
+GROUP BY p.anio
+ORDER BY p.anio;
 END $$
 DELIMITER ;
 
@@ -738,12 +807,12 @@ CREATE PROCEDURE sp_gasto_por_nivel(
     IN p_nivel_id INT
 )
 BEGIN
-    SELECT g.concepto, g.monto, g.fecha, tg.nombre as tipo_gasto
-    FROM Gasto g
-             INNER JOIN EntidadPublica e ON g.presupuestoId = e.id
-             INNER JOIN TipoGasto tg ON g.tipoGastoId = tg.id
-    WHERE e.nivelGobiernoId = p_nivel_id
-    ORDER BY g.fecha DESC;
+SELECT g.concepto, g.monto, g.fecha, tg.nombre as tipo_gasto
+FROM Gasto g
+         INNER JOIN EntidadPublica e ON g.presupuestoId = e.id
+         INNER JOIN TipoGasto tg ON g.tipoGastoId = tg.id
+WHERE e.nivelGobiernoId = p_nivel_id
+ORDER BY g.fecha DESC;
 END $$
 DELIMITER ;
 
@@ -754,17 +823,17 @@ CREATE PROCEDURE sp_distribucion_presupuesto_ministerios(
     IN p_anio INT
 )
 BEGIN
-    SELECT e.id,
-           e.nombre,
-           SUM(p.montoTotal)                                                                         as montoTotal,
-           (SUM(p.montoTotal) / (SELECT SUM(montoTotal) FROM Presupuesto WHERE anio = p_anio)) * 100 as porcentaje
-    FROM Presupuesto p
-             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
-    WHERE e.nivelGobiernoId = 1 -- Nacional
-      AND e.tipo = 'Ministerio'
-      AND p.anio = p_anio
-    GROUP BY e.id, e.nombre
-    ORDER BY montoTotal DESC;
+SELECT e.id,
+       e.nombre,
+       SUM(p.montoTotal)                                                                         as montoTotal,
+       (SUM(p.montoTotal) / (SELECT SUM(montoTotal) FROM Presupuesto WHERE anio = p_anio)) * 100 as porcentaje
+FROM Presupuesto p
+         INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+WHERE e.nivelGobiernoId = 1 -- Nacional
+  AND e.tipo = 'Ministerio'
+  AND p.anio = p_anio
+GROUP BY e.id, e.nombre
+ORDER BY montoTotal DESC;
 END $$
 DELIMITER ;
 
@@ -775,21 +844,21 @@ CREATE PROCEDURE sp_proyectos_por_nivel(
     IN p_nivel_id INT
 )
 BEGIN
-    SELECT p.id,
-           p.nombre,
-           p.descripcion,
-           p.estado,
-           e.nombre     as entidad_nombre,
-           p.fechaInicio,
-           p.fechaFin,
-           SUM(g.monto) as presupuesto_ejecutado
-    FROM Proyecto p
-             INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id
-             INNER JOIN EntidadPublica e ON pr.entidadPublicaId = e.id
-             LEFT JOIN Gasto g ON g.proyectoId = p.id
-    WHERE e.nivelGobiernoId = p_nivel_id
-    GROUP BY p.id, p.nombre, p.descripcion, p.estado, e.nombre, p.fechaInicio, p.fechaFin
-    ORDER BY presupuesto_ejecutado DESC LIMIT 10;
+SELECT p.id,
+       p.nombre,
+       p.descripcion,
+       p.estado,
+       e.nombre     as entidad_nombre,
+       p.fechaInicio,
+       p.fechaFin,
+       SUM(g.monto) as presupuesto_ejecutado
+FROM Proyecto p
+         INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id
+         INNER JOIN EntidadPublica e ON pr.entidadPublicaId = e.id
+         LEFT JOIN Gasto g ON g.proyectoId = p.id
+WHERE e.nivelGobiernoId = p_nivel_id
+GROUP BY p.id, p.nombre, p.descripcion, p.estado, e.nombre, p.fechaInicio, p.fechaFin
+ORDER BY presupuesto_ejecutado DESC LIMIT 10;
 END $$
 DELIMITER ;
 
@@ -801,15 +870,15 @@ CREATE PROCEDURE sp_ejecucion_mensual_por_nivel(
     IN p_anio INT
 )
 BEGIN
-    SELECT MONTH (g.fecha) as mes, SUM (g.monto) as monto_ejecutado
-    FROM Gasto g
-             INNER JOIN Presupuesto p
-                        ON g.presupuestoId = p.id
-             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
-    WHERE e.nivelGobiernoId = p_nivel_id
-      AND YEAR (g.fecha) = p_anio
-    GROUP BY MONTH (g.fecha)
-    ORDER BY mes;
+SELECT MONTH (g.fecha) as mes, SUM (g.monto) as monto_ejecutado
+FROM Gasto g
+    INNER JOIN Presupuesto p
+ON g.presupuestoId = p.id
+    INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+WHERE e.nivelGobiernoId = p_nivel_id
+  AND YEAR (g.fecha) = p_anio
+GROUP BY MONTH (g.fecha)
+ORDER BY mes;
 END $$
 DELIMITER ;
 
@@ -821,14 +890,14 @@ CREATE PROCEDURE sp_porcentaje_ejecucion(
     IN p_anio INT
 )
 BEGIN
-    SELECT SUM(p.montoTotal)                        as presupuesto_total,
-           SUM(g.monto)                             as ejecutado_total,
-           (SUM(g.monto) / SUM(p.montoTotal)) * 100 as porcentaje_ejecucion
-    FROM Presupuesto p
-             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
-             LEFT JOIN Gasto g ON g.presupuestoId = p.id
-    WHERE e.nivelGobiernoId = p_nivel_id
-      AND p.anio = p_anio;
+SELECT SUM(p.montoTotal)                        as presupuesto_total,
+       SUM(g.monto)                             as ejecutado_total,
+       (SUM(g.monto) / SUM(p.montoTotal)) * 100 as porcentaje_ejecucion
+FROM Presupuesto p
+         INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+         LEFT JOIN Gasto g ON g.presupuestoId = p.id
+WHERE e.nivelGobiernoId = p_nivel_id
+  AND p.anio = p_anio;
 END $$
 DELIMITER ;
 
@@ -840,23 +909,23 @@ CREATE PROCEDURE sp_gasto_por_categoria(
     IN p_anio INT
 )
 BEGIN
-    SELECT tg.id,
-           tg.nombre,
-           SUM(g.monto)                                    as monto_total,
-           (SUM(g.monto) / (SELECT SUM(g2.monto)
-                            FROM Gasto g2
-                                     INNER JOIN Presupuesto p2 ON g2.presupuestoId = p2.id
-                                     INNER JOIN EntidadPublica e2 ON p2.entidadPublicaId = e2.id
-                            WHERE e2.nivelGobiernoId = p_nivel_id
-                              AND p2.anio = p_anio)) * 100 as porcentaje
-    FROM Gasto g
-             INNER JOIN TipoGasto tg ON g.tipoGastoId = tg.id
-             INNER JOIN Presupuesto p ON g.presupuestoId = p.id
-             INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
-    WHERE e.nivelGobiernoId = p_nivel_id
-      AND p.anio = p_anio
-    GROUP BY tg.id, tg.nombre
-    ORDER BY monto_total DESC;
+SELECT tg.id,
+       tg.nombre,
+       SUM(g.monto)                                    as monto_total,
+       (SUM(g.monto) / (SELECT SUM(g2.monto)
+                        FROM Gasto g2
+                                 INNER JOIN Presupuesto p2 ON g2.presupuestoId = p2.id
+                                 INNER JOIN EntidadPublica e2 ON p2.entidadPublicaId = e2.id
+                        WHERE e2.nivelGobiernoId = p_nivel_id
+                          AND p2.anio = p_anio)) * 100 as porcentaje
+FROM Gasto g
+         INNER JOIN TipoGasto tg ON g.tipoGastoId = tg.id
+         INNER JOIN Presupuesto p ON g.presupuestoId = p.id
+         INNER JOIN EntidadPublica e ON p.entidadPublicaId = e.id
+WHERE e.nivelGobiernoId = p_nivel_id
+  AND p.anio = p_anio
+GROUP BY tg.id, tg.nombre
+ORDER BY monto_total DESC;
 END $$
 DELIMITER ;
 
@@ -865,20 +934,20 @@ DELIMITER
 $$
 CREATE PROCEDURE sp_proyectos_destacados()
 BEGIN
-    SELECT p.id,
-           p.nombre,
-           p.descripcion,
-           p.estado,
-           e.nombre      as entidad_nombre,
-           SUM(g.monto)  as presupuesto_ejecutado,
-           pr.montoTotal as presupuesto_asignado
-    FROM Proyecto p
-             INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id
-             INNER JOIN EntidadPublica e ON pr.entidadPublicaId = e.id
-             LEFT JOIN Gasto g ON g.proyectoId = p.id
-    WHERE p.estado = 'En ejecución'
-    GROUP BY p.id, p.nombre, p.descripcion, p.estado, e.nombre, pr.montoTotal
-    ORDER BY presupuesto_ejecutado DESC LIMIT 5;
+SELECT p.id,
+       p.nombre,
+       p.descripcion,
+       p.estado,
+       e.nombre      as entidad_nombre,
+       SUM(g.monto)  as presupuesto_ejecutado,
+       pr.montoTotal as presupuesto_asignado
+FROM Proyecto p
+         INNER JOIN Presupuesto pr ON p.presupuestoId = pr.id
+         INNER JOIN EntidadPublica e ON pr.entidadPublicaId = e.id
+         LEFT JOIN Gasto g ON g.proyectoId = p.id
+WHERE p.estado = 'En ejecución'
+GROUP BY p.id, p.nombre, p.descripcion, p.estado, e.nombre, pr.montoTotal
+ORDER BY presupuesto_ejecutado DESC LIMIT 5;
 END $$
 DELIMITER ;
 
@@ -895,16 +964,16 @@ CREATE PROCEDURE sp_registrar_presupuesto(
 BEGIN
     -- Buscar el ID del periodo fiscal para el año especificado
     DECLARE
-        v_periodoId INT;
+v_periodoId INT;
 
-    SELECT id
-    INTO v_periodoId
-    FROM PeriodoFiscal
-    WHERE anio = p_anio LIMIT 1;
+SELECT id
+INTO v_periodoId
+FROM PeriodoFiscal
+WHERE anio = p_anio LIMIT 1;
 
 -- Insertar el nuevo presupuesto
-    INSERT INTO Presupuesto (anio, montoTotal, entidadPublicaId, periodoFiscalId, fechaAprobacion, descripcion)
-    VALUES (p_anio, p_montoTotal, p_entidadPublicaId, v_periodoId, p_fechaAprobacion, p_descripcion);
+INSERT INTO Presupuesto (anio, montoTotal, entidadPublicaId, periodoFiscalId, fechaAprobacion, descripcion)
+VALUES (p_anio, p_montoTotal, p_entidadPublicaId, v_periodoId, p_fechaAprobacion, p_descripcion);
 END $$
 DELIMITER ;
 
@@ -922,22 +991,22 @@ CREATE PROCEDURE sp_actualizar_presupuesto(
 BEGIN
     -- Buscar el ID del periodo fiscal para el año especificado
     DECLARE
-        v_periodoId INT;
+v_periodoId INT;
 
-    SELECT id
-    INTO v_periodoId
-    FROM PeriodoFiscal
-    WHERE anio = p_anio LIMIT 1;
+SELECT id
+INTO v_periodoId
+FROM PeriodoFiscal
+WHERE anio = p_anio LIMIT 1;
 
 -- Actualizar el presupuesto existente
-    UPDATE Presupuesto
-    SET anio             = p_anio,
-        montoTotal       = p_montoTotal,
-        entidadPublicaId = p_entidadPublicaId,
-        periodoFiscalId  = v_periodoId,
-        fechaAprobacion  = p_fechaAprobacion,
-        descripcion      = p_descripcion
-    WHERE id = p_id;
+UPDATE Presupuesto
+SET anio             = p_anio,
+    montoTotal       = p_montoTotal,
+    entidadPublicaId = p_entidadPublicaId,
+    periodoFiscalId  = v_periodoId,
+    fechaAprobacion  = p_fechaAprobacion,
+    descripcion      = p_descripcion
+WHERE id = p_id;
 END $$
 DELIMITER ;
 
@@ -947,14 +1016,14 @@ $$
 CREATE PROCEDURE sp_eliminar_presupuesto(IN p_id INT)
 BEGIN
     -- Primero eliminar los gastos asociados al presupuesto
-    DELETE
-    FROM Gasto
-    WHERE presupuestoId = p_id;
+DELETE
+FROM Gasto
+WHERE presupuestoId = p_id;
 
 -- Luego eliminar el presupuesto
-    DELETE
-    FROM Presupuesto
-    WHERE id = p_id;
+DELETE
+FROM Presupuesto
+WHERE id = p_id;
 END $$
 DELIMITER ;
 
