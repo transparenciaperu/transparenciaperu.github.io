@@ -288,6 +288,39 @@
                                 </table>
                             </div>
                         </div>
+
+                        <!-- Sección para debug -->
+                        <div class="modal-footer bg-light border-top border-bottom">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <details>
+                                            <summary class="text-muted small">Información de depuración</summary>
+                                            <div class="mt-2">
+                                                <pre id="debugDocumentoInfo"
+                                                     class="bg-dark text-light p-3 rounded small"
+                                                     style="max-height: 200px; overflow-y: auto;"></pre>
+                                            </div>
+                                        </details>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AJAX Mock Response (para simular respuesta del servidor) -->
+                        <script type="text/template" id="mockDocumentoData">
+                            {
+                            "id": {{id}},
+                            "titulo": "{{titulo}}",
+                            "descripcion": "{{descripcion}}",
+                            "categoria": "{{categoria}}",
+                            "periodoReferencia": "{{periodoReferencia}}",
+                            "fechaPublicacion": "{{fechaPublicacion}}",
+                            "rutaArchivo": "{{rutaArchivo}}",
+                            "tipoArchivo": "{{tipoArchivo}}",
+                            "estado": "{{estado}}"
+                            }
+                        </script>
                     </div>
                 </div>
 
@@ -790,6 +823,10 @@
                                 </button>
                                 <button type="submit" class="btn btn-primary">Publicar Documento</button>
                             </div>
+                            <!-- Campo oculto para la ruta del archivo -->
+                            <input type="hidden" id="editRutaArchivo" name="rutaArchivo" value="">
+                            <!-- Campo oculto para el tipo de archivo -->
+                            <input type="hidden" id="editTipoArchivo" name="tipoArchivo" value="">
                         </form>
                     </div>
                 </div>
@@ -852,7 +889,7 @@
                                 <div class="mb-3">
                                     <label for="editCategoriaDocumento" class="form-label">Categoría</label>
                                     <select class="form-select" id="editCategoriaDocumento" name="categoriaDocumento"
-                                            required>
+                                            required disabled>
                                         <option value="datos-generales" selected>Datos Generales</option>
                                         <option value="planeamiento">Planeamiento y Organización</option>
                                         <option value="presupuesto">Presupuesto</option>
@@ -877,13 +914,13 @@
                                 <div class="mb-3">
                                     <label for="editPeriodoReferencia" class="form-label">Periodo de Referencia</label>
                                     <input type="text" class="form-control" id="editPeriodoReferencia"
-                                           name="periodoReferencia" value="2024">
+                                           name="periodoReferencia" value="">
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="editFechaPublicacion" class="form-label">Fecha de Publicación</label>
                                     <input type="date" class="form-control" id="editFechaPublicacion"
-                                           name="fechaPublicacion" value="2024-01-15" required>
+                                           name="fechaPublicacion" value="" required>
                                 </div>
 
                                 <div class="mb-3">
@@ -1190,6 +1227,146 @@
                 formEditar.classList.add('was-validated');
             }, false);
         }
+    });
+
+    // Manejar la visualización del documento
+    $('#verDocumentoModal').on('show.bs.modal', function (e) {
+        const button = $(e.relatedTarget);
+        const documentoId = button.data('id') || 0;
+
+        // Mostrar spinner de carga y ocultar detalles
+        $('#loadingDocumento').removeClass('d-none');
+        $('#detallesDocumento').addClass('d-none');
+
+        if (documentoId && documentoId > 0) {
+            // Hacer petición AJAX para obtener los detalles del documento
+            $.ajax({
+                url: '<%= request.getContextPath() %>/funcionario.do',
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    accion: 'verDocumento',
+                    id: documentoId,
+                    format: 'json'
+                },
+                success: function (data) {
+                    // Llenar la información en el modal
+                    let html = `
+                        <h5>${data.titulo}</h5>
+                        <p class="text-muted mb-3">${data.descripcion}</p>
+                        <div class="mb-2">
+                            <strong>ID del documento:</strong> ${data.id}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Categoría:</strong> ${data.categoria}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Periodo de Referencia:</strong> ${data.periodoReferencia || 'No especificado'}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Fecha de publicación:</strong> ${data.fechaPublicacion || 'No disponible'}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Estado:</strong> ${data.estado}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Archivo:</strong> <a href="${data.rutaArchivo}" target="_blank">${data.rutaArchivo}</a>
+                        </div>
+                    `;
+
+                    $('#infoDocumento').html(html);
+
+                    // Actualizar el visor de documentos
+                    if (data.tipoArchivo && data.tipoArchivo.includes('pdf')) {
+                        $('#visorDocumento').attr('src', '<%= request.getContextPath() %>/' + data.rutaArchivo);
+                    } else {
+                        $('#visorDocumento').attr('src', 'https://docs.google.com/viewer?embedded=true&url=' +
+                            encodeURIComponent(window.location.origin + '<%= request.getContextPath() %>/' + data.rutaArchivo));
+                    }
+
+                    // Ocultar spinner y mostrar detalles
+                    $('#loadingDocumento').addClass('d-none');
+                    $('#detallesDocumento').removeClass('d-none');
+
+                    // También actualizar el área de depuración
+                    $('#debugDocumentoInfo').text(JSON.stringify(data, null, 2));
+                },
+                error: function () {
+                    // Mostrar mensaje de error
+                    $('#infoDocumento').html('<div class="alert alert-danger">Error al cargar los detalles del documento.</div>');
+                    $('#loadingDocumento').addClass('d-none');
+                    $('#detallesDocumento').removeClass('d-none');
+                }
+            });
+        }
+    });
+
+    // Manejar el modal de edición
+    $('#editarDocumentoModal').on('show.bs.modal', function (e) {
+        const button = $(e.relatedTarget);
+        const id = button.data('id') || 0;
+
+        if (id && id > 0) {
+            // Establecer el ID del documento a editar
+            $('#editDocumentoId').val(id);
+
+            // Hacer petición AJAX para obtener los datos del documento
+            $.ajax({
+                url: '<%= request.getContextPath() %>/funcionario.do',
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    accion: 'verDocumento',
+                    id: id,
+                    format: 'json'
+                },
+                success: function (data) {
+                    // Llenar los campos del formulario con los datos del documento
+                    $('#editTituloDocumento').val(data.titulo);
+                    $('#editDescripcionDocumento').val(data.descripcion);
+
+                    // Seleccionar la categoría correcta
+                    $('#editCategoriaDocumento').val(data.categoria);
+                    $('#editCategoriaDocumento').prop('disabled', false);
+
+                    // Establece período de referencia
+                    $('#editPeriodoReferencia').val(data.periodoReferencia);
+
+                    // Convertir fecha al formato yyyy-mm-dd para el input date
+                    if (data.fechaPublicacion) {
+                        $('#editFechaPublicacion').val(data.fechaPublicacion);
+                    }
+
+                    // Estado del documento (checkbox)
+                    $('#editEstadoDocumento').prop('checked', data.estado === 'Publicado');
+
+                    // Campo oculto para la ruta del archivo
+                    $('#editRutaArchivo').val(data.rutaArchivo);
+
+                    // Campo oculto para el tipo de archivo
+                    $('#editTipoArchivo').val(data.tipoArchivo);
+
+                    // Mostrar el nombre del archivo actual
+                    if (data.rutaArchivo) {
+                        // Primero eliminamos cualquier mensaje anterior
+                        $('#editArchivoDocumento').next('.form-text').nextAll('.form-text').remove();
+
+                        const nombreArchivo = data.rutaArchivo.split('/').pop();
+                        $('<div class="form-text mt-2">Archivo actual: <strong>' + nombreArchivo + '</strong></div>')
+                            .insertAfter($('#editArchivoDocumento').next('.form-text'));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error al cargar los datos del documento:', error);
+                    alert('Error al cargar los datos del documento. Consulte la consola para más detalles.');
+                }
+            });
+        }
+    });
+
+    // Limpiar información adicional al cerrar el modal de edición
+    $('#editarDocumentoModal').on('hidden.bs.modal', function () {
+        $('#editArchivoDocumento').next('.form-text').nextAll('.form-text').remove();
     });
 </script>
 </body>
