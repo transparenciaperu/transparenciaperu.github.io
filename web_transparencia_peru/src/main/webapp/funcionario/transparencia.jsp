@@ -61,6 +61,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Transparencia - Portal de Transparencia Perú</title>
+    <meta name="context-path" content="<%= request.getContextPath() %>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -841,28 +842,81 @@
                             <h5 class="modal-title" id="verDocumentoModalLabel">Detalles del Documento</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body" id="verDocumentoModalBody">
-                            <!-- Contenido de carga por defecto -->
-                            <div class="text-center" id="loadingDocumento">
+                        <div class="modal-body">
+                            <!-- Spinner de carga -->
+                            <div id="loadingDocumentoDetalles" class="text-center">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Cargando...</span>
                                 </div>
-                                <p class="mt-2">Cargando detalles del documento...</p>
+                                <p class="mt-2">Cargando información...</p>
                             </div>
 
-                            <!-- Detalles del documento (se mostrará mediante JavaScript) -->
-                            <div id="detallesDocumento" class="d-none">
-                                <div class="row mb-3">
-                                    <div class="col-md-8" id="infoDocumento">
-                                        <!-- Aquí se cargarán los detalles del documento -->
+                            <!-- Contenido del documento -->
+                            <div id="contenidoDocumentoDetalles" style="display:none;">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0" id="tituloDocumentoDetalle">Título del documento</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3" id="descripcionDocumentoDetalle"></div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <ul class="list-group mb-3">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <strong>ID:</strong>
+                                                        <span id="idDocumentoDetalle" class="badge bg-secondary"></span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <strong>Categoría:</strong>
+                                                        <span id="categoriaDocumentoDetalle"></span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <strong>Período de Referencia:</strong>
+                                                        <span id="periodoDocumentoDetalle"></span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <ul class="list-group mb-3">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <strong>Fecha de publicación:</strong>
+                                                        <span id="fechaDocumentoDetalle"></span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <strong>Estado:</strong>
+                                                        <span id="estadoDocumentoDetalle"></span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <strong>Publicado por:</strong>
+                                                        <span id="autorDocumentoDetalle"></span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3" id="archivoDocumentoDetalle">
+                                            <!-- Aquí va el enlace al archivo -->
+                                        </div>
                                     </div>
                                 </div>
-                                <hr>
-                                <div class="document-preview">
-                                    <div class="ratio ratio-16x9">
-                                        <iframe id="visorDocumento" src="" frameborder="0"></iframe>
+
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Vista previa</h5>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="ratio ratio-16x9 border">
+                                            <iframe id="previewDocumentoDetalle" src="" allowfullscreen></iframe>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Mensaje de error -->
+                            <div id="errorDocumentoDetalles" class="alert alert-danger" style="display:none;">
+                                <h5><i class="bi bi-exclamation-triangle-fill me-2"></i> Error</h5>
+                                <p id="mensajeErrorDocumento">No se pudo cargar la información del documento.</p>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -1024,6 +1078,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="<%= request.getContextPath() %>/js/documento-visor.js"></script>
+<script src="<%= request.getContextPath() %>/js/transparencia-page.js"></script>
 <script>
     $(document).ready(function () {
         // Manejar la eliminación de documentos
