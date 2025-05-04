@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import pe.gob.transparencia.entidades.CiudadanoEntidad;
 import pe.gob.transparencia.entidades.RespuestaSolicitudEntidad;
 import pe.gob.transparencia.entidades.SolicitudAccesoEntidad;
@@ -244,10 +245,27 @@ public class ServletSolicitudAcceso extends HttpServlet {
             String respuestaTexto = request.getParameter("respuestaTexto");
             String tipoRespuesta = request.getParameter("tipoRespuesta");
 
+            // Obtener la solicitud original para verificar su estado
+            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+            SolicitudAccesoEntidad solicitud = modelo.obtenerSolicitud(solicitudId);
+
+            if (solicitud == null) {
+                session.setAttribute("mensaje", "La solicitud no existe");
+                session.setAttribute("tipoMensaje", "danger");
+                response.sendRedirect(request.getContextPath() + "/funcionario/solicitudes.jsp");
+                return;
+            }
+
+            // Verificar si la solicitud ya fue respondida
+            if (solicitud.getEstadoSolicitudId() == 3 || solicitud.getEstadoSolicitudId() == 5) {
+                session.setAttribute("mensaje", "Esta solicitud ya ha sido respondida");
+                session.setAttribute("tipoMensaje", "warning");
+                response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=detalle&id=" + solicitudId);
+                return;
+            }
+
             // Implementación alternativa para manejar la respuesta
             // Esto se adaptará según los métodos disponibles en SolicitudAccesoModelo
-            SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
-            solicitud.setId(solicitudId);
             solicitud.setFechaRespuesta(Date.valueOf(LocalDate.now()));
             solicitud.setObservaciones(respuestaTexto);
 
@@ -271,11 +289,25 @@ public class ServletSolicitudAcceso extends HttpServlet {
 
             solicitud.setEstadoSolicitudId(nuevoEstadoId);
 
+            // Guardar la respuesta 
+            RespuestaSolicitudEntidad respuesta = new RespuestaSolicitudEntidad();
+            respuesta.setSolicitudId(solicitudId);
+            respuesta.setUsuarioId(usuario.getId());
+            respuesta.setFechaRespuesta(new java.util.Date());
+            respuesta.setContenido(respuestaTexto);
+
+            // Si hay documentos adjuntos, se procesarían aquí
+            // Por ahora dejamos esta parte comentada ya que requiere manejo de archivos
+            /*
+            Part archivoPart = request.getPart("documentosRespuesta");
+            if (archivoPart != null && archivoPart.getSize() > 0) {
+                String nombreArchivo = guardarArchivo(archivoPart, solicitudId);
+                respuesta.setRutaArchivo(nombreArchivo);
+            }
+            */
+
             // Llamar al modelo para actualizar
-            SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
-            // Actualizar el estado y guardar la respuesta en el mismo método
-            // Suponiendo que este método existe o se implementará
-            int resultadoActualizacion = modelo.actualizarEstadoSolicitud(solicitud.getId(), nuevoEstadoId);
+            int resultadoActualizacion = modelo.actualizarSolicitud(solicitud);
 
             if (resultadoActualizacion > 0) {
                 session.setAttribute("mensaje", "Respuesta registrada correctamente");
@@ -287,7 +319,7 @@ public class ServletSolicitudAcceso extends HttpServlet {
 
             // Redirigir según rol
             if ("FUNCIONARIO".equals(usuario.getCodRol())) {
-                response.sendRedirect(request.getContextPath() + "/funcionario/solicitudes.jsp");
+                response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=listar");
             } else {
                 response.sendRedirect(request.getContextPath() + "/admin/solicitudes.jsp");
             }

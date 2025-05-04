@@ -1,5 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="pe.gob.transparencia.entidades.CiudadanoEntidad" %>
+<%@ page import="pe.gob.transparencia.modelo.SolicitudAccesoModelo" %>
+<%@ page import="pe.gob.transparencia.entidades.TipoSolicitudEntidad" %>
+<%@ page import="java.util.List" %>
 <%
     HttpSession sesion = request.getSession(false);
     if (sesion == null || sesion.getAttribute("ciudadano") == null) {
@@ -8,7 +11,27 @@
         return;
     }
     CiudadanoEntidad ciudadano = (CiudadanoEntidad) sesion.getAttribute("ciudadano");
+
+    // Obtener tipos de solicitud desde el modelo
+    SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+    List<TipoSolicitudEntidad> tiposSolicitud = null;
+    try {
+        tiposSolicitud = modelo.listarTiposSolicitud();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    // Verificar si hay un mensaje de sesión
+    String mensaje = "";
+    String tipoMensaje = "";
+    if (session.getAttribute("mensaje") != null) {
+        mensaje = (String) session.getAttribute("mensaje");
+        tipoMensaje = (String) session.getAttribute("tipoMensaje");
+        session.removeAttribute("mensaje");
+        session.removeAttribute("tipoMensaje");
+    }
 %>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -112,6 +135,13 @@
                     </a>
                 </div>
             </div>
+
+            <% if (!mensaje.isEmpty()) { %>
+            <div class="alert alert-<%= tipoMensaje %> alert-dismissible fade show">
+                <%= mensaje %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <% } %>
 
             <div class="alert alert-info mb-4">
                 <div class="d-flex">
@@ -220,12 +250,19 @@
                             <label for="tipoSolicitud" class="form-label">Tipo de Información:</label>
                             <select class="form-select" id="tipoSolicitud" name="tipoSolicitudId" required>
                                 <option value="" selected>Seleccione un tipo de información</option>
+                                <% if (tiposSolicitud != null) {
+                                    for (TipoSolicitudEntidad tipo : tiposSolicitud) { %>
+                                <option value="<%= tipo.getId() %>"><%= tipo.getNombre() %>
+                                </option>
+                                <% }
+                                } else { %>
                                 <option value="1">Información Presupuestal</option>
                                 <option value="2">Información de Proyectos</option>
                                 <option value="3">Información de Contrataciones</option>
                                 <option value="4">Información de Personal</option>
                                 <option value="5">Información General</option>
                                 <option value="6">Información Ambiental</option>
+                                <% } %>
                             </select>
                             <div class="invalid-feedback">Por favor seleccione un tipo de información.</div>
                         </div>
@@ -481,6 +518,7 @@
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
+                form.classList.add('was-validated');
             } else {
                 // Si el formulario es válido, mostrar el modal de confirmación
                 event.preventDefault();

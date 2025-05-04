@@ -1,5 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="pe.gob.transparencia.entidades.UsuarioEntidad" %>
+<%@ page import="pe.gob.transparencia.entidades.SolicitudAccesoEntidad" %>
+<%@ page import="pe.gob.transparencia.modelo.SolicitudAccesoModelo" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.util.Date" %>
+<%@ page import="java.util.concurrent.TimeUnit" %>
+<%@ page import="java.util.ArrayList" %>
 <%
     // Verificar si el usuario está en sesión y es funcionario
     HttpSession sesion = request.getSession(false);
@@ -9,7 +16,55 @@
         return;
     }
     UsuarioEntidad usuario = (UsuarioEntidad) sesion.getAttribute("usuario");
+
+    // Obtener solicitudes
+    List<SolicitudAccesoEntidad> solicitudes = new ArrayList<>();
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+    try {
+        SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+        solicitudes = modelo.listarSolicitudes(); // Obtener todas las solicitudes
+    } catch (Exception e) {
+        e.printStackTrace();
+        // Manejar el error según sea necesario
+    }
+
+    // Contar por estado
+    int pendientes = 0;
+    int enProceso = 0;
+    int atendidas = 0;
+    int porVencer = 0;
+
+    // Calcular días para vencer (10 días hábiles es el límite estándar)
+    final long DIAS_LIMITE = 10;
+
+    for (SolicitudAccesoEntidad sol : solicitudes) {
+        // Contar por estado
+        switch (sol.getEstadoSolicitudId()) {
+            case 1:
+                pendientes++;
+                break; // Pendiente
+            case 2:
+                enProceso++;
+                break; // En proceso
+            case 3:
+                atendidas++;
+                break; // Atendida
+        }
+
+        // Verificar si está por vencer (3 días o menos)
+        if (sol.getEstadoSolicitudId() == 1 || sol.getEstadoSolicitudId() == 2) {
+            Date fechaSolicitud = sol.getFechaSolicitud();
+            Date hoy = new Date();
+            long diferenciaDias = TimeUnit.DAYS.convert(hoy.getTime() - fechaSolicitud.getTime(), TimeUnit.MILLISECONDS);
+
+            if (DIAS_LIMITE - diferenciaDias <= 3 && diferenciaDias < DIAS_LIMITE) {
+                porVencer++;
+            }
+        }
+    }
 %>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -182,7 +237,8 @@
                                 </div>
                                 <div>
                                     <span class="text-muted small">Pendientes</span>
-                                    <h4>8</h4>
+                                    <h4><%= pendientes %>
+                                    </h4>
                                 </div>
                             </div>
                         </div>
@@ -199,7 +255,8 @@
                                 </div>
                                 <div>
                                     <span class="text-muted small">En proceso</span>
-                                    <h4>5</h4>
+                                    <h4><%= enProceso %>
+                                    </h4>
                                 </div>
                             </div>
                         </div>
@@ -216,7 +273,8 @@
                                 </div>
                                 <div>
                                     <span class="text-muted small">Atendidas</span>
-                                    <h4>12</h4>
+                                    <h4><%= atendidas %>
+                                    </h4>
                                 </div>
                             </div>
                         </div>
@@ -233,7 +291,8 @@
                                 </div>
                                 <div>
                                     <span class="text-muted small">Por vencer</span>
-                                    <h4>3</h4>
+                                    <h4><%= porVencer %>
+                                    </h4>
                                 </div>
                             </div>
                         </div>
@@ -258,180 +317,93 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>2453</td>
-                                <td>30/04/2024</td>
-                                <td>Juan Rodríguez (DNI: 45678912)</td>
-                                <td>Solicitud de información presupuestal sobre proyectos de inversión en educación del
-                                    año 2023.
+                            <% for (SolicitudAccesoEntidad sol : solicitudes) {
+                                // Calcular días restantes
+                                String diasRestantes = "Atendida";
+                                String claseBarra = "bg-success";
+                                int porcentajeBarra = 100;
+                                boolean esPorVencer = false;
+
+                                if (sol.getEstadoSolicitudId() != 3) { // Si no está atendida
+                                    Date fechaSolicitud = sol.getFechaSolicitud();
+                                    Date hoy = new Date();
+                                    long diferenciaDias = TimeUnit.DAYS.convert(hoy.getTime() - fechaSolicitud.getTime(), TimeUnit.MILLISECONDS);
+                                    long diasFaltantes = DIAS_LIMITE - diferenciaDias;
+
+                                    if (diasFaltantes <= 0) {
+                                        diasRestantes = "Vencida";
+                                        claseBarra = "bg-danger";
+                                        porcentajeBarra = 100;
+                                        esPorVencer = true;
+                                    } else if (diasFaltantes <= 3) {
+                                        diasRestantes = diasFaltantes + " días";
+                                        claseBarra = "bg-danger";
+                                        porcentajeBarra = (int) ((DIAS_LIMITE - diasFaltantes) * 100 / DIAS_LIMITE);
+                                        esPorVencer = true;
+                                    } else {
+                                        diasRestantes = diasFaltantes + " días";
+                                        claseBarra = "bg-warning";
+                                        porcentajeBarra = (int) ((DIAS_LIMITE - diasFaltantes) * 100 / DIAS_LIMITE);
+                                    }
+                                }
+
+                                // Determinar si es fila por vencer
+                                String claseFila = esPorVencer ? "table-danger" : "";
+                            %>
+                            <tr class="<%= claseFila %>">
+                                <td><%= sol.getId() %>
+                                </td>
+                                <td><%= sol.getFechaSolicitud() != null ? sdf.format(sol.getFechaSolicitud()) : "N/A" %>
+                                </td>
+                                <td><%= sol.getCiudadano() != null ?
+                                        sol.getCiudadano().getNombreCompleto() + " (DNI: " + sol.getCiudadano().getDni() + ")" :
+                                        "Ciudadano no especificado" %>
+                                </td>
+                                <td><%= sol.getDescripcion() %>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                            <div class="progress-bar bg-warning" role="progressbar"
-                                                 style="width: 60%"></div>
+                                            <div class="progress-bar <%= claseBarra %>" role="progressbar"
+                                                 style="width: <%= porcentajeBarra %>%"></div>
                                         </div>
-                                        <span class="badge bg-warning">4 días</span>
+                                        <span class="badge <%= sol.getEstadoSolicitudId() == 3 ? "bg-success" : 
+                                                               (esPorVencer ? "bg-danger" : "bg-warning") %>">
+                                            <%= diasRestantes %>
+                                        </span>
                                     </div>
                                 </td>
-                                <td><span class="badge bg-warning text-dark">Pendiente</span></td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                            data-bs-target="#detalleModal" data-id="2453">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                            data-bs-target="#responderModal" data-id="2453">
-                                        <i class="bi bi-reply"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                            data-bs-target="#historialModal" data-id="2453">
-                                        <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2452</td>
-                                <td>29/04/2024</td>
-                                <td>María Sánchez (DNI: 76543219)</td>
-                                <td>Información sobre proyectos de mejora de infraestructura vial en el distrito.</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                            <div class="progress-bar bg-warning" role="progressbar"
-                                                 style="width: 50%"></div>
-                                        </div>
-                                        <span class="badge bg-warning">5 días</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-warning text-dark">Pendiente</span></td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                            data-bs-target="#detalleModal" data-id="2452">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                            data-bs-target="#responderModal" data-id="2452">
-                                        <i class="bi bi-reply"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                            data-bs-target="#historialModal" data-id="2452">
-                                        <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2451</td>
-                                <td>28/04/2024</td>
-                                <td>Carlos Torres (DNI: 23456781)</td>
-                                <td>Información sobre procesos de contratación pública del último trimestre.</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                            <div class="progress-bar bg-success" role="progressbar"
-                                                 style="width: 100%"></div>
-                                        </div>
+                                    <% if (sol.getEstadoSolicitudId() == 1) { %>
+                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                    <% } else if (sol.getEstadoSolicitudId() == 2) { %>
+                                    <span class="badge bg-info">En proceso</span>
+                                    <% } else if (sol.getEstadoSolicitudId() == 3) { %>
                                         <span class="badge bg-success">Atendida</span>
-                                    </div>
+                                    <% } else if (sol.getEstadoSolicitudId() == 4) { %>
+                                    <span class="badge bg-secondary">Observada</span>
+                                    <% } else if (sol.getEstadoSolicitudId() == 5) { %>
+                                    <span class="badge bg-danger">Rechazada</span>
+                                    <% } %>
                                 </td>
-                                <td><span class="badge bg-success">Atendida</span></td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                            data-bs-target="#detalleModal" data-id="2451">
+                                    <a href="<%= request.getContextPath() %>/solicitud.do?accion=detalle&id=<%= sol.getId() %>"
+                                       class="btn btn-sm btn-primary">
                                         <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                            data-bs-target="#historialModal" data-id="2451">
-                                        <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2450</td>
-                                <td>27/04/2024</td>
-                                <td>Laura Flores (DNI: 34567891)</td>
-                                <td>Solicitud de información sobre planilla de personal.</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                            <div class="progress-bar bg-info" role="progressbar"
-                                                 style="width: 70%"></div>
-                                        </div>
-                                        <span class="badge bg-info">En proceso</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-info">En proceso</span></td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                            data-bs-target="#detalleModal" data-id="2450">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                            data-bs-target="#responderModal" data-id="2450">
+                                    </a>
+                                    <% if (sol.getEstadoSolicitudId() != 3 && sol.getEstadoSolicitudId() != 5) { %>
+                                    <a href="<%= request.getContextPath() %>/solicitud.do?accion=prepararRespuesta&id=<%= sol.getId() %>"
+                                       class="btn btn-sm btn-success">
                                         <i class="bi bi-reply"></i>
-                                    </button>
+                                    </a>
+                                    <% } %>
                                     <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                            data-bs-target="#historialModal" data-id="2450">
+                                            data-bs-target="#historialModal" data-id="<%= sol.getId() %>">
                                         <i class="bi bi-clock-history"></i>
                                     </button>
                                 </td>
                             </tr>
-                            <tr class="table-danger">
-                                <td>2449</td>
-                                <td>20/04/2024</td>
-                                <td>Pedro González (DNI: 87654321)</td>
-                                <td>Solicitud de acceso a expedientes de obras públicas.</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                            <div class="progress-bar bg-danger" role="progressbar"
-                                                 style="width: 90%"></div>
-                                        </div>
-                                        <span class="badge bg-danger">1 día</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-warning text-dark">Pendiente</span></td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                            data-bs-target="#detalleModal" data-id="2449">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                            data-bs-target="#responderModal" data-id="2449">
-                                        <i class="bi bi-reply"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                            data-bs-target="#historialModal" data-id="2449">
-                                        <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2448</td>
-                                <td>18/04/2024</td>
-                                <td>Ana Martínez (DNI: 12345678)</td>
-                                <td>Información sobre programas sociales ejecutados en 2023.</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                            <div class="progress-bar bg-success" role="progressbar"
-                                                 style="width: 100%"></div>
-                                        </div>
-                                        <span class="badge bg-success">Atendida</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-success">Atendida</span></td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                            data-bs-target="#detalleModal" data-id="2448">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                            data-bs-target="#historialModal" data-id="2448">
-                                        <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                            <% } %>
                             </tbody>
                         </table>
                     </div>
@@ -444,207 +416,19 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="detalleModalLabel">Detalle de Solicitud #2453</h5>
+                            <h5 class="modal-title" id="detalleModalLabel">Detalle de Solicitud</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="solicitud-tab" data-bs-toggle="tab"
-                                            data-bs-target="#solicitud" type="button" role="tab"
-                                            aria-controls="solicitud" aria-selected="true">Solicitud
-                                    </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="documentos-tab" data-bs-toggle="tab"
-                                            data-bs-target="#documentos" type="button" role="tab"
-                                            aria-controls="documentos" aria-selected="false">Documentos
-                                    </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="seguimiento-tab" data-bs-toggle="tab"
-                                            data-bs-target="#seguimiento" type="button" role="tab"
-                                            aria-controls="seguimiento" aria-selected="false">Seguimiento
-                                    </button>
-                                </li>
-                            </ul>
-                            <div class="tab-content pt-3" id="myTabContent">
-                                <div class="tab-pane fade show active" id="solicitud" role="tabpanel"
-                                     aria-labelledby="solicitud-tab">
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <h6 class="fw-bold">Datos del Solicitante</h6>
-                                            <table class="table table-sm">
-                                                <tr>
-                                                    <td width="40%"><strong>Nombres:</strong></td>
-                                                    <td>Juan Rodríguez</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>DNI:</strong></td>
-                                                    <td>45678912</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Correo:</strong></td>
-                                                    <td>juan.rodriguez@example.com</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Teléfono:</strong></td>
-                                                    <td>987654321</td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6 class="fw-bold">Datos de la Solicitud</h6>
-                                            <table class="table table-sm">
-                                                <tr>
-                                                    <td width="40%"><strong>ID:</strong></td>
-                                                    <td>2453</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Fecha:</strong></td>
-                                                    <td>30/04/2024</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Estado:</strong></td>
-                                                    <td><span class="badge bg-warning text-dark">Pendiente</span></td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Plazo:</strong></td>
-                                                    <td><span class="text-warning fw-bold">4 días restantes</span></td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold">Descripción de la Solicitud</h6>
-                                        <div class="p-3 bg-light rounded">
-                                            <p>Solicitud de información presupuestal sobre proyectos de inversión en
-                                                educación del año 2023.</p>
-                                            <p>Solicito detalle de los siguientes aspectos:</p>
-                                            <ol>
-                                                <li>Presupuesto asignado a cada proyecto de inversión en el sector
-                                                    educación durante el año 2023.
-                                                </li>
-                                                <li>Ejecución presupuestal detallada por proyecto, indicando montos
-                                                    ejecutados, saldos y porcentajes de avance.
-                                                </li>
-                                                <li>Relación de proveedores que ejecutaron dichos proyectos, con montos
-                                                    adjudicados.
-                                                </li>
-                                                <li>Información sobre modificaciones presupuestales realizadas durante
-                                                    el ejercicio.
-                                                </li>
-                                            </ol>
-                                            <p>La información solicitada es para un trabajo de investigación académica
-                                                en políticas públicas educativas.</p>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold">Observaciones</h6>
-                                        <textarea class="form-control" id="observacionesSolicitud" rows="3"
-                                                  placeholder="Ingrese observaciones internas sobre esta solicitud (solo visible para funcionarios)"></textarea>
-                                    </div>
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
                                 </div>
-
-                                <div class="tab-pane fade" id="documentos" role="tabpanel"
-                                     aria-labelledby="documentos-tab">
-                                    <h6 class="mb-3">Documentos Adjuntos a la Solicitud</h6>
-                                    <ul class="list-group mb-4">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <i class="bi bi-file-pdf text-danger me-2"></i> Carta_Presentacion.pdf
-                                            </div>
-                                            <div>
-                                                <button class="btn btn-sm btn-primary">
-                                                    <i class="bi bi-eye"></i> Ver
-                                                </button>
-                                                <button class="btn btn-sm btn-secondary">
-                                                    <i class="bi bi-download"></i> Descargar
-                                                </button>
-                                            </div>
-                                        </li>
-                                    </ul>
-
-                                    <h6 class="mb-3">Documentos de Respuesta</h6>
-                                    <div class="alert alert-info mb-3">
-                                        <i class="bi bi-info-circle me-2"></i> No hay documentos de respuesta
-                                        disponibles.
-                                    </div>
-
-                                    <form id="formAdjuntarDocumentos">
-                                        <div class="mb-3">
-                                            <label for="documentoRespuesta" class="form-label">Adjuntar
-                                                documento</label>
-                                            <input class="form-control" type="file" id="documentoRespuesta">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="descripcionDocumento" class="form-label">Descripción</label>
-                                            <input type="text" class="form-control" id="descripcionDocumento"
-                                                   placeholder="Describa brevemente el documento">
-                                        </div>
-                                        <div class="text-end">
-                                            <button type="button" class="btn btn-primary">
-                                                <i class="bi bi-upload me-1"></i> Subir Documento
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <div class="tab-pane fade" id="seguimiento" role="tabpanel"
-                                     aria-labelledby="seguimiento-tab">
-                                    <div class="timeline mb-4">
-                                        <div class="timeline-item">
-                                            <div class="timeline-date">30/04/2024 - 09:15</div>
-                                            <div class="timeline-content">
-                                                <h6 class="mb-1"><i
-                                                        class="bi bi-file-earmark-plus me-2 text-primary"></i> Solicitud
-                                                    recibida</h6>
-                                                <p class="mb-0 text-muted small">La solicitud fue registrada en el
-                                                    sistema.</p>
-                                            </div>
-                                        </div>
-                                        <div class="timeline-item">
-                                            <div class="timeline-date">30/04/2024 - 10:30</div>
-                                            <div class="timeline-content">
-                                                <h6 class="mb-1"><i class="bi bi-person-check me-2 text-info"></i>
-                                                    Asignada a funcionario</h6>
-                                                <p class="mb-0 text-muted small">La solicitud fue asignada
-                                                    a <%= usuario.getNombreCompleto() %>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <h6 class="mb-3">Añadir nueva entrada de seguimiento</h6>
-                                    <form id="formSeguimiento">
-                                        <div class="mb-3">
-                                            <label for="tipoSeguimiento" class="form-label">Tipo</label>
-                                            <select class="form-select" id="tipoSeguimiento">
-                                                <option value="nota">Nota interna</option>
-                                                <option value="derivacion">Derivación</option>
-                                                <option value="comunicacion">Comunicación con ciudadano</option>
-                                                <option value="actualizacion">Actualización de estado</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="descripcionSeguimiento" class="form-label">Descripción</label>
-                                            <textarea class="form-control" id="descripcionSeguimiento"
-                                                      rows="3"></textarea>
-                                        </div>
-                                        <div class="text-end">
-                                            <button type="button" class="btn btn-primary">
-                                                <i class="bi bi-plus-circle me-1"></i> Añadir Seguimiento
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
+                                <p class="mt-2">Cargando detalles de la solicitud...</p>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
-                                    data-bs-target="#responderModal" data-id="2453">Responder
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -656,78 +440,20 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="responderModalLabel">Responder Solicitud #2453</h5>
+                            <h5 class="modal-title" id="responderModalLabel">Responder Solicitud</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form id="formRespuesta" method="post" action="<%= request.getContextPath() %>/funcionario.do">
-                            <input type="hidden" name="accion" value="responderSolicitud">
-                            <input type="hidden" name="solicitudId" value="2453">
-                            <div class="modal-body">
-                                <div class="alert alert-warning">
-                                    <i class="bi bi-exclamation-triangle me-2"></i> La respuesta será enviada
-                                    directamente al ciudadano. Revise cuidadosamente antes de enviar.
+                        <div class="modal-body">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
                                 </div>
-
-                                <div class="mb-3">
-                                    <label for="tipoRespuesta" class="form-label">Tipo de Respuesta</label>
-                                    <select class="form-select" id="tipoRespuesta" name="tipoRespuesta" required>
-                                        <option value="">Seleccione tipo de respuesta</option>
-                                        <option value="completa">Entrega de información completa</option>
-                                        <option value="parcial">Entrega de información parcial</option>
-                                        <option value="prorroga">Solicitud de prórroga</option>
-                                        <option value="rechazo">Denegación de información</option>
-                                    </select>
-                                </div>
-
-                                <div id="bloqueProrroga" class="mb-3" style="display: none;">
-                                    <label for="fechaProrroga" class="form-label">Nueva Fecha de Entrega</label>
-                                    <input type="text" class="form-control date-picker" id="fechaProrroga"
-                                           name="fechaProrroga">
-                                    <div class="form-text">La prórroga no puede exceder los 5 días hábiles
-                                        adicionales.
-                                    </div>
-                                </div>
-
-                                <div id="bloqueRechazo" class="mb-3" style="display: none;">
-                                    <label for="motivoRechazo" class="form-label">Motivo del Rechazo</label>
-                                    <select class="form-select" id="motivoRechazo" name="motivoRechazo">
-                                        <option value="">Seleccione motivo</option>
-                                        <option value="1">Información clasificada como secreta (Seguridad Nacional)
-                                        </option>
-                                        <option value="2">Información reservada (Seguridad Pública)</option>
-                                        <option value="3">Información confidencial (Datos personales)</option>
-                                        <option value="4">Información en proceso deliberativo</option>
-                                        <option value="5">Otro motivo (detallar)</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="respuestaTexto" class="form-label">Contenido de la Respuesta</label>
-                                    <textarea class="form-control" id="respuestaTexto" name="respuestaTexto" rows="8"
-                                              required></textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="documentosRespuesta" class="form-label">Documentos Adjuntos</label>
-                                    <input class="form-control" type="file" id="documentosRespuesta"
-                                           name="documentosRespuesta" multiple>
-                                    <div class="form-text">Puede adjuntar múltiples documentos (máximo 10MB en total).
-                                    </div>
-                                </div>
-
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="confirmacionEnvio"
-                                           name="confirmacionEnvio" required>
-                                    <label class="form-check-label" for="confirmacionEnvio">Confirmo que la información
-                                        proporcionada es correcta y estoy autorizado para enviarla</label>
-                                </div>
+                                <p class="mt-2">Cargando formulario de respuesta...</p>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar
-                                </button>
-                                <button type="submit" class="btn btn-primary">Enviar Respuesta</button>
-                            </div>
-                        </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -738,38 +464,15 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="historialModalLabel">Historial de la Solicitud #2453</h5>
+                            <h5 class="modal-title" id="historialModalLabel">Historial de la Solicitud</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="timeline">
-                                <div class="timeline-item">
-                                    <div class="timeline-date">30/04/2024 - 09:15</div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1"><i class="bi bi-file-earmark-plus me-2 text-primary"></i>
-                                            Solicitud recibida</h6>
-                                        <p class="mb-0 text-muted small">La solicitud fue registrada en el sistema.</p>
-                                    </div>
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
                                 </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-date">30/04/2024 - 10:30</div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1"><i class="bi bi-person-check me-2 text-info"></i> Asignada a
-                                            funcionario</h6>
-                                        <p class="mb-0 text-muted small">La solicitud fue asignada
-                                            a <%= usuario.getNombreCompleto() %>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-date">30/04/2024 - 11:45</div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1"><i class="bi bi-chat-left-text me-2 text-success"></i> Nota
-                                            interna</h6>
-                                        <p class="mb-0 text-muted small">Se requiere consultar con el área de
-                                            presupuesto para obtener la información solicitada.</p>
-                                    </div>
-                                </div>
+                                <p class="mt-2">Cargando historial de la solicitud...</p>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -972,27 +675,30 @@
             $('#btnLimpiarFiltros').click();
         });
 
-        // Configurar visualización de solicitud en modal
+        // Configurar modales dinámicos
         $('#detalleModal').on('show.bs.modal', function (e) {
             const id = $(e.relatedTarget).data('id');
             $(this).find('.modal-title').text('Detalle de Solicitud #' + id);
 
-            // En un caso real, aquí se cargarían los datos de la solicitud mediante AJAX
+            // Redirigir a la página de detalle en lugar de mostrar el modal
+            window.location.href = '<%= request.getContextPath() %>/solicitud.do?accion=detalle&id=' + id;
         });
 
         $('#responderModal').on('show.bs.modal', function (e) {
             const id = $(e.relatedTarget).data('id');
             $(this).find('.modal-title').text('Responder Solicitud #' + id);
-            $(this).find('input[name="solicitudId"]').val(id);
 
-            // En un caso real, aquí se cargarían datos adicionales mediante AJAX
+            // Redirigir a la página de respuesta
+            window.location.href = '<%= request.getContextPath() %>/solicitud.do?accion=prepararRespuesta&id=' + id;
         });
 
         $('#historialModal').on('show.bs.modal', function (e) {
             const id = $(e.relatedTarget).data('id');
             $(this).find('.modal-title').text('Historial de la Solicitud #' + id);
 
-            // En un caso real, aquí se cargaría el historial mediante AJAX
+            // Aquí se puede implementar la carga del historial mediante AJAX
+            // Por ahora, redirigimos a la página de detalle que incluya el historial
+            window.location.href = '<%= request.getContextPath() %>/solicitud.do?accion=detalle&id=' + id + '&tab=historial';
         });
     });
 </script>

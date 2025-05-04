@@ -1,5 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="pe.gob.transparencia.entidades.CiudadanoEntidad" %>
+<%@ page import="pe.gob.transparencia.entidades.SolicitudAccesoEntidad" %>
+<%@ page import="pe.gob.transparencia.modelo.SolicitudAccesoModelo" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <%
     HttpSession sesion = request.getSession(false);
     if (sesion == null || sesion.getAttribute("ciudadano") == null) {
@@ -8,7 +13,39 @@
         return;
     }
     CiudadanoEntidad ciudadano = (CiudadanoEntidad) sesion.getAttribute("ciudadano");
+
+    // Obtener solicitudes del ciudadano
+    List<SolicitudAccesoEntidad> solicitudes = new ArrayList<>();
+    SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+
+    try {
+        solicitudes = modelo.listarSolicitudesPorCiudadano(ciudadano.getId());
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    // Contar solicitudes por estado
+    int pendientes = 0;
+    int enProceso = 0;
+    int atendidas = 0;
+
+    for (SolicitudAccesoEntidad sol : solicitudes) {
+        switch (sol.getEstadoSolicitudId()) {
+            case 1:
+                pendientes++;
+                break;
+            case 2:
+                enProceso++;
+                break;
+            case 3:
+                atendidas++;
+                break;
+        }
+    }
+
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 %>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -154,15 +191,15 @@
                             <h5 class="card-title mb-3">Resumen</h5>
                             <div class="d-flex justify-content-between mb-2">
                                 <div><i class="bi bi-circle-fill text-warning me-1"></i> Pendientes</div>
-                                <span class="badge bg-light text-dark">3</span>
+                                <span class="badge bg-light text-dark"><%= pendientes %></span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <div><i class="bi bi-circle-fill text-primary me-1"></i> En proceso</div>
-                                <span class="badge bg-light text-dark">2</span>
+                                <span class="badge bg-light text-dark"><%= enProceso %></span>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <div><i class="bi bi-circle-fill text-success me-1"></i> Atendidas</div>
-                                <span class="badge bg-light text-dark">7</span>
+                                <span class="badge bg-light text-dark"><%= atendidas %></span>
                             </div>
                         </div>
                     </div>
@@ -183,116 +220,45 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <% for (SolicitudAccesoEntidad sol : solicitudes) { %>
                     <tr>
-                        <td>1018</td>
-                        <td>28/04/2024</td>
-                        <td>Ministerio de Educación</td>
-                        <td>Solicitud de información sobre programas de becas estudiantiles</td>
-                        <td><span class="badge bg-warning">Pendiente</span></td>
-                        <td>-</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#detalleModal" data-solicitud="1018">
-                                <i class="bi bi-eye"></i> Ver
-                            </button>
+                        <td><%= sol.getId() %>
                         </td>
-                    </tr>
-                    <tr>
-                        <td>1017</td>
-                        <td>15/04/2024</td>
-                        <td>Municipalidad de Lima</td>
-                        <td>Solicitud de planos urbanos del distrito de San Isidro</td>
-                        <td><span class="badge bg-success">Atendida</span></td>
-                        <td>25/04/2024</td>
+                        <td><%= sol.getFechaSolicitud() != null ? sdf.format(sol.getFechaSolicitud()) : "N/A" %>
+                        </td>
+                        <td><%= sol.getEntidadPublica() != null ? sol.getEntidadPublica().getNombre() : "Entidad no especificada" %>
+                        </td>
+                        <td><%= sol.getDescripcion() %>
+                        </td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#detalleModal" data-solicitud="1017">
+                            <% if (sol.getEstadoSolicitudId() == 1) { %>
+                            <span class="badge bg-warning">Pendiente</span>
+                            <% } else if (sol.getEstadoSolicitudId() == 2) { %>
+                            <span class="badge bg-primary">En proceso</span>
+                            <% } else if (sol.getEstadoSolicitudId() == 3) { %>
+                            <span class="badge bg-success">Atendida</span>
+                            <% } else if (sol.getEstadoSolicitudId() == 4) { %>
+                            <span class="badge bg-info">Observada</span>
+                            <% } else if (sol.getEstadoSolicitudId() == 5) { %>
+                            <span class="badge bg-danger">Rechazada</span>
+                            <% } %>
+                        </td>
+                        <td><%= sol.getFechaRespuesta() != null ? sdf.format(sol.getFechaRespuesta()) : "-" %>
+                        </td>
+                        <td>
+                            <a href="<%= request.getContextPath() %>/solicitud.do?accion=detalle&id=<%= sol.getId() %>"
+                               class="btn btn-sm btn-primary">
                                 <i class="bi bi-eye"></i> Ver
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                    data-bs-target="#respuestaModal" data-solicitud="1017">
+                            </a>
+                            <% if (sol.getEstadoSolicitudId() == 3 || sol.getEstadoSolicitudId() == 5) { %>
+                            <a href="<%= request.getContextPath() %>/solicitud.do?accion=verRespuesta&id=<%= sol.getId() %>"
+                               class="btn btn-sm btn-success">
                                 <i class="bi bi-file-text"></i> Respuesta
-                            </button>
+                            </a>
+                            <% } %>
                         </td>
                     </tr>
-                    <tr>
-                        <td>1016</td>
-                        <td>22/03/2024</td>
-                        <td>Ministerio de Salud</td>
-                        <td>Solicitud de información sobre campañas de vacunación</td>
-                        <td><span class="badge bg-success">Atendida</span></td>
-                        <td>02/04/2024</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#detalleModal" data-solicitud="1016">
-                                <i class="bi bi-eye"></i> Ver
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                    data-bs-target="#respuestaModal" data-solicitud="1016">
-                                <i class="bi bi-file-text"></i> Respuesta
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>1015</td>
-                        <td>15/03/2024</td>
-                        <td>OSINERGMIN</td>
-                        <td>Información sobre fiscalización de empresas de servicio eléctrico</td>
-                        <td><span class="badge bg-primary">En proceso</span></td>
-                        <td>-</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#detalleModal" data-solicitud="1015">
-                                <i class="bi bi-eye"></i> Ver
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>1014</td>
-                        <td>05/03/2024</td>
-                        <td>Municipalidad de Lima</td>
-                        <td>Solicitud de información sobre licencias de funcionamiento otorgadas</td>
-                        <td><span class="badge bg-primary">En proceso</span></td>
-                        <td>-</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#detalleModal" data-solicitud="1014">
-                                <i class="bi bi-eye"></i> Ver
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>1013</td>
-                        <td>20/02/2024</td>
-                        <td>Ministerio de Salud</td>
-                        <td>Solicitud de información sobre contratos COVID-19</td>
-                        <td><span class="badge bg-danger">Rechazada</span></td>
-                        <td>29/02/2024</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#detalleModal" data-solicitud="1013">
-                                <i class="bi bi-eye"></i> Ver
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                    data-bs-target="#rechazoModal" data-solicitud="1013">
-                                <i class="bi bi-exclamation-triangle"></i> Motivo
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>1012</td>
-                        <td>15/02/2024</td>
-                        <td>Ministerio de Educación</td>
-                        <td>Solicitud de información sobre contratación de docentes</td>
-                        <td><span class="badge bg-warning">Pendiente</span></td>
-                        <td>-</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#detalleModal" data-solicitud="1012">
-                                <i class="bi bi-eye"></i> Ver
-                            </button>
-                        </td>
-                    </tr>
+                    <% } %>
                     </tbody>
                 </table>
             </div>
@@ -579,12 +545,12 @@
                 }
 
                 // Filtro por entidad
-                if (filtroEntidad && !entidad.includes(filtroEntidad)) {
+                if (filtroEntidad && filtroEntidad !== "" && !entidad.includes(filtroEntidad)) {
                     return false;
                 }
 
                 // Filtro por año
-                if (filtroFecha && !fecha.includes(filtroFecha)) {
+                if (filtroFecha && filtroFecha !== "" && !fecha.includes(filtroFecha)) {
                     return false;
                 }
 

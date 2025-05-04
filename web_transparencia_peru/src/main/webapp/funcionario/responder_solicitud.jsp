@@ -1,24 +1,61 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="pe.gob.transparencia.entidades.UsuarioEntidad" %>
 <%@ page import="pe.gob.transparencia.entidades.SolicitudAccesoEntidad" %>
+<%@ page import="pe.gob.transparencia.entidades.RespuestaSolicitudEntidad" %>
+<%@ page import="pe.gob.transparencia.modelo.SolicitudAccesoModelo" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.util.Date" %>
+<%@ page import="java.util.concurrent.TimeUnit" %>
 <%
     // Verificar si el usuario está en sesión y es funcionario
     HttpSession sesion = request.getSession(false);
-    if (sesion == null || sesion.getAttribute("usuario") == null ||
-            (!((UsuarioEntidad) sesion.getAttribute("usuario")).getCodRol().equals("FUNCIONARIO") &&
-                    !((UsuarioEntidad) sesion.getAttribute("usuario")).getCodRol().equals("ADMIN"))) {
-        // No es funcionario/admin o no está logueado, redirigir al login
+    if (sesion == null || sesion.getAttribute("usuario") == null || !((UsuarioEntidad) sesion.getAttribute("usuario")).getCodRol().equals("FUNCIONARIO")) {
+        // No es funcionario o no está logueado, redirigir al login
         response.sendRedirect(request.getContextPath() + "/login_unificado.jsp");
         return;
     }
     UsuarioEntidad usuario = (UsuarioEntidad) sesion.getAttribute("usuario");
 
-    // Obtener la solicitud a responder
+    // Obtener la solicitud del request attribute
     SolicitudAccesoEntidad solicitud = (SolicitudAccesoEntidad) request.getAttribute("solicitud");
     if (solicitud == null) {
-        // Si no hay solicitud, redirigir a la lista
+        // No hay solicitud, redirigir a la lista
+        session.setAttribute("mensaje", "No se encontró la solicitud solicitada.");
         response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=listar");
         return;
+    }
+
+    // Si ya está atendida o rechazada, no se puede responder
+    if (solicitud.getEstadoSolicitudId() == 3 || solicitud.getEstadoSolicitudId() == 5) {
+        session.setAttribute("mensaje", "Esta solicitud ya ha sido respondida.");
+        response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=detalle&id=" + solicitud.getId());
+        return;
+    }
+
+    // Calcular días restantes
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    final long DIAS_LIMITE = 10; // 10 días hábiles
+
+    String plazoText = "";
+    String plazoClass = "";
+    boolean esUrgente = false;
+
+    Date fechaSolicitud = solicitud.getFechaSolicitud();
+    Date hoy = new Date();
+    long diferenciaDias = TimeUnit.DAYS.convert(hoy.getTime() - fechaSolicitud.getTime(), TimeUnit.MILLISECONDS);
+    long diasFaltantes = DIAS_LIMITE - diferenciaDias;
+
+    if (diasFaltantes <= 0) {
+        plazoText = "VENCIDA - Se requiere respuesta urgente";
+        plazoClass = "text-danger fw-bold";
+        esUrgente = true;
+    } else if (diasFaltantes <= 3) {
+        plazoText = diasFaltantes + " días restantes (URGENTE)";
+        plazoClass = "text-danger";
+        esUrgente = true;
+    } else {
+        plazoText = diasFaltantes + " días restantes";
+        plazoClass = "text-warning";
     }
 %>
 <!DOCTYPE html>
@@ -38,7 +75,8 @@
 <!-- Navbar superior -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Portal de Transparencia | Responder Solicitud</a>
+        <a class="navbar-brand" href="#">Portal de Transparencia | Responder Solicitud #<%= solicitud.getId() %>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -104,52 +142,93 @@
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <a href="<%= request.getContextPath() %>/solicitud.do?accion=detalle&id=<%= solicitud.getId() %>"
                        class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Volver a Detalle
+                        <i class="bi bi-arrow-left me-1"></i> Volver al Detalle
                     </a>
                 </div>
             </div>
 
+            <% if (esUrgente) { %>
+            <div class="alert alert-danger fade-in mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">¡Solicitud urgente!</h5>
+                        <p class="mb-0"><%= plazoText %>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <% } else { %>
+            <div class="alert alert-warning fade-in mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-info-circle-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Plazo de respuesta</h5>
+                        <p class="mb-0"><%= plazoText %>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
             <!-- Resumen de la solicitud -->
             <div class="card shadow mb-4 fade-in">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold">Resumen de la Solicitud</h6>
-                    <span class="badge bg-<%= solicitud.getEstadoSolicitudId() == 1 ? "warning text-dark" : solicitud.getEstadoSolicitudId() == 2 ? "primary" : solicitud.getEstadoSolicitudId() == 3 ? "success" : "secondary" %>">
-                        <%= solicitud.getEstadoSolicitudId() == 1 ? "Pendiente" : solicitud.getEstadoSolicitudId() == 2 ? "En Proceso" : solicitud.getEstadoSolicitudId() == 3 ? "Atendida" : "Otro" %>
-                    </span>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
+                    <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Fecha de Solicitud:</strong> <%= solicitud.getFechaSolicitud() %>
-                            </p>
-                            <p><strong>Ciudadano:</strong> [Nombre del Ciudadano]</p>
-                            <p><strong>Tipo de Solicitud:</strong>
-                                <%= solicitud.getTipoSolicitudId() == 1 ? "Información Presupuestal" :
-                                        solicitud.getTipoSolicitudId() == 2 ? "Información de Proyectos" :
-                                                solicitud.getTipoSolicitudId() == 3 ? "Información de Contrataciones" :
-                                                        solicitud.getTipoSolicitudId() == 4 ? "Información de Personal" :
-                                                                solicitud.getTipoSolicitudId() == 5 ? "Información General" :
-                                                                        solicitud.getTipoSolicitudId() == 6 ? "Información Ambiental" : "Otro" %>
-                            </p>
+                            <h6 class="fw-bold">Datos del Solicitante</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td width="40%"><strong>Nombres:</strong></td>
+                                    <td><%= solicitud.getCiudadano() != null ? solicitud.getCiudadano().getNombreCompleto() : "N/A" %>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>DNI:</strong></td>
+                                    <td><%= solicitud.getCiudadano() != null ? solicitud.getCiudadano().getDni() : "N/A" %>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Correo:</strong></td>
+                                    <td><%= solicitud.getCiudadano() != null ? solicitud.getCiudadano().getCorreo() : "N/A" %>
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
                         <div class="col-md-6">
-                            <div class="alert alert-warning mb-0">
-                                <div class="d-flex">
-                                    <div class="me-3">
-                                        <i class="bi bi-clock-history fs-4"></i>
-                                    </div>
-                                    <div>
-                                        <strong>Plazo de atención:</strong>
-                                        <p class="mb-0">Esta solicitud debe ser atendida antes
-                                            del <%= java.time.LocalDate.now().plusDays(10) %> (10 días hábiles).</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <h6 class="fw-bold">Datos de la Solicitud</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td width="40%"><strong>ID:</strong></td>
+                                    <td><%= solicitud.getId() %>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha:</strong></td>
+                                    <td><%= solicitud.getFechaSolicitud() != null ? sdf.format(solicitud.getFechaSolicitud()) : "N/A" %>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        <span class="badge <%= solicitud.getEstadoSolicitudId() == 1 ? "bg-warning text-dark" : "bg-info" %>">
+                                            <%= solicitud.getEstadoSolicitudId() == 1 ? "Pendiente" : "En Proceso" %>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
 
-                    <h6 class="mb-3">Descripción de la Solicitud</h6>
-                    <div class="p-3 bg-light rounded mb-4">
+                    <h6 class="fw-bold">Descripción de la Solicitud</h6>
+                    <div class="p-3 bg-light rounded mb-3">
                         <%= solicitud.getDescripcion() %>
                     </div>
                 </div>
@@ -161,27 +240,16 @@
                     <h6 class="m-0 font-weight-bold">Formulario de Respuesta</h6>
                 </div>
                 <div class="card-body">
-                    <form id="formRespuesta" action="<%= request.getContextPath() %>/solicitud.do" method="post"
+                    <form id="formRespuesta" method="post" action="<%= request.getContextPath() %>/solicitud.do"
                           enctype="multipart/form-data">
                         <input type="hidden" name="accion" value="responder">
                         <input type="hidden" name="solicitudId" value="<%= solicitud.getId() %>">
-
-                        <div class="alert alert-info mb-4">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="bi bi-info-circle fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="alert-heading">Información Importante</h5>
-                                    <p>La respuesta que proporcione será enviada directamente al ciudadano solicitante.
-                                        Asegúrese de que la información sea clara, precisa y correcta.</p>
-                                    <p class="mb-0">Recuerde que está actuando en nombre de su institución y esta
-                                        respuesta queda registrada como documento oficial.</p>
-                                </div>
-                            </div>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i> La respuesta será enviada
+                            directamente al ciudadano. Revise cuidadosamente antes de enviar.
                         </div>
 
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="tipoRespuesta" class="form-label">Tipo de Respuesta</label>
                             <select class="form-select" id="tipoRespuesta" name="tipoRespuesta" required>
                                 <option value="">Seleccione tipo de respuesta</option>
@@ -190,108 +258,56 @@
                                 <option value="prorroga">Solicitud de prórroga</option>
                                 <option value="rechazo">Denegación de información</option>
                             </select>
-                            <div class="invalid-feedback">
-                                Por favor seleccione el tipo de respuesta.
+                        </div>
+
+                        <div id="bloqueProrroga" class="mb-3" style="display: none;">
+                            <label for="fechaProrroga" class="form-label">Nueva Fecha de Entrega</label>
+                            <input type="text" class="form-control date-picker" id="fechaProrroga"
+                                   name="fechaProrroga">
+                            <div class="form-text">La prórroga no puede exceder los 5 días hábiles
+                                adicionales.
                             </div>
                         </div>
 
-                        <div id="bloqueProrroga" class="mb-4" style="display: none;">
-                            <div class="card border-primary mb-3">
-                                <div class="card-header text-primary">Solicitud de Prórroga</div>
-                                <div class="card-body">
-                                    <p>La prórroga permite extender el plazo de respuesta por un máximo de 5 días
-                                        hábiles adicionales.</p>
-                                    <div class="mb-3">
-                                        <label for="fechaProrroga" class="form-label">Nueva Fecha de Entrega
-                                            Propuesta:</label>
-                                        <input type="text" class="form-control date-picker" id="fechaProrroga"
-                                               name="fechaProrroga">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="motivoProrroga" class="form-label">Justificación de la
-                                            Prórroga:</label>
-                                        <select class="form-select" id="motivoProrroga" name="motivoProrroga">
-                                            <option value="">Seleccione un motivo</option>
-                                            <option value="1">Volumen de información solicitada</option>
-                                            <option value="2">Complejidad de la búsqueda</option>
-                                            <option value="3">Necesidad de análisis especializado</option>
-                                            <option value="4">Coordinación con múltiples áreas</option>
-                                            <option value="5">Otro motivo (especificar en la respuesta)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
+                        <div id="bloqueRechazo" class="mb-3" style="display: none;">
+                            <label for="motivoRechazo" class="form-label">Motivo del Rechazo</label>
+                            <select class="form-select" id="motivoRechazo" name="motivoRechazo">
+                                <option value="">Seleccione motivo</option>
+                                <option value="1">Información clasificada como secreta (Seguridad Nacional)
+                                </option>
+                                <option value="2">Información reservada (Seguridad Pública)</option>
+                                <option value="3">Información confidencial (Datos personales)</option>
+                                <option value="4">Información en proceso deliberativo</option>
+                                <option value="5">Otro motivo (detallar)</option>
+                            </select>
                         </div>
 
-                        <div id="bloqueRechazo" class="mb-4" style="display: none;">
-                            <div class="card border-danger mb-3">
-                                <div class="card-header text-danger">Denegación de Información</div>
-                                <div class="card-body">
-                                    <p>Recuerde que toda denegación debe estar justificada en las excepciones
-                                        establecidas por ley.</p>
-                                    <div class="mb-3">
-                                        <label for="motivoRechazo" class="form-label">Motivo del Rechazo:</label>
-                                        <select class="form-select" id="motivoRechazo" name="motivoRechazo">
-                                            <option value="">Seleccione motivo</option>
-                                            <option value="1">Información clasificada como secreta (Seguridad
-                                                Nacional)
-                                            </option>
-                                            <option value="2">Información reservada (Seguridad Pública)</option>
-                                            <option value="3">Información confidencial (Datos personales)</option>
-                                            <option value="4">Información en proceso deliberativo</option>
-                                            <option value="5">Otro motivo (detallar)</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="baseRechazo" class="form-label">Base Legal del Rechazo:</label>
-                                        <input type="text" class="form-control" id="baseRechazo" name="baseRechazo"
-                                               placeholder="Ej: Artículo 15-B de la Ley N° 27806">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="respuestaTexto" class="form-label">Contenido de la Respuesta</label>
-                            <textarea class="form-control" id="respuestaTexto" name="respuestaTexto" rows="10"
+                            <textarea class="form-control" id="respuestaTexto" name="respuestaTexto" rows="8"
                                       required></textarea>
-                            <div class="invalid-feedback">
-                                Por favor ingrese el contenido de la respuesta.
-                            </div>
-                            <div class="form-text">
-                                Sea claro y específico. Proporcione toda la información solicitada o justifique
-                                adecuadamente su denegación.
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="documentosRespuesta" class="form-label">Documentos Adjuntos</label>
+                            <input class="form-control" type="file" id="documentosRespuesta"
+                                   name="documentosRespuesta" multiple>
+                            <div class="form-text">Puede adjuntar múltiples documentos (máximo 10MB en total).
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label for="documentosAdjuntos" class="form-label">Documentos Adjuntos (opcional)</label>
-                            <input type="file" class="form-control" id="documentosAdjuntos" name="documentosAdjuntos"
-                                   multiple>
-                            <div class="form-text">
-                                Puede adjuntar hasta 5 archivos (máximo 10MB en total). Formatos permitidos: PDF, Word,
-                                Excel, PowerPoint, JPG, PNG.
-                            </div>
-                        </div>
-
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="confirmacion" name="confirmacion"
-                                   required>
-                            <label class="form-check-label" for="confirmacion">
-                                Confirmo que la información proporcionada es correcta, completa y estoy autorizado para
-                                enviarla
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="confirmacionEnvio"
+                                   name="confirmacionEnvio" required>
+                            <label class="form-check-label" for="confirmacionEnvio">Confirmo que la información
+                                proporcionada es correcta y estoy autorizado para enviarla
                             </label>
-                            <div class="invalid-feedback">
-                                Debe confirmar que la información es correcta y está autorizado.
-                            </div>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="<%= request.getContextPath() %>/solicitud.do?accion=listar"
-                               class="btn btn-secondary me-md-2">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send me-1"></i> Enviar Respuesta
-                            </button>
+                        <div class="d-flex justify-content-between">
+                            <a href="<%= request.getContextPath() %>/solicitud.do?accion=detalle&id=<%= solicitud.getId() %>"
+                               class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Enviar Respuesta</button>
                         </div>
                     </form>
                 </div>
@@ -306,45 +322,56 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 <script>
     $(document).ready(function () {
-        // Inicializar datepicker
+        // Inicializar selectores de fecha
         flatpickr(".date-picker", {
             locale: "es",
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            maxDate: new Date().fp_incr(15) // Máximo 15 días desde hoy
+            dateFormat: "d/m/Y",
+            allowInput: true
         });
 
-        // Mostrar/ocultar secciones según el tipo de respuesta
+        // Mostrar/ocultar campos según el tipo de respuesta
         $('#tipoRespuesta').change(function () {
-            const tipoRespuesta = $(this).val();
+            const valor = $(this).val();
 
             // Ocultar todos los bloques condicionales
             $('#bloqueProrroga, #bloqueRechazo').hide();
 
             // Mostrar el bloque correspondiente
-            if (tipoRespuesta === 'prorroga') {
+            if (valor === 'prorroga') {
                 $('#bloqueProrroga').show();
-                $('#fechaProrroga, #motivoProrroga').prop('required', true);
-            } else {
-                $('#fechaProrroga, #motivoProrroga').prop('required', false);
-            }
-
-            if (tipoRespuesta === 'rechazo') {
+            } else if (valor === 'rechazo') {
                 $('#bloqueRechazo').show();
-                $('#motivoRechazo, #baseRechazo').prop('required', true);
-            } else {
-                $('#motivoRechazo, #baseRechazo').prop('required', false);
             }
         });
 
         // Validación del formulario
-        const form = document.querySelector('#formRespuesta');
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
+        $('#formRespuesta').on('submit', function (e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
             }
-            form.classList.add('was-validated');
+
+            const tipoRespuesta = $('#tipoRespuesta').val();
+
+            if (tipoRespuesta === 'prorroga' && $('#fechaProrroga').val() === '') {
+                e.preventDefault();
+                alert('Para solicitar prórroga debe indicar la nueva fecha de entrega');
+                return false;
+            }
+
+            if (tipoRespuesta === 'rechazo' && $('#motivoRechazo').val() === '') {
+                e.preventDefault();
+                alert('Para rechazar la solicitud debe indicar un motivo');
+                return false;
+            }
+
+            if (!$('#confirmacionEnvio').is(':checked')) {
+                e.preventDefault();
+                alert('Debe confirmar que está autorizado para enviar esta información');
+                return false;
+            }
+
+            return true;
         });
     });
 </script>
