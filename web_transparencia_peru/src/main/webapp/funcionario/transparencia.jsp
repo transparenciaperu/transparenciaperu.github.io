@@ -67,6 +67,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/funcionario.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/tabla-moderna.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
@@ -137,9 +138,11 @@
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom title-section">
                 <h1 class="h2">Gestión de Información de Transparencia</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                    <button type="button" class="btn btn-primary rounded-pill px-4 d-flex align-items-center shadow-sm"
+                            data-bs-toggle="modal"
                             data-bs-target="#publicarDocumentoModal">
-                        <i class="bi bi-cloud-upload me-1"></i> Publicar Documento
+                        <i class="bi bi-cloud-upload me-2"></i>
+                        <span>Publicar Documento</span>
                     </button>
                 </div>
             </div>
@@ -212,26 +215,27 @@
             <div class="tab-content" id="categoriasTabsContent">
                 <div class="tab-pane fade show active" id="datos-generales" role="tabpanel"
                      aria-labelledby="datos-generales-tab">
-                    <div class="card shadow mb-4 fade-in">
+                    <div class="card shadow mb-4 fade-in card-tabla">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold">Datos Generales de la Entidad</h6>
                             <div>
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editarSeccionModal" data-seccion="datos-generales">
-                                    <i class="bi bi-pencil-square me-1"></i> Editar
+                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                        data-bs-target="#editarSeccionModal" data-seccion="datos-generales"
+                                        data-title="Editar sección">
+                                    <i class="bi bi-gear"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
                                         <th>Descripción</th>
                                         <th>Fecha Publicación</th>
                                         <th>Estado</th>
-                                        <th>Acciones</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -241,38 +245,51 @@
                                             for (DocumentoTransparenciaEntidad documento : documentosDatosGenerales) {
                                     %>
                                     <tr>
-                                        <td><%= documento.getTitulo() %>
+                                        <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
-                                        <td><%= documento.getDescripcion() %>
+                                        <td class="col-descripcion"><%= documento.getDescripcion() %>
                                         </td>
-                                        <td>
+                                        <td class="col-fecha">
                                             <% if (documento.getFechaPublicacion() != null) { %>
                                             <%= formatoFecha.format(documento.getFechaPublicacion()) %>
                                             <% } else { %>
-                                            No disponible
+                                            <span class="text-muted">No disponible</span>
                                             <% } %>
                                         </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
+                                        <td>
+                                            <% if (documento.getEstado().equals("Publicado")) { %>
+                                            <span class="documento-estado publicado">
+                                                <i class="bi bi-check-circle-fill"></i> Publicado
+                                            </span>
+                                            <% } else { %>
+                                            <span class="documento-estado pendiente">
+                                                <i class="bi bi-clock-fill"></i> Pendiente
+                                            </span>
+                                            <% } %>
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                                    data-bs-target="#editarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <div class="acciones-grupo">
+                                                <button class="btn btn-accion btn-accion-ver" data-bs-toggle="modal"
+                                                        data-bs-target="#verDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                                        data-bs-target="#editarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Editar documento">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-accion btn-accion-eliminar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#eliminarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-titulo="<%= documento.getTitulo() %>"
+                                                        data-title="Eliminar documento">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     <%
@@ -280,8 +297,11 @@
                                     } else {
                                     %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="alert alert-light mb-0">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                No hay documentos disponibles en esta categoría.
+                                            </div>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -326,19 +346,20 @@
                 </div>
 
                 <div class="tab-pane fade" id="planeamiento" role="tabpanel" aria-labelledby="planeamiento-tab">
-                    <div class="card shadow mb-4 fade-in">
+                    <div class="card shadow mb-4 fade-in card-tabla">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold">Planeamiento y Organización</h6>
                             <div>
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editarSeccionModal" data-seccion="planeamiento">
-                                    <i class="bi bi-pencil-square me-1"></i> Editar
+                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                        data-bs-target="#editarSeccionModal" data-seccion="planeamiento"
+                                        data-title="Editar sección">
+                                    <i class="bi bi-gear"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
@@ -355,43 +376,67 @@
                                             for (DocumentoTransparenciaEntidad documento : documentosPlaneamiento) {
                                     %>
                                     <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
-                                        <td><%= documento.getTitulo() %>
+                                        <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
-                                        <td><%= documento.getDescripcion() %>
+                                        <td class="col-descripcion"><%= documento.getDescripcion() %>
                                         </td>
-                                        <td>
+                                        <td class="col-fecha">
                                             <% if (documento.getFechaPublicacion() != null) { %>
                                             <%= formatoFecha.format(documento.getFechaPublicacion()) %>
                                             <% } else { %>
-                                            -
+                                            <span class="text-muted">-</span>
                                             <% } %>
-                                        </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
                                         </td>
                                         <td>
                                             <% if (documento.getEstado().equals("Publicado")) { %>
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
+                                            <span class="documento-estado publicado">
+                                                <i class="bi bi-check-circle-fill"></i> Publicado
+                                            </span>
+                                            <% } else { %>
+                                            <span class="documento-estado pendiente">
+                                                <i class="bi bi-clock-fill"></i> Pendiente
+                                            </span>
                                             <% } %>
-                                            <button class="btn btn-sm btn-<%= documento.getEstado().equals("Publicado") ? "success" : "primary" %>"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="<%= documento.getEstado().equals("Publicado") ? "#editarDocumentoModal" : "#publicarDocumentoModal" %>"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-<%= documento.getEstado().equals("Publicado") ? "pencil" : "upload" %>"></i><%= documento.getEstado().equals("Publicado") ? "" : " Publicar" %>
-                                            </button>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <div class="acciones-grupo">
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-ver" data-bs-toggle="modal"
+                                                        data-bs-target="#verDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                                        data-bs-target="#editarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Editar documento">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <% } else { %>
+                                                <button class="btn btn-accion btn-accion-publicar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#publicarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Publicar documento">
+                                                    <i class="bi bi-cloud-upload"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-eliminar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#eliminarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-titulo="<%= documento.getTitulo() %>"
+                                                        data-title="Eliminar documento">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <% } %>
+                                            </div>
                                         </td>
                                     </tr>
                                     <%
@@ -412,13 +457,14 @@
                 </div>
 
                 <div class="tab-pane fade" id="presupuesto" role="tabpanel" aria-labelledby="presupuesto-tab">
-                    <div class="card shadow mb-4 fade-in">
+                    <div class="card shadow mb-4 fade-in card-tabla">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold">Presupuesto</h6>
                             <div>
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editarSeccionModal" data-seccion="presupuesto">
-                                    <i class="bi bi-pencil-square me-1"></i> Editar
+                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                        data-bs-target="#editarSeccionModal" data-seccion="presupuesto"
+                                        data-title="Editar sección">
+                                    <i class="bi bi-gear"></i>
                                 </button>
                             </div>
                         </div>
@@ -498,13 +544,14 @@
                 </div>
 
                 <div class="tab-pane fade" id="proyectos" role="tabpanel" aria-labelledby="proyectos-tab">
-                    <div class="card shadow mb-4 fade-in">
+                    <div class="card shadow mb-4 fade-in card-tabla">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold">Proyectos de Inversión e INFOBRAS</h6>
                             <div>
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editarSeccionModal" data-seccion="proyectos">
-                                    <i class="bi bi-pencil-square me-1"></i> Editar
+                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                        data-bs-target="#editarSeccionModal" data-seccion="proyectos"
+                                        data-title="Editar sección">
+                                    <i class="bi bi-gear"></i>
                                 </button>
                             </div>
                         </div>
@@ -578,13 +625,14 @@
                 </div>
 
                 <div class="tab-pane fade" id="contrataciones" role="tabpanel" aria-labelledby="contrataciones-tab">
-                    <div class="card shadow mb-4 fade-in">
+                    <div class="card shadow mb-4 fade-in card-tabla">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold">Información de Contrataciones</h6>
                             <div>
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editarSeccionModal" data-seccion="contrataciones">
-                                    <i class="bi bi-pencil-square me-1"></i> Editar
+                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                        data-bs-target="#editarSeccionModal" data-seccion="contrataciones"
+                                        data-title="Editar sección">
+                                    <i class="bi bi-gear"></i>
                                 </button>
                             </div>
                         </div>
@@ -664,13 +712,14 @@
                 </div>
 
                 <div class="tab-pane fade" id="personal" role="tabpanel" aria-labelledby="personal-tab">
-                    <div class="card shadow mb-4 fade-in">
+                    <div class="card shadow mb-4 fade-in card-tabla">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold">Información de Personal</h6>
                             <div>
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editarSeccionModal" data-seccion="personal">
-                                    <i class="bi bi-pencil-square me-1"></i> Editar
+                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                        data-bs-target="#editarSeccionModal" data-seccion="personal"
+                                        data-title="Editar sección">
+                                    <i class="bi bi-gear"></i>
                                 </button>
                             </div>
                         </div>

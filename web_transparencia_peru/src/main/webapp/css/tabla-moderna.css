@@ -1,0 +1,284 @@
+/* Estilos modernos para tablas y botones de transparencia.jsp */
+
+/* Estilo de tabla principal */
+.tabla-moderna {
+    border-radius: 8px;
+    border-collapse: separate;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eef0f7;
+    width: 100%;
+}
+
+.tabla-moderna thead {
+    background-color: #f8f9fa;
+}
+
+.tabla-moderna thead th {
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 12px 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+.tabla-moderna tbody tr {
+    transition: all 0.2s ease;
+}
+
+.tabla-moderna tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.tabla-moderna td {
+    vertical-align: middle;
+    padding: 12px 15px;
+    border-top: none;
+    border-bottom: 1px solid #eef0f7;
+}
+
+.tabla-moderna tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Estado del documento */
+.documento-estado {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    border: 1px solid transparent;
+}
+
+.documento-estado.publicado {
+    background-color: #e3fcef;
+    color: #00a651;
+    border-color: #b7ead1;
+}
+
+.documento-estado.pendiente {
+    background-color: #fff5e0;
+    color: #ff9500;
+    border-color: #ffdba9;
+}
+
+.documento-estado i {
+    margin-right: 5px;
+    font-size: 0.85rem;
+}
+
+/* Contenedor de acciones */
+.acciones-grupo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* Botones de acciones */
+.btn-accion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    background-color: white;
+    border: 1px solid #e1e5eb;
+    color: #6c757d;
+    padding: 0;
+}
+
+.btn-accion:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-accion i {
+    font-size: 1rem;
+}
+
+.btn-accion-ver {
+    color: #3461FF;
+    border-color: #d0d9ff;
+    background-color: rgba(52, 97, 255, 0.1);
+}
+
+.btn-accion-ver:hover {
+    background-color: #3461FF;
+    color: white;
+    border-color: #3461FF;
+}
+
+.btn-accion-editar {
+    color: #2daab8;
+    border-color: #bee5ea;
+    background-color: rgba(45, 170, 184, 0.1);
+}
+
+.btn-accion-editar:hover {
+    background-color: #2daab8;
+    color: white;
+    border-color: #2daab8;
+}
+
+.btn-accion-publicar {
+    color: #6c5ce7;
+    border-color: #d1cef6;
+    background-color: rgba(108, 92, 231, 0.1);
+}
+
+.btn-accion-publicar:hover {
+    background-color: #6c5ce7;
+    color: white;
+    border-color: #6c5ce7;
+}
+
+.btn-accion-eliminar {
+    color: #ff4757;
+    border-color: #ffccd0;
+    background-color: rgba(255, 71, 87, 0.1);
+}
+
+.btn-accion-eliminar:hover {
+    background-color: #ff4757;
+    color: white;
+    border-color: #ff4757;
+}
+
+/* Tooltip para botones */
+.btn-accion::after {
+    content: attr(data-title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #333;
+    color: white;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    margin-bottom: 5px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.btn-accion:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Estilos para DataTables */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 4px;
+    margin: 0 2px;
+    border: none;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #3461FF !important;
+    color: white !important;
+    border: 1px solid #3461FF !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #e9ecef !important;
+    color: #212529 !important;
+    border: 1px solid #e9ecef !important;
+}
+
+/* Personalización de las cards que contienen las tablas */
+.card-tabla {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.card-tabla .card-header {
+    background-color: white;
+    border-bottom: 1px solid #eef0f7;
+    padding: 16px 20px;
+}
+
+.card-tabla .card-header h6 {
+    font-weight: 600;
+    color: #343a40;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.card-tabla .card-body {
+    padding: 0;
+}
+
+.card-tabla .card-footer {
+    background-color: white;
+    border-top: 1px solid #eef0f7;
+    padding: 12px 20px;
+}
+
+/* Datos de columna */
+.col-titulo {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.col-descripcion {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.col-fecha {
+    white-space: nowrap;
+}
+
+/* Paginación mejorada */
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-item .page-link {
+    border-radius: 4px;
+    margin: 0 2px;
+    color: #3461FF;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #3461FF;
+    border-color: #3461FF;
+    color: white;
+}
+
+/* Estilos responsive */
+@media (max-width: 767px) {
+    .acciones-grupo {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .tabla-moderna td {
+        padding: 10px 8px;
+    }
+
+    .col-titulo, .col-descripcion {
+        max-width: 120px;
+    }
+}
