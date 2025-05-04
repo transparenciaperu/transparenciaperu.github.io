@@ -600,8 +600,29 @@
 
                     // Formatear la fecha para input date (YYYY-MM-DD)
                     if (data.fechaAprobacion) {
-                        // Extraer solo YYYY-MM-DD si la fecha tiene más información
-                        let fechaFormateada = data.fechaAprobacion.split('T')[0];
+                        // Verificar si la fecha tiene formato ISO o no
+                        var fechaStr = data.fechaAprobacion;
+                        var fechaFormateada;
+
+                        if (fechaStr.includes('T') || fechaStr.includes(' ')) {
+                            // Formato ISO o con espacio: extraer solo la parte de la fecha
+                            fechaFormateada = fechaStr.split(/[T ]/)[0];
+                        } else if (fechaStr.includes('/')) {
+                            // Formato DD/MM/YYYY
+                            var partsFecha = fechaStr.split('/');
+                            if (partsFecha.length === 3) {
+                                // Asegurar que mes y día tienen dos dígitos
+                                var dia = partsFecha[0].padStart(2, '0');
+                                var mes = partsFecha[1].padStart(2, '0');
+                                fechaFormateada = partsFecha[2] + '-' + mes + '-' + dia;
+                            } else {
+                                fechaFormateada = '';
+                            }
+                        } else {
+                            // Asumir que ya está en formato YYYY-MM-DD
+                            fechaFormateada = fechaStr;
+                        }
+
                         $('#editFechaAprobacion').val(fechaFormateada);
                     } else {
                         $('#editFechaAprobacion').val('');
@@ -654,17 +675,22 @@
                 // Fecha de aprobación - Columna 4
                 var fechaAprobacion = data[4];
                 if (fechaAprobacion && fechaAprobacion !== "No disponible") {
+                    // Convertir formato de fecha DD/MM/YYYY a YYYY-MM-DD para el input date
                     var partsFecha = fechaAprobacion.split('/');
                     if (partsFecha.length === 3) {
-                        var fechaFormateada = partsFecha[2] + '-' +
-                            (partsFecha[1].length === 1 ? '0' + partsFecha[1] : partsFecha[1]) + '-' +
-                            (partsFecha[0].length === 1 ? '0' + partsFecha[0] : partsFecha[0]);
+                        // Asegurar que día y mes tienen dos dígitos
+                        var dia = partsFecha[0].padStart(2, '0');
+                        var mes = partsFecha[1].padStart(2, '0');
+                        var fechaFormateada = partsFecha[2] + '-' + mes + '-' + dia;
                         $('#editFechaAprobacion').val(fechaFormateada);
+                        console.log("Fecha convertida: ", fechaFormateada);
                     } else {
-                        $('#editFechaAprobacion').val(fechaAprobacion);
+                        $('#editFechaAprobacion').val('');
+                        console.log("Formato de fecha no reconocido: ", fechaAprobacion);
                     }
                 } else {
                     $('#editFechaAprobacion').val('');
+                    console.log("Fecha no disponible o vacía");
                 }
 
                 // No podemos recuperar descripción desde la tabla
