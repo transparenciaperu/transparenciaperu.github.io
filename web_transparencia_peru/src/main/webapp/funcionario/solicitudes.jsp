@@ -21,9 +21,22 @@
     List<SolicitudAccesoEntidad> solicitudes = new ArrayList<>();
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
+    // Obtener valores de filtros si están disponibles en el request
+    String filtroEstado = (String) request.getAttribute("filtroEstado");
+    String filtroFechaDesde = (String) request.getAttribute("filtroFechaDesde");
+    String filtroFechaHasta = (String) request.getAttribute("filtroFechaHasta");
+    String filtroBusqueda = (String) request.getAttribute("filtroBusqueda");
+
     try {
         SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
-        solicitudes = modelo.listarSolicitudes(); // Obtener todas las solicitudes
+
+        // Si hay filtros en el request, es porque vienen del servlet
+        if (request.getAttribute("solicitudes") != null) {
+            solicitudes = (List<SolicitudAccesoEntidad>) request.getAttribute("solicitudes");
+        } else {
+            // Si no hay filtros, obtener todas las solicitudes
+            solicitudes = modelo.listarSolicitudes();
+        }
     } catch (Exception e) {
         e.printStackTrace();
         // Manejar el error según sea necesario
@@ -188,36 +201,53 @@
                     <h6 class="m-0 font-weight-bold">Filtros de búsqueda</h6>
                 </div>
                 <div class="card-body">
-                    <form id="formFiltros" class="row g-3">
+                    <form id="formFiltros" class="row g-3" action="<%= request.getContextPath() %>/solicitud.do"
+                          method="get">
+                        <input type="hidden" name="accion" value="listar">
                         <div class="col-md-3">
                             <label for="filtroEstado" class="form-label">Estado</label>
-                            <select class="form-select" id="filtroEstado">
+                            <select class="form-select" id="filtroEstado" name="filtroEstado">
                                 <option value="">Todos</option>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="en-proceso">En Proceso</option>
-                                <option value="atendida">Atendida</option>
-                                <option value="observada">Observada</option>
-                                <option value="rechazada">Rechazada</option>
+                                <option value="pendiente" <%= "pendiente".equals(filtroEstado) ? "selected" : "" %>>
+                                    Pendiente
+                                </option>
+                                <option value="en-proceso" <%= "en-proceso".equals(filtroEstado) ? "selected" : "" %>>En
+                                    Proceso
+                                </option>
+                                <option value="atendida" <%= "atendida".equals(filtroEstado) ? "selected" : "" %>>
+                                    Atendida
+                                </option>
+                                <option value="observada" <%= "observada".equals(filtroEstado) ? "selected" : "" %>>
+                                    Observada
+                                </option>
+                                <option value="rechazada" <%= "rechazada".equals(filtroEstado) ? "selected" : "" %>>
+                                    Rechazada
+                                </option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label for="filtroFechaDesde" class="form-label">Fecha Desde</label>
                             <input type="text" class="form-control date-picker" id="filtroFechaDesde"
+                                   name="filtroFechaDesde"
+                                   value="<%= filtroFechaDesde != null ? filtroFechaDesde : "" %>"
                                    placeholder="DD/MM/YYYY">
                         </div>
                         <div class="col-md-3">
                             <label for="filtroFechaHasta" class="form-label">Fecha Hasta</label>
                             <input type="text" class="form-control date-picker" id="filtroFechaHasta"
+                                   name="filtroFechaHasta"
+                                   value="<%= filtroFechaHasta != null ? filtroFechaHasta : "" %>"
                                    placeholder="DD/MM/YYYY">
                         </div>
                         <div class="col-md-3">
                             <label for="filtroBusqueda" class="form-label">Búsqueda</label>
-                            <input type="text" class="form-control" id="filtroBusqueda"
+                            <input type="text" class="form-control" id="filtroBusqueda" name="filtroBusqueda"
+                                   value="<%= filtroBusqueda != null ? filtroBusqueda : "" %>"
                                    placeholder="DNI, nombre o descripción">
                         </div>
                         <div class="col-12 text-end">
                             <button type="button" class="btn btn-secondary me-2" id="btnLimpiarFiltros">Limpiar</button>
-                            <button type="button" class="btn btn-primary" id="btnAplicarFiltros">Aplicar Filtros
+                            <button type="submit" class="btn btn-primary" id="btnAplicarFiltros">Aplicar Filtros
                             </button>
                         </div>
                     </form>
@@ -610,17 +640,16 @@
             }
         });
 
-        // Aplicar filtros
-        $('#btnAplicarFiltros').click(function () {
-            const table = $('#tablaSolicitudes').DataTable();
-            table.draw();
-        });
-
         // Limpiar filtros
         $('#btnLimpiarFiltros').click(function () {
-            $('#formFiltros')[0].reset();
-            const table = $('#tablaSolicitudes').DataTable();
-            table.draw();
+            // Limpiar todos los campos del formulario
+            $('#filtroEstado').val('');
+            $('#filtroFechaDesde').val('');
+            $('#filtroFechaHasta').val('');
+            $('#filtroBusqueda').val('');
+
+            // Enviar el formulario sin filtros
+            $('#formFiltros').submit();
         });
 
         // Filtros rápidos del menú desplegable
@@ -628,7 +657,7 @@
             e.preventDefault();
             const hoy = new Date().toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric'});
             $('#filtroFechaDesde, #filtroFechaHasta').val(hoy);
-            $('#btnAplicarFiltros').click();
+            $('#formFiltros').submit();
         });
 
         $('#filtroSemana').click(function (e) {
@@ -648,26 +677,19 @@
                 month: '2-digit',
                 year: 'numeric'
             }));
-            $('#btnAplicarFiltros').click();
+            $('#formFiltros').submit();
         });
 
         $('#filtroPendientes').click(function (e) {
             e.preventDefault();
             $('#filtroEstado').val('pendiente');
-            $('#btnAplicarFiltros').click();
+            $('#formFiltros').submit();
         });
 
         $('#filtroVencidas').click(function (e) {
             e.preventDefault();
-            // Esto sería implementado con una búsqueda personalizada en servidor
-            // Por ahora simplemente filtramos las filas con clase 'table-danger'
-            const table = $('#tablaSolicitudes').DataTable();
-            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-                const $row = $(table.row(dataIndex).node());
-                return $row.hasClass('table-danger');
-            });
-            table.draw();
-            $.fn.dataTable.ext.search.pop(); // Eliminar el filtro después de usarlo
+            // Para las vencidas o por vencer, redirigimos directamente
+            window.location.href = '<%= request.getContextPath() %>/solicitud.do?accion=listar&filtroVencidas=true';
         });
 
         $('#filtroLimpiar').click(function (e) {

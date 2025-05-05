@@ -14,8 +14,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
 
@@ -54,42 +57,7 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             rs = pstm.executeQuery();
 
             while (rs.next()) {
-                SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
-                solicitud.setId(rs.getInt("id"));
-                solicitud.setFechaSolicitud(rs.getDate("fechaSolicitud"));
-                solicitud.setDescripcion(rs.getString("descripcion"));
-                solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
-                solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
-                solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
-                solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
-                solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
-                solicitud.setObservaciones(rs.getString("observaciones"));
-
-                CiudadanoEntidad ciudadano = new CiudadanoEntidad();
-                ciudadano.setId(rs.getInt("ciudadanoId"));
-                ciudadano.setNombres(rs.getString("nombres"));
-                ciudadano.setApellidos(rs.getString("apellidos"));
-                ciudadano.setDni(rs.getString("dni"));
-                ciudadano.setCorreo(rs.getString("correo"));
-
-                TipoSolicitudEntidad tipoSolicitud = new TipoSolicitudEntidad();
-                tipoSolicitud.setId(rs.getInt("tipoSolicitudId"));
-                tipoSolicitud.setNombre(rs.getString("tipo_nombre"));
-
-                EstadoSolicitudEntidad estadoSolicitud = new EstadoSolicitudEntidad();
-                estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
-                estadoSolicitud.setNombre(rs.getString("estado_nombre"));
-
-                EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
-                entidadPublica.setId(rs.getInt("entidad_id"));
-                entidadPublica.setNombre(rs.getString("entidad_nombre"));
-
-                solicitud.setCiudadano(ciudadano);
-                solicitud.setTipoSolicitud(tipoSolicitud);
-                solicitud.setEstadoSolicitud(estadoSolicitud);
-                solicitud.setEntidadPublica(entidadPublica);
-
-                lista.add(solicitud);
+                lista.add(mapearSolicitudDesdeResultSet(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -143,42 +111,7 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             rs = pstm.executeQuery();
 
             while (rs.next()) {
-                SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
-                solicitud.setId(rs.getInt("id"));
-                solicitud.setFechaSolicitud(rs.getDate("fechaSolicitud"));
-                solicitud.setDescripcion(rs.getString("descripcion"));
-                solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
-                solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
-                solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
-                solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
-                solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
-                solicitud.setObservaciones(rs.getString("observaciones"));
-
-                CiudadanoEntidad ciudadano = new CiudadanoEntidad();
-                ciudadano.setId(rs.getInt("ciudadanoId"));
-                ciudadano.setNombres(rs.getString("nombres"));
-                ciudadano.setApellidos(rs.getString("apellidos"));
-                ciudadano.setDni(rs.getString("dni"));
-                ciudadano.setCorreo(rs.getString("correo"));
-
-                TipoSolicitudEntidad tipoSolicitud = new TipoSolicitudEntidad();
-                tipoSolicitud.setId(rs.getInt("tipoSolicitudId"));
-                tipoSolicitud.setNombre(rs.getString("tipo_nombre"));
-
-                EstadoSolicitudEntidad estadoSolicitud = new EstadoSolicitudEntidad();
-                estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
-                estadoSolicitud.setNombre(rs.getString("estado_nombre"));
-
-                EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
-                entidadPublica.setId(rs.getInt("entidad_id"));
-                entidadPublica.setNombre(rs.getString("entidad_nombre"));
-
-                solicitud.setCiudadano(ciudadano);
-                solicitud.setTipoSolicitud(tipoSolicitud);
-                solicitud.setEstadoSolicitud(estadoSolicitud);
-                solicitud.setEntidadPublica(entidadPublica);
-
-                lista.add(solicitud);
+                lista.add(mapearSolicitudDesdeResultSet(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -232,42 +165,7 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             rs = pstm.executeQuery();
 
             while (rs.next()) {
-                SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
-                solicitud.setId(rs.getInt("id"));
-                solicitud.setFechaSolicitud(rs.getDate("fechaSolicitud"));
-                solicitud.setDescripcion(rs.getString("descripcion"));
-                solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
-                solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
-                solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
-                solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
-                solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
-                solicitud.setObservaciones(rs.getString("observaciones"));
-
-                CiudadanoEntidad ciudadano = new CiudadanoEntidad();
-                ciudadano.setId(rs.getInt("ciudadanoId"));
-                ciudadano.setNombres(rs.getString("nombres"));
-                ciudadano.setApellidos(rs.getString("apellidos"));
-                ciudadano.setDni(rs.getString("dni"));
-                ciudadano.setCorreo(rs.getString("correo"));
-
-                TipoSolicitudEntidad tipoSolicitud = new TipoSolicitudEntidad();
-                tipoSolicitud.setId(rs.getInt("tipoSolicitudId"));
-                tipoSolicitud.setNombre(rs.getString("tipo_nombre"));
-
-                EstadoSolicitudEntidad estadoSolicitud = new EstadoSolicitudEntidad();
-                estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
-                estadoSolicitud.setNombre(rs.getString("estado_nombre"));
-
-                EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
-                entidadPublica.setId(rs.getInt("entidad_id"));
-                entidadPublica.setNombre(rs.getString("entidad_nombre"));
-
-                solicitud.setCiudadano(ciudadano);
-                solicitud.setTipoSolicitud(tipoSolicitud);
-                solicitud.setEstadoSolicitud(estadoSolicitud);
-                solicitud.setEntidadPublica(entidadPublica);
-
-                lista.add(solicitud);
+                lista.add(mapearSolicitudDesdeResultSet(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -320,40 +218,7 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
             rs = pstm.executeQuery();
 
             if (rs.next()) {
-                solicitud = new SolicitudAccesoEntidad();
-                solicitud.setId(rs.getInt("id"));
-                solicitud.setFechaSolicitud(rs.getDate("fechaSolicitud"));
-                solicitud.setDescripcion(rs.getString("descripcion"));
-                solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
-                solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
-                solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
-                solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
-                solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
-                solicitud.setObservaciones(rs.getString("observaciones"));
-
-                CiudadanoEntidad ciudadano = new CiudadanoEntidad();
-                ciudadano.setId(rs.getInt("ciudadanoId"));
-                ciudadano.setNombres(rs.getString("nombres"));
-                ciudadano.setApellidos(rs.getString("apellidos"));
-                ciudadano.setDni(rs.getString("dni"));
-                ciudadano.setCorreo(rs.getString("correo"));
-
-                TipoSolicitudEntidad tipoSolicitud = new TipoSolicitudEntidad();
-                tipoSolicitud.setId(rs.getInt("tipoSolicitudId"));
-                tipoSolicitud.setNombre(rs.getString("tipo_nombre"));
-
-                EstadoSolicitudEntidad estadoSolicitud = new EstadoSolicitudEntidad();
-                estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
-                estadoSolicitud.setNombre(rs.getString("estado_nombre"));
-
-                EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
-                entidadPublica.setId(rs.getInt("entidad_id"));
-                entidadPublica.setNombre(rs.getString("entidad_nombre"));
-
-                solicitud.setCiudadano(ciudadano);
-                solicitud.setTipoSolicitud(tipoSolicitud);
-                solicitud.setEstadoSolicitud(estadoSolicitud);
-                solicitud.setEntidadPublica(entidadPublica);
+                solicitud = mapearSolicitudDesdeResultSet(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -783,5 +648,189 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
         }
 
         return resultado;
+    }
+
+    @Override
+    public List<SolicitudAccesoEntidad> listarSolicitudesConFiltros(String estado, String fechaDesde, String fechaHasta, String busqueda, String filtroVencidas) {
+        List<SolicitudAccesoEntidad> lista = new ArrayList<>();
+
+        // Si la base de datos no está disponible, retorna una lista vacía
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. Retornando lista vacía de solicitudes.");
+            return lista;
+        }
+
+        Connection cn = null;
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+
+        try {
+            cn = MySQLConexion.getConexion();
+
+            // Si no se pudo establecer la conexión, retornar lista vacía
+            if (cn == null) {
+                return lista;
+            }
+
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("SELECT s.*, c.nombres, c.apellidos, c.dni, c.correo, ");
+            sqlBuilder.append("t.nombre AS tipo_nombre, e.nombre AS estado_nombre, ");
+            sqlBuilder.append("ep.nombre AS entidad_nombre, ep.id AS entidad_id ");
+            sqlBuilder.append("FROM SolicitudAcceso s ");
+            sqlBuilder.append("INNER JOIN Ciudadano c ON s.ciudadanoId = c.id ");
+            sqlBuilder.append("INNER JOIN TipoSolicitud t ON s.tipoSolicitudId = t.id ");
+            sqlBuilder.append("INNER JOIN EstadoSolicitud e ON s.estadoSolicitudId = e.id ");
+            sqlBuilder.append("LEFT JOIN EntidadPublica ep ON s.entidadPublicaId = ep.id ");
+            sqlBuilder.append("WHERE 1=1 ");
+
+            List<Object> parametros = new ArrayList<>();
+
+            // Filtrar por estado
+            if (estado != null && !estado.isEmpty()) {
+                int estadoId = 0;
+                switch (estado.toLowerCase()) {
+                    case "pendiente":
+                        estadoId = 1;
+                        break;
+                    case "en-proceso":
+                        estadoId = 2;
+                        break;
+                    case "atendida":
+                        estadoId = 3;
+                        break;
+                    case "observada":
+                        estadoId = 4;
+                        break;
+                    case "rechazada":
+                        estadoId = 5;
+                        break;
+                }
+
+                if (estadoId > 0) {
+                    sqlBuilder.append("AND s.estadoSolicitudId = ? ");
+                    parametros.add(estadoId);
+                }
+            }
+
+            // Filtrar por fecha desde
+            if (fechaDesde != null && !fechaDesde.isEmpty()) {
+                try {
+                    java.util.Date fecha = new SimpleDateFormat("dd/MM/yyyy").parse(fechaDesde);
+                    sqlBuilder.append("AND s.fechaSolicitud >= ? ");
+                    parametros.add(new java.sql.Date(fecha.getTime()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            // Filtrar por fecha hasta
+            if (fechaHasta != null && !fechaHasta.isEmpty()) {
+                try {
+                    java.util.Date fecha = new SimpleDateFormat("dd/MM/yyyy").parse(fechaHasta);
+                    sqlBuilder.append("AND s.fechaSolicitud <= ? ");
+                    parametros.add(new java.sql.Date(fecha.getTime()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            // Filtrar por búsqueda (texto libre)
+            if (busqueda != null && !busqueda.isEmpty()) {
+                sqlBuilder.append("AND (c.dni LIKE ? OR c.nombres LIKE ? OR c.apellidos LIKE ? OR s.descripcion LIKE ?) ");
+                String busquedaParam = "%" + busqueda + "%";
+                parametros.add(busquedaParam);
+                parametros.add(busquedaParam);
+                parametros.add(busquedaParam);
+                parametros.add(busquedaParam);
+            }
+
+            sqlBuilder.append("ORDER BY s.fechaSolicitud DESC");
+
+            pstm = cn.prepareStatement(sqlBuilder.toString());
+
+            // Establecer parámetros
+            for (int i = 0; i < parametros.size(); i++) {
+                pstm.setObject(i + 1, parametros.get(i));
+            }
+
+            rs = pstm.executeQuery();
+
+            while (rs.next()) {
+                lista.add(mapearSolicitudDesdeResultSet(rs));
+            }
+
+            // Si el filtro de vencidas está activo, filtramos la lista ya obtenida
+            if (filtroVencidas != null && filtroVencidas.equals("true")) {
+                List<SolicitudAccesoEntidad> listaFiltrada = new ArrayList<>();
+                Date hoy = new Date();
+                final long DIAS_LIMITE = 10; // 10 días hábiles es el límite estándar
+
+                for (SolicitudAccesoEntidad sol : lista) {
+                    if (sol.getEstadoSolicitudId() == 1 || sol.getEstadoSolicitudId() == 2) { // Pendiente o En proceso
+                        Date fechaSolicitud = sol.getFechaSolicitud();
+                        if (fechaSolicitud != null) {
+                            long diferenciaDias = TimeUnit.DAYS.convert(hoy.getTime() - fechaSolicitud.getTime(), TimeUnit.MILLISECONDS);
+
+                            // Vencidas o por vencer (3 días o menos)
+                            if (diferenciaDias >= DIAS_LIMITE - 3) {
+                                listaFiltrada.add(sol);
+                            }
+                        }
+                    }
+                }
+                return listaFiltrada;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstm != null) pstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return lista;
+    }
+
+    private SolicitudAccesoEntidad mapearSolicitudDesdeResultSet(ResultSet rs) throws SQLException {
+        SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
+        solicitud.setId(rs.getInt("id"));
+        solicitud.setFechaSolicitud(rs.getDate("fechaSolicitud"));
+        solicitud.setDescripcion(rs.getString("descripcion"));
+        solicitud.setCiudadanoId(rs.getInt("ciudadanoId"));
+        solicitud.setTipoSolicitudId(rs.getInt("tipoSolicitudId"));
+        solicitud.setEstadoSolicitudId(rs.getInt("estadoSolicitudId"));
+        solicitud.setEntidadPublicaId(rs.getInt("entidadPublicaId"));
+        solicitud.setFechaRespuesta(rs.getDate("fechaRespuesta"));
+        solicitud.setObservaciones(rs.getString("observaciones"));
+
+        CiudadanoEntidad ciudadano = new CiudadanoEntidad();
+        ciudadano.setId(rs.getInt("ciudadanoId"));
+        ciudadano.setNombres(rs.getString("nombres"));
+        ciudadano.setApellidos(rs.getString("apellidos"));
+        ciudadano.setDni(rs.getString("dni"));
+        ciudadano.setCorreo(rs.getString("correo"));
+
+        TipoSolicitudEntidad tipoSolicitud = new TipoSolicitudEntidad();
+        tipoSolicitud.setId(rs.getInt("tipoSolicitudId"));
+        tipoSolicitud.setNombre(rs.getString("tipo_nombre"));
+
+        EstadoSolicitudEntidad estadoSolicitud = new EstadoSolicitudEntidad();
+        estadoSolicitud.setId(rs.getInt("estadoSolicitudId"));
+        estadoSolicitud.setNombre(rs.getString("estado_nombre"));
+
+        EntidadPublicaEntidad entidadPublica = new EntidadPublicaEntidad();
+        entidadPublica.setId(rs.getInt("entidad_id"));
+        entidadPublica.setNombre(rs.getString("entidad_nombre"));
+
+        solicitud.setCiudadano(ciudadano);
+        solicitud.setTipoSolicitud(tipoSolicitud);
+        solicitud.setEstadoSolicitud(estadoSolicitud);
+        solicitud.setEntidadPublica(entidadPublica);
+
+        return solicitud;
     }
 }

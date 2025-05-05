@@ -28,4 +28,6 @@ public interface SolicitudAccesoInterface {
     int eliminarSolicitud(int id);
 
     int registrarRespuesta(RespuestaSolicitudEntidad respuesta);
+
+    List<SolicitudAccesoEntidad> listarSolicitudesConFiltros(String estado, String fechaDesde, String fechaHasta, String busqueda, String filtroVencidas);
 }

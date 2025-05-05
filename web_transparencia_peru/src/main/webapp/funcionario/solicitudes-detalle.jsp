@@ -143,7 +143,8 @@
                 <h1 class="h2">Detalle de Solicitud #<%= solicitud.getId() %>
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a href="solicitudes.jsp" class="btn btn-sm btn-outline-secondary me-2">
+                    <a href="<%= request.getContextPath() %>/solicitud.do?accion=listar"
+                       class="btn btn-sm btn-outline-secondary me-2">
                         <i class="bi bi-arrow-left me-1"></i> Volver a Solicitudes
                     </a>
                     <% if (solicitud.getEstadoSolicitudId() != 3 && solicitud.getEstadoSolicitudId() != 5) { %>
@@ -462,7 +463,7 @@
                 </div>
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
-                        <a href="solicitudes.jsp" class="btn btn-secondary">
+                        <a href="<%= request.getContextPath() %>/solicitud.do?accion=listar" class="btn btn-secondary">
                             <i class="bi bi-arrow-left me-1"></i> Volver
                         </a>
                         <% if (solicitud.getEstadoSolicitudId() != 3 && solicitud.getEstadoSolicitudId() != 5) { %>

@@ -140,9 +140,9 @@
                 <h1 class="h2">Responder Solicitud #<%= solicitud.getId() %>
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a href="<%= request.getContextPath() %>/solicitud.do?accion=detalle&id=<%= solicitud.getId() %>"
+                    <a href="<%= request.getContextPath() %>/solicitud.do?accion=listar"
                        class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Volver al Detalle
+                        <i class="bi bi-arrow-left me-1"></i> Volver a la lista
                     </a>
                 </div>
             </div>

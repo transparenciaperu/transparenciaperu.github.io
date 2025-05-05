@@ -79,6 +79,20 @@ public class ServletSolicitudAcceso extends HttpServlet {
             SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
             List<SolicitudAccesoEntidad> solicitudes;
 
+            // Obtener parámetros de filtro si existen
+            String estado = request.getParameter("filtroEstado");
+            String fechaDesde = request.getParameter("filtroFechaDesde");
+            String fechaHasta = request.getParameter("filtroFechaHasta");
+            String busqueda = request.getParameter("filtroBusqueda");
+            String filtroVencidas = request.getParameter("filtroVencidas");
+
+            // Verificar si hay filtros activos
+            boolean hayFiltros = (estado != null && !estado.isEmpty()) ||
+                    (fechaDesde != null && !fechaDesde.isEmpty()) ||
+                    (fechaHasta != null && !fechaHasta.isEmpty()) ||
+                    (busqueda != null && !busqueda.isEmpty()) ||
+                    (filtroVencidas != null && filtroVencidas.equals("true"));
+
             // Verificar el tipo de usuario para mostrar las solicitudes correspondientes
             if (session.getAttribute("ciudadano") != null) {
                 // Si es ciudadano, mostrar solo sus solicitudes
@@ -89,15 +103,36 @@ public class ServletSolicitudAcceso extends HttpServlet {
             } else if (session.getAttribute("usuario") != null) {
                 UsuarioEntidad usuario = (UsuarioEntidad) session.getAttribute("usuario");
                 if (usuario.getCodRol().equals("FUNCIONARIO")) {
-                    // Si es funcionario, mostrar solicitudes asignadas a su entidad
-                    // Aquí se podría filtrar por entidad del funcionario si estuviera implementado
-                    solicitudes = modelo.listarSolicitudes();
+                    // Si es funcionario y hay filtros, usar el método con filtros
+                    if (hayFiltros) {
+                        solicitudes = modelo.listarSolicitudesConFiltros(estado, fechaDesde, fechaHasta, busqueda, filtroVencidas);
+                    } else {
+                        // Si no hay filtros, mostrar todas las solicitudes
+                        solicitudes = modelo.listarSolicitudes();
+                    }
                     request.setAttribute("solicitudes", solicitudes);
+                    request.setAttribute("filtroEstado", estado);
+                    request.setAttribute("filtroFechaDesde", fechaDesde);
+                    request.setAttribute("filtroFechaHasta", fechaHasta);
+                    request.setAttribute("filtroBusqueda", busqueda);
+                    request.setAttribute("filtroVencidas", filtroVencidas);
+
                     request.getRequestDispatcher("/funcionario/solicitudes.jsp").forward(request, response);
                 } else if (usuario.getCodRol().equals("ADMIN")) {
-                    // Si es admin, mostrar todas las solicitudes
-                    solicitudes = modelo.listarSolicitudes();
+                    // Si es admin y hay filtros, usar el método con filtros
+                    if (hayFiltros) {
+                        solicitudes = modelo.listarSolicitudesConFiltros(estado, fechaDesde, fechaHasta, busqueda, filtroVencidas);
+                    } else {
+                        // Si no hay filtros, mostrar todas las solicitudes
+                        solicitudes = modelo.listarSolicitudes();
+                    }
                     request.setAttribute("solicitudes", solicitudes);
+                    request.setAttribute("filtroEstado", estado);
+                    request.setAttribute("filtroFechaDesde", fechaDesde);
+                    request.setAttribute("filtroFechaHasta", fechaHasta);
+                    request.setAttribute("filtroBusqueda", busqueda);
+                    request.setAttribute("filtroVencidas", filtroVencidas);
+
                     request.getRequestDispatcher("/admin/solicitudes.jsp").forward(request, response);
                 }
             } else {
