@@ -4,6 +4,8 @@
 <%@ page import="pe.gob.transparencia.entidades.RespuestaSolicitudEntidad" %>
 <%@ page import="pe.gob.transparencia.modelo.SolicitudAccesoModelo" %>
 <%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="pe.gob.transparencia.modelo.UsuarioModelo" %>
+<%@ page import="pe.gob.transparencia.entidades.UsuarioEntidad" %>
 <%
     // Verificar si el ciudadano está en sesión
     HttpSession sesion = request.getSession(false);
@@ -41,6 +43,16 @@
         respuesta = modelo.buscarRespuestaPorSolicitudId(solicitud.getId());
     }
 
+    // Obtener información del funcionario que respondió
+    String nombreFuncionario = "No especificado";
+    if (respuesta != null && respuesta.getUsuarioId() > 0) {
+        UsuarioModelo usuarioModelo = new UsuarioModelo();
+        UsuarioEntidad funcionario = usuarioModelo.buscarPorId(respuesta.getUsuarioId());
+        if (funcionario != null) {
+            nombreFuncionario = funcionario.getNombreCompleto();
+        }
+    }
+
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 %>
 <!DOCTYPE html>
@@ -72,7 +84,8 @@
                         <i class="bi bi-person-circle me-1"></i><%= ciudadano.getNombreCompleto() %>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="perfil.jsp"><i class="bi bi-person me-1"></i> Mi Perfil</a>
+                        <li><a class="dropdown-item" href="<%= request.getContextPath() %>/ciudadano/perfil.jsp"><i
+                                class="bi bi-person me-1"></i> Mi Perfil</a>
                         </li>
                         <li>
                             <hr class="dropdown-divider">
@@ -94,27 +107,27 @@
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/ciudadano/index.jsp">
                             <i class="bi bi-house me-1"></i> Inicio
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="mis_solicitudes.jsp">
+                        <a class="nav-link active" href="<%= request.getContextPath() %>/ciudadano/mis_solicitudes.jsp">
                             <i class="bi bi-file-earmark-text me-1"></i> Mis Solicitudes
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="nueva_solicitud.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/ciudadano/nueva_solicitud.jsp">
                             <i class="bi bi-file-plus me-1"></i> Nueva Solicitud
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="perfil.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/ciudadano/perfil.jsp">
                             <i class="bi bi-person me-1"></i> Mi Perfil
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="presupuesto.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/ciudadano/presupuesto.jsp">
                             <i class="bi bi-cash-coin me-1"></i> Presupuesto Público
                         </a>
                     </li>
@@ -139,7 +152,8 @@
                 <h1 class="h2">Respuesta a Solicitud #<%= solicitud.getId() %>
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a href="mis_solicitudes.jsp" class="btn btn-sm btn-outline-secondary">
+                    <a href="<%= request.getContextPath() %>/ciudadano/mis_solicitudes.jsp"
+                       class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Volver a Mis Solicitudes
                     </a>
                 </div>
@@ -233,7 +247,7 @@
                             </tr>
                             <tr>
                                 <td class="fw-bold">Respondido por:</td>
-                                <td><%= respuesta != null && respuesta.getUsuarioId() > 0 ? "Funcionario ID: " + respuesta.getUsuarioId() : "Funcionario del sistema" %>
+                                <td><%= respuesta != null && respuesta.getUsuarioId() > 0 ? "Ha sido respondido por el funcionario " + nombreFuncionario : "Funcionario del sistema" %>
                                 </td>
                             </tr>
                             </tbody>
@@ -269,10 +283,11 @@
             <!-- Opciones para el usuario -->
             <div class="text-center py-4">
                 <div class="btn-group" role="group">
-                    <a href="mis_solicitudes.jsp" class="btn btn-outline-primary">
+                    <a href="<%= request.getContextPath() %>/ciudadano/mis_solicitudes.jsp"
+                       class="btn btn-outline-primary">
                         <i class="bi bi-arrow-left me-1"></i> Volver a Mis Solicitudes
                     </a>
-                    <a href="nueva_solicitud.jsp" class="btn btn-primary">
+                    <a href="<%= request.getContextPath() %>/ciudadano/nueva_solicitud.jsp" class="btn btn-primary">
                         <i class="bi bi-plus-circle me-1"></i> Nueva Solicitud
                     </a>
                     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"

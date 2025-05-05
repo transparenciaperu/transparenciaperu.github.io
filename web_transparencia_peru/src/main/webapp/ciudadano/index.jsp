@@ -93,7 +93,8 @@
                         <i class="bi bi-person-circle me-1"></i><%= ciudadano.getNombreCompleto() %>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="perfil.jsp"><i class="bi bi-person me-1"></i> Mi Perfil</a>
+                        <li><a class="dropdown-item" href="<%= request.getContextPath() %>/ciudadano/perfil.jsp"><i
+                                class="bi bi-person me-1"></i> Mi Perfil</a>
                         </li>
                         <li>
                             <hr class="dropdown-divider">
@@ -115,27 +116,27 @@
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.jsp">
+                        <a class="nav-link active" href="<%= request.getContextPath() %>/ciudadano/index.jsp">
                             <i class="bi bi-house me-1"></i> Inicio
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="mis_solicitudes.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/ciudadano/mis_solicitudes.jsp">
                             <i class="bi bi-file-earmark-text me-1"></i> Mis Solicitudes
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="nueva_solicitud.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/ciudadano/nueva_solicitud.jsp">
                             <i class="bi bi-file-plus me-1"></i> Nueva Solicitud
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="perfil.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/ciudadano/perfil.jsp">
                             <i class="bi bi-person me-1"></i> Mi Perfil
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="presupuesto.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/ciudadano/presupuesto.jsp">
                             <i class="bi bi-cash-coin me-1"></i> Presupuesto Público
                         </a>
                     </li>
@@ -168,10 +169,12 @@
                         <p class="lead mb-4">Al Portal de Transparencia, donde puedes acceder a información pública y
                             realizar solicitudes de acceso de manera fácil y rápida.</p>
                         <div class="d-grid gap-2 d-md-flex">
-                            <a href="nueva_solicitud.jsp" class="btn btn-light btn-lg px-4 me-md-2">
+                            <a href="<%= request.getContextPath() %>/ciudadano/nueva_solicitud.jsp"
+                               class="btn btn-light btn-lg px-4 me-md-2">
                                 <i class="bi bi-plus-circle me-2"></i>Nueva Solicitud
                             </a>
-                            <a href="presupuesto.jsp" class="btn btn-outline-light btn-lg px-4">
+                            <a href="<%= request.getContextPath() %>/ciudadano/presupuesto.jsp"
+                               class="btn btn-outline-light btn-lg px-4">
                                 <i class="bi bi-cash-coin me-2"></i>Ver Presupuesto
                             </a>
                         </div>
@@ -218,7 +221,8 @@
                                 </div>
                             </div>
                             <hr>
-                            <a href="mis_solicitudes.jsp" class="btn btn-primary">Ver todas mis solicitudes</a>
+                            <a href="<%= request.getContextPath() %>/ciudadano/mis_solicitudes.jsp"
+                               class="btn btn-primary">Ver todas mis solicitudes</a>
                         </div>
                     </div>
                 </div>
@@ -229,7 +233,8 @@
                             <p>Realice una nueva solicitud de acceso a la información pública.</p>
                             <p class="small text-muted">Las entidades públicas tienen un plazo legal para responder a su
                                 solicitud.</p>
-                            <a href="nueva_solicitud.jsp" class="btn btn-success">Crear nueva solicitud</a>
+                            <a href="<%= request.getContextPath() %>/ciudadano/nueva_solicitud.jsp"
+                               class="btn btn-success">Crear nueva solicitud</a>
                         </div>
                     </div>
                 </div>
@@ -244,7 +249,8 @@
                         <div class="card-body">
                             <div class="row g-4">
                                 <div class="col-6 text-center">
-                                    <a href="presupuesto.jsp" class="text-decoration-none">
+                                    <a href="<%= request.getContextPath() %>/ciudadano/presupuesto.jsp"
+                                       class="text-decoration-none">
                                         <div class="feature-icon mx-auto">
                                             <i class="bi bi-cash-coin"></i>
                                         </div>
@@ -253,7 +259,8 @@
                                     </a>
                                 </div>
                                 <div class="col-6 text-center">
-                                    <a href="nueva_solicitud.jsp" class="text-decoration-none">
+                                    <a href="<%= request.getContextPath() %>/ciudadano/nueva_solicitud.jsp"
+                                       class="text-decoration-none">
                                         <div class="feature-icon mx-auto">
                                             <i class="bi bi-file-plus"></i>
                                         </div>
@@ -262,7 +269,8 @@
                                     </a>
                                 </div>
                                 <div class="col-6 text-center">
-                                    <a href="mis_solicitudes.jsp" class="text-decoration-none">
+                                    <a href="<%= request.getContextPath() %>/ciudadano/mis_solicitudes.jsp"
+                                       class="text-decoration-none">
                                         <div class="feature-icon mx-auto">
                                             <i class="bi bi-list-check"></i>
                                         </div>
@@ -271,7 +279,8 @@
                                     </a>
                                 </div>
                                 <div class="col-6 text-center">
-                                    <a href="perfil.jsp" class="text-decoration-none">
+                                    <a href="<%= request.getContextPath() %>/ciudadano/perfil.jsp"
+                                       class="text-decoration-none">
                                         <div class="feature-icon mx-auto">
                                             <i class="bi bi-person"></i>
                                         </div>
@@ -351,7 +360,8 @@
                         <td><%= solicitud.get("descripcion").toString().length() > 70 ? solicitud.get("descripcion").toString().substring(0, 70) + "..." : solicitud.get("descripcion") %>
                         </td>
                         <td><span class="badge <%= badgeClass %>"><%= estado %></span></td>
-                        <td><a href="solicitud_detalle.jsp?id=<%= solicitud.get("id") %>"
+                        <td>
+                            <a href="<%= request.getContextPath() %>/ciudadano/solicitud_detalle.jsp?id=<%= solicitud.get("id") %>"
                                class="btn btn-sm btn-primary">Ver detalle</a></td>
                     </tr>
                     <% } %>
