@@ -110,22 +110,22 @@
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/index.jsp">
                             <i class="bi bi-house me-1"></i> Inicio
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="transparencia.jsp">
+                        <a class="nav-link active" href="<%= request.getContextPath() %>/funcionario/transparencia.jsp">
                             <i class="bi bi-file-earmark-text me-1"></i> Gestión de Transparencia
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="solicitudes.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/solicitudes.jsp">
                             <i class="bi bi-envelope-open me-1"></i> Solicitudes de Información
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="reportes.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/reportes.jsp">
                             <i class="bi bi-bar-chart me-1"></i> Reportes
                         </a>
                     </li>
@@ -366,7 +366,7 @@
                                         <th>Descripción</th>
                                         <th>Fecha Publicación</th>
                                         <th>Estado</th>
-                                        <th>Acciones</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -444,8 +444,11 @@
                                     } else {
                                     %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="alert alert-light mb-0">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                No hay documentos disponibles en esta categoría.
+                                            </div>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -470,14 +473,14 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
                                         <th>Descripción</th>
                                         <th>Fecha Publicación</th>
                                         <th>Estado</th>
-                                        <th>Acciones</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -495,35 +498,59 @@
                                             <% if (documento.getFechaPublicacion() != null) { %>
                                             <%= formatoFecha.format(documento.getFechaPublicacion()) %>
                                             <% } else { %>
-                                            -
+                                            <span class="text-muted">No disponible</span>
                                             <% } %>
-                                        </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
                                         </td>
                                         <td>
                                             <% if (documento.getEstado().equals("Publicado")) { %>
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
+                                            <span class="documento-estado publicado">
+                                                <i class="bi bi-check-circle-fill"></i> Publicado
+                                            </span>
+                                            <% } else { %>
+                                            <span class="documento-estado pendiente">
+                                                <i class="bi bi-clock-fill"></i> Pendiente
+                                            </span>
                                             <% } %>
-                                            <button class="btn btn-sm btn-<%= documento.getEstado().equals("Publicado") ? "success" : "primary" %>"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="<%= documento.getEstado().equals("Publicado") ? "#editarDocumentoModal" : "#publicarDocumentoModal" %>"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-<%= documento.getEstado().equals("Publicado") ? "pencil" : "upload" %>"></i><%= documento.getEstado().equals("Publicado") ? "" : " Publicar" %>
-                                            </button>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <div class="acciones-grupo">
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-ver" data-bs-toggle="modal"
+                                                        data-bs-target="#verDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                                        data-bs-target="#editarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Editar documento">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <% } else { %>
+                                                <button class="btn btn-accion btn-accion-publicar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#publicarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Publicar documento">
+                                                    <i class="bi bi-cloud-upload"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-eliminar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#eliminarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-titulo="<%= documento.getTitulo() %>"
+                                                        data-title="Eliminar documento">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <% } %>
+                                            </div>
                                         </td>
                                     </tr>
                                     <%
@@ -531,8 +558,11 @@
                                     } else {
                                     %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="alert alert-light mb-0">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                No hay documentos disponibles en esta categoría.
+                                            </div>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -557,14 +587,14 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
                                         <th>Descripción</th>
                                         <th>Fecha Publicación</th>
                                         <th>Estado</th>
-                                        <th>Acciones</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -574,37 +604,67 @@
                                             for (DocumentoTransparenciaEntidad documento : documentosProyectos) {
                                     %>
                                     <tr>
-                                        <td><%= documento.getTitulo() %>
+                                        <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
-                                        <td><%= documento.getDescripcion() %>
+                                        <td class="col-descripcion"><%= documento.getDescripcion() %>
                                         </td>
-                                        <td>
+                                        <td class="col-fecha">
                                             <% if (documento.getFechaPublicacion() != null) { %>
                                             <%= formatoFecha.format(documento.getFechaPublicacion()) %>
                                             <% } else { %>
-                                            No disponible
+                                            <span class="text-muted">No disponible</span>
                                             <% } %>
                                         </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>"><%= documento.getEstado() %></span>
+                                        <td>
+                                            <% if (documento.getEstado().equals("Publicado")) { %>
+                                            <span class="documento-estado publicado">
+                                                <i class="bi bi-check-circle-fill"></i> Publicado
+                                            </span>
+                                            <% } else { %>
+                                            <span class="documento-estado pendiente">
+                                                <i class="bi bi-clock-fill"></i> Pendiente
+                                            </span>
+                                            <% } %>
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                                    data-bs-target="#editarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <div class="acciones-grupo">
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-ver" data-bs-toggle="modal"
+                                                        data-bs-target="#verDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                                        data-bs-target="#editarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Editar documento">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <% } else { %>
+                                                <button class="btn btn-accion btn-accion-publicar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#publicarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Publicar documento">
+                                                    <i class="bi bi-cloud-upload"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-eliminar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#eliminarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-titulo="<%= documento.getTitulo() %>"
+                                                        data-title="Eliminar documento">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <% } %>
+                                            </div>
                                         </td>
                                     </tr>
                                     <%
@@ -612,8 +672,11 @@
                                     } else {
                                     %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="alert alert-light mb-0">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                No hay documentos disponibles en esta categoría.
+                                            </div>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -638,14 +701,14 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
                                         <th>Descripción</th>
                                         <th>Fecha Publicación</th>
                                         <th>Estado</th>
-                                        <th>Acciones</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -655,43 +718,67 @@
                                             for (DocumentoTransparenciaEntidad documento : documentosContrataciones) {
                                     %>
                                     <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
-                                        <td><%= documento.getTitulo() %>
+                                        <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
-                                        <td><%= documento.getDescripcion() %>
+                                        <td class="col-descripcion"><%= documento.getDescripcion() %>
                                         </td>
-                                        <td>
+                                        <td class="col-fecha">
                                             <% if (documento.getFechaPublicacion() != null) { %>
                                             <%= formatoFecha.format(documento.getFechaPublicacion()) %>
                                             <% } else { %>
-                                            -
+                                            <span class="text-muted">No disponible</span>
                                             <% } %>
-                                        </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
                                         </td>
                                         <td>
                                             <% if (documento.getEstado().equals("Publicado")) { %>
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
+                                            <span class="documento-estado publicado">
+                                                <i class="bi bi-check-circle-fill"></i> Publicado
+                                            </span>
+                                            <% } else { %>
+                                            <span class="documento-estado pendiente">
+                                                <i class="bi bi-clock-fill"></i> Pendiente
+                                            </span>
                                             <% } %>
-                                            <button class="btn btn-sm btn-<%= documento.getEstado().equals("Publicado") ? "success" : "primary" %>"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="<%= documento.getEstado().equals("Publicado") ? "#editarDocumentoModal" : "#publicarDocumentoModal" %>"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-<%= documento.getEstado().equals("Publicado") ? "pencil" : "upload" %>"></i><%= documento.getEstado().equals("Publicado") ? "" : " Publicar" %>
-                                            </button>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <div class="acciones-grupo">
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-ver" data-bs-toggle="modal"
+                                                        data-bs-target="#verDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                                        data-bs-target="#editarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Editar documento">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <% } else { %>
+                                                <button class="btn btn-accion btn-accion-publicar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#publicarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Publicar documento">
+                                                    <i class="bi bi-cloud-upload"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-eliminar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#eliminarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-titulo="<%= documento.getTitulo() %>"
+                                                        data-title="Eliminar documento">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <% } %>
+                                            </div>
                                         </td>
                                     </tr>
                                     <%
@@ -699,8 +786,11 @@
                                     } else {
                                     %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="alert alert-light mb-0">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                No hay documentos disponibles en esta categoría.
+                                            </div>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -725,14 +815,14 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
                                         <th>Descripción</th>
                                         <th>Fecha Publicación</th>
                                         <th>Estado</th>
-                                        <th>Acciones</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -742,43 +832,67 @@
                                             for (DocumentoTransparenciaEntidad documento : documentosPersonal) {
                                     %>
                                     <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
-                                        <td><%= documento.getTitulo() %>
+                                        <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
-                                        <td><%= documento.getDescripcion() %>
+                                        <td class="col-descripcion"><%= documento.getDescripcion() %>
                                         </td>
-                                        <td>
+                                        <td class="col-fecha">
                                             <% if (documento.getFechaPublicacion() != null) { %>
                                             <%= formatoFecha.format(documento.getFechaPublicacion()) %>
                                             <% } else { %>
-                                            -
+                                            <span class="text-muted">No disponible</span>
                                             <% } %>
-                                        </td>
-                                        <td><span
-                                                class="badge bg-<%= documento.getEstado().equals("Publicado") ? "success" : "warning text-dark" %>">
-                                            <%= documento.getEstado() %></span>
                                         </td>
                                         <td>
                                             <% if (documento.getEstado().equals("Publicado")) { %>
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#verDocumentoModal"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
+                                            <span class="documento-estado publicado">
+                                                <i class="bi bi-check-circle-fill"></i> Publicado
+                                            </span>
+                                            <% } else { %>
+                                            <span class="documento-estado pendiente">
+                                                <i class="bi bi-clock-fill"></i> Pendiente
+                                            </span>
                                             <% } %>
-                                            <button class="btn btn-sm btn-<%= documento.getEstado().equals("Publicado") ? "success" : "primary" %>"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="<%= documento.getEstado().equals("Publicado") ? "#editarDocumentoModal" : "#publicarDocumentoModal" %>"
-                                                    data-id="<%= documento.getId() %>">
-                                                <i class="bi bi-<%= documento.getEstado().equals("Publicado") ? "pencil" : "upload" %>"></i><%= documento.getEstado().equals("Publicado") ? "" : " Publicar" %>
-                                            </button>
-                                            <% if (documento.getEstado().equals("Publicado")) { %>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarDocumentoModal"
-                                                    data-id="<%= documento.getId() %>"
-                                                    data-titulo="<%= documento.getTitulo() %>">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <div class="acciones-grupo">
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-ver" data-bs-toggle="modal"
+                                                        data-bs-target="#verDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-editar" data-bs-toggle="modal"
+                                                        data-bs-target="#editarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Editar documento">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <% } else { %>
+                                                <button class="btn btn-accion btn-accion-publicar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#publicarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-title="Publicar documento">
+                                                    <i class="bi bi-cloud-upload"></i>
+                                                </button>
+                                                <% } %>
+
+                                                <% if (documento.getEstado().equals("Publicado")) { %>
+                                                <button class="btn btn-accion btn-accion-eliminar"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#eliminarDocumentoModal"
+                                                        data-id="<%= documento.getId() %>"
+                                                        data-titulo="<%= documento.getTitulo() %>"
+                                                        data-title="Eliminar documento">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <% } %>
+                                            </div>
                                         </td>
                                     </tr>
                                     <%
@@ -786,8 +900,11 @@
                                     } else {
                                     %>
                                     <tr>
-                                        <td colspan="5" class="text-center">No hay documentos disponibles en esta
-                                            categoría.
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="alert alert-light mb-0">
+                                                <i class="bi bi-info-circle me-2"></i>
+                                                No hay documentos disponibles en esta categoría.
+                                            </div>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -1291,18 +1408,25 @@
             $('#ordenSeccion').val(seccionData.orden);
         });
 
-        // Inicializar DataTables en las tablas
-        $('table:not(.dataTable)').each(function () {
-            $(this).DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
-                },
-                "pageLength": 5,
-                "lengthChange": false,
-                "searching": false,
-                "info": false,
-                "paging": true
-            });
+        // Inicializar DataTables en todas las tablas con la clase 'tabla-moderna'
+        $('table.tabla-moderna').each(function () {
+            if (!$.fn.DataTable.isDataTable(this)) {
+                $(this).DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
+                    },
+                    "pageLength": 5,
+                    "lengthChange": false,
+                    "searching": true,
+                    "info": true,
+                    "paging": true,
+                    "dom": '<"table-header"f><"table-body"t><"table-footer"ip>',
+                    "initComplete": function (settings, json) {
+                        // Añadir clase adicional a la tabla
+                        $(this).addClass('initialized');
+                    }
+                });
+            }
         });
 
         // Establecer la fecha actual por defecto en los campos de fecha
