@@ -155,6 +155,30 @@
                 </div>
             </div>
 
+            <%
+                // Mostrar mensaje si existe
+                String mensaje = (String) session.getAttribute("mensaje");
+                String tipoMensaje = (String) session.getAttribute("tipoMensaje");
+                if (mensaje != null && !mensaje.isEmpty()) {
+                    String alertClass = "alert-info";
+                    if (tipoMensaje != null) {
+                        if (tipoMensaje.equals("success")) alertClass = "alert-success";
+                        else if (tipoMensaje.equals("warning")) alertClass = "alert-warning";
+                        else if (tipoMensaje.equals("danger")) alertClass = "alert-danger";
+                    }
+            %>
+            <div class="alert <%= alertClass %> alert-dismissible fade show" role="alert">
+                <i class="bi <%= tipoMensaje != null && tipoMensaje.equals("success") ? "bi-check-circle" : "bi-info-circle" %> me-2"></i>
+                <%= mensaje %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <%
+                    // Eliminar el mensaje después de mostrarlo
+                    session.removeAttribute("mensaje");
+                    session.removeAttribute("tipoMensaje");
+                }
+            %>
+
             <div class="card shadow mb-4 fade-in">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold">Información de la Solicitud</h6>

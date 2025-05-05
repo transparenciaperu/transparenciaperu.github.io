@@ -726,4 +726,62 @@ public class SolicitudAccesoModelo implements SolicitudAccesoInterface {
 
         return resultado;
     }
+
+    @Override
+    public int registrarRespuesta(RespuestaSolicitudEntidad respuesta) {
+        int resultado = 0;
+
+        if (!MySQLConexion.isDbDisponible()) {
+            System.out.println("Base de datos no disponible. No se puede registrar respuesta.");
+            return resultado;
+        }
+
+        Connection cn = null;
+        PreparedStatement pstm = null;
+
+        try {
+            cn = MySQLConexion.getConexion();
+
+            if (cn == null) {
+                return resultado;
+            }
+
+            String sql = "INSERT INTO RespuestaSolicitud (solicitudAccesoId, usuarioResponsable, fechaRespuesta, descripcion, archivoAdjunto) " +
+                    "VALUES (?, ?, ?, ?, ?)";
+            pstm = cn.prepareStatement(sql);
+            pstm.setInt(1, respuesta.getSolicitudId());
+            pstm.setString(2, String.valueOf(respuesta.getUsuarioId())); // Convertir a String ya que la columna es VARCHAR
+
+            if (respuesta.getFechaRespuesta() != null) {
+                pstm.setDate(3, new java.sql.Date(respuesta.getFechaRespuesta().getTime()));
+            } else {
+                pstm.setDate(3, new java.sql.Date(System.currentTimeMillis()));
+            }
+
+            pstm.setString(4, respuesta.getContenido());
+            pstm.setString(5, respuesta.getRutaArchivo());
+
+            resultado = pstm.executeUpdate();
+
+            // Obtener el ID generado
+            if (resultado > 0) {
+                ResultSet rs = pstm.getGeneratedKeys();
+                if (rs.next()) {
+                    resultado = rs.getInt(1);
+                }
+                rs.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (pstm != null) pstm.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return resultado;
+    }
 }

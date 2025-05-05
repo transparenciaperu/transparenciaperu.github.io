@@ -26,4 +26,6 @@ public interface SolicitudAccesoInterface {
     RespuestaSolicitudEntidad buscarRespuestaPorSolicitudId(int solicitudId);
 
     int eliminarSolicitud(int id);
+
+    int registrarRespuesta(RespuestaSolicitudEntidad respuesta);
 }

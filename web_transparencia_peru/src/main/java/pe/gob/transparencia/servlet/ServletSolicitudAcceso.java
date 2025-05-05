@@ -2,6 +2,7 @@ package pe.gob.transparencia.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,12 +14,18 @@ import pe.gob.transparencia.entidades.SolicitudAccesoEntidad;
 import pe.gob.transparencia.entidades.UsuarioEntidad;
 import pe.gob.transparencia.modelo.SolicitudAccesoModelo;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
 @WebServlet(name = "ServletSolicitudAcceso", urlPatterns = {"/solicitud.do"})
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,     // 1 MB
+        maxFileSize = 1024 * 1024 * 10,      // 10 MB
+        maxRequestSize = 1024 * 1024 * 15    // 15 MB
+)
 public class ServletSolicitudAcceso extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
@@ -296,15 +303,19 @@ public class ServletSolicitudAcceso extends HttpServlet {
             respuesta.setFechaRespuesta(new java.util.Date());
             respuesta.setContenido(respuestaTexto);
 
-            // Si hay documentos adjuntos, se procesarían aquí
-            // Por ahora dejamos esta parte comentada ya que requiere manejo de archivos
-            /*
-            Part archivoPart = request.getPart("documentosRespuesta");
+            // Procesar archivos adjuntos
+            Part archivoPart = null;
+            try {
+                archivoPart = request.getPart("documentosRespuesta");
+            } catch (Exception e) {
+                // Si hay error al obtener la parte, probablemente no haya archivo
+                System.out.println("No se encontró archivo adjunto: " + e.getMessage());
+            }
+
             if (archivoPart != null && archivoPart.getSize() > 0) {
                 String nombreArchivo = guardarArchivo(archivoPart, solicitudId);
                 respuesta.setRutaArchivo(nombreArchivo);
             }
-            */
 
             // Llamar al modelo para actualizar
             int resultadoActualizacion = modelo.actualizarSolicitud(solicitud);
@@ -312,6 +323,19 @@ public class ServletSolicitudAcceso extends HttpServlet {
             if (resultadoActualizacion > 0) {
                 session.setAttribute("mensaje", "Respuesta registrada correctamente");
                 session.setAttribute("tipoMensaje", "success");
+
+                // Registrar la respuesta en la base de datos
+                try {
+                    int respuestaId = modelo.registrarRespuesta(respuesta);
+                    if (respuestaId > 0) {
+                        session.setAttribute("mensaje", "Respuesta registrada correctamente");
+                    }
+                } catch (Exception ex) {
+                    // La actualización de la solicitud fue exitosa, pero hubo un error al registrar la respuesta
+                    ex.printStackTrace();
+                    session.setAttribute("mensaje", "La solicitud fue actualizada, pero hubo un error al guardar la respuesta");
+                    session.setAttribute("tipoMensaje", "warning");
+                }
             } else {
                 session.setAttribute("mensaje", "Error al registrar respuesta");
                 session.setAttribute("tipoMensaje", "danger");
@@ -330,6 +354,31 @@ public class ServletSolicitudAcceso extends HttpServlet {
             session.setAttribute("tipoMensaje", "danger");
             response.sendRedirect(request.getContextPath() + "/index.jsp");
         }
+    }
+
+    private String guardarArchivo(Part archivoPart, int solicitudId) {
+        // Implementación para guardar el archivo en el servidor
+        // Debe incluir la lógica para manejar el nombre del archivo y su ubicación
+        // Por simplicidad, se asume que se guardará en una carpeta llamada "archivos"
+        // dentro del contexto de la aplicación
+        String nombreArchivo = archivoPart.getSubmittedFileName();
+
+        // Crear un directorio de archivos si no existe
+        File directorioArchivos = new File(getServletContext().getRealPath("/archivos"));
+        if (!directorioArchivos.exists()) {
+            directorioArchivos.mkdirs();
+        }
+
+        String rutaArchivo = getServletContext().getRealPath("/archivos/" + nombreArchivo);
+
+        try {
+            archivoPart.write(rutaArchivo);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return nombreArchivo;
     }
 
     private void cambiarEstadoSolicitud(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -395,14 +444,38 @@ public class ServletSolicitudAcceso extends HttpServlet {
             int solicitudId = Integer.parseInt(request.getParameter("id"));
             String observacion = request.getParameter("observacion");
 
-            // Actualizar observación de solicitud
-            SolicitudAccesoEntidad solicitud = new SolicitudAccesoEntidad();
-            solicitud.setId(solicitudId);
-            solicitud.setObservaciones(observacion);
+            if (observacion == null || observacion.trim().isEmpty()) {
+                session.setAttribute("mensaje", "La observación no puede estar vacía");
+                session.setAttribute("tipoMensaje", "warning");
+                response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=detalle&id=" + solicitudId);
+                return;
+            }
 
+            // Obtener la solicitud actual
             SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
-            // Reusamos el método actualizarEstadoSolicitud que ya incluye actualizar observaciones
-            int resultadoActualizacion = modelo.actualizarEstadoSolicitud(solicitud.getId(), solicitud.getEstadoSolicitudId());
+            SolicitudAccesoEntidad solicitud = modelo.obtenerSolicitud(solicitudId);
+
+            if (solicitud == null) {
+                session.setAttribute("mensaje", "La solicitud no existe");
+                session.setAttribute("tipoMensaje", "danger");
+                response.sendRedirect(request.getContextPath() + "/funcionario/solicitudes.jsp");
+                return;
+            }
+
+            // Actualizar la observación (preservar observaciones existentes si hay)
+            String observacionesActuales = solicitud.getObservaciones();
+            String nuevasObservaciones;
+
+            if (observacionesActuales != null && !observacionesActuales.trim().isEmpty()) {
+                nuevasObservaciones = observacionesActuales + "\n\n" + observacion;
+            } else {
+                nuevasObservaciones = observacion;
+            }
+
+            solicitud.setObservaciones(nuevasObservaciones);
+
+            // Actualizar en base de datos
+            int resultadoActualizacion = modelo.actualizarSolicitud(solicitud);
 
             if (resultadoActualizacion > 0) {
                 session.setAttribute("mensaje", "Observación registrada correctamente");

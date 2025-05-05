@@ -291,8 +291,8 @@
                         <div class="mb-3">
                             <label for="documentosRespuesta" class="form-label">Documentos Adjuntos</label>
                             <input class="form-control" type="file" id="documentosRespuesta"
-                                   name="documentosRespuesta" multiple>
-                            <div class="form-text">Puede adjuntar múltiples documentos (máximo 10MB en total).
+                                   name="documentosRespuesta">
+                            <div class="form-text">Puede adjuntar un documento (máximo 10MB).
                             </div>
                         </div>
 
