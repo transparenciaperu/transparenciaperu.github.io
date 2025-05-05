@@ -123,11 +123,6 @@
                             <i class="bi bi-envelope-open me-1"></i> Solicitudes de Información
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/reportes.jsp">
-                            <i class="bi bi-bar-chart me-1"></i> Reportes
-                        </a>
-                    </li>
                 </ul>
             </div>
         </nav>

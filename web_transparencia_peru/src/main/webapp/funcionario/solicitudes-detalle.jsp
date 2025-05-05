@@ -399,9 +399,15 @@
                                     </div>
                                 </div>
 
-                                <% if (solicitud.getEstadoSolicitudId() > 1) { %>
+                                <% if (solicitud.getEstadoSolicitudId() > 1) {
+                                    Date fechaAsignacion = null;
+                                    if (solicitud.getFechaSolicitud() != null) {
+                                        fechaAsignacion = new Date(solicitud.getFechaSolicitud().getTime() + 24 * 60 * 60 * 1000);
+                                    }
+                                %>
                                 <div class="timeline-item">
-                                    <div class="timeline-date">Posterior a la recepción</div>
+                                    <div class="timeline-date"><%= fechaAsignacion != null ? sdfHora.format(fechaAsignacion) : "Fecha desconocida" %>
+                                    </div>
                                     <div class="timeline-content">
                                         <h6 class="mb-1"><i class="bi bi-person-check me-2 text-info"></i>
                                             Asignada a funcionario</h6>
@@ -425,33 +431,6 @@
                                 </div>
                                 <% } %>
                             </div>
-
-                            <h6 class="mb-3">Añadir nueva entrada de seguimiento</h6>
-                            <form id="formSeguimiento" action="<%= request.getContextPath() %>/solicitud.do"
-                                  method="post">
-                                <input type="hidden" name="accion" value="agregarSeguimiento">
-                                <input type="hidden" name="solicitudId" value="<%= solicitud.getId() %>">
-                                <div class="mb-3">
-                                    <label for="tipoSeguimiento" class="form-label">Tipo</label>
-                                    <select class="form-select" id="tipoSeguimiento" name="tipoSeguimiento">
-                                        <option value="nota">Nota interna</option>
-                                        <option value="derivacion">Derivación</option>
-                                        <option value="comunicacion">Comunicación con ciudadano</option>
-                                        <option value="actualizacion">Actualización de estado</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="descripcionSeguimiento" class="form-label">Descripción</label>
-                                    <textarea class="form-control" id="descripcionSeguimiento"
-                                              name="descripcionSeguimiento"
-                                              rows="3"></textarea>
-                                </div>
-                                <div class="text-end">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-plus-circle me-1"></i> Añadir Seguimiento
-                                    </button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -492,15 +471,6 @@
             if (!documento) {
                 e.preventDefault();
                 alert('Por favor seleccione un documento para subir');
-            }
-        });
-
-        // Manejar el formulario de seguimiento
-        $('#formSeguimiento').on('submit', function (e) {
-            const descripcion = $('#descripcionSeguimiento').val();
-            if (!descripcion || descripcion.trim() === '') {
-                e.preventDefault();
-                alert('Por favor ingrese una descripción para el seguimiento');
             }
         });
     });
