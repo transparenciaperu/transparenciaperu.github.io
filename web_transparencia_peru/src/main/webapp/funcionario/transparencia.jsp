@@ -68,7 +68,6 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/funcionario.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/tabla-moderna.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body class="funcionario-theme">
@@ -228,7 +227,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover tabla-moderna">
+                                <table id="tablaDatosGenerales" class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
@@ -359,7 +358,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover tabla-moderna">
+                                <table id="tablaPlaneamiento" class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
@@ -375,7 +374,7 @@
                                         if (documentosPlaneamiento != null && !documentosPlaneamiento.isEmpty()) {
                                             for (DocumentoTransparenciaEntidad documento : documentosPlaneamiento) {
                                     %>
-                                    <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
+                                    <tr>
                                         <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
                                         <td class="col-descripcion"><%= documento.getDescripcion() %>
@@ -473,7 +472,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover tabla-moderna">
+                                <table id="tablaPresupuesto" class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
@@ -489,12 +488,12 @@
                                         if (documentosPresupuesto != null && !documentosPresupuesto.isEmpty()) {
                                             for (DocumentoTransparenciaEntidad documento : documentosPresupuesto) {
                                     %>
-                                    <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
-                                        <td><%= documento.getTitulo() %>
+                                    <tr>
+                                        <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
-                                        <td><%= documento.getDescripcion() %>
+                                        <td class="col-descripcion"><%= documento.getDescripcion() %>
                                         </td>
-                                        <td>
+                                        <td class="col-fecha">
                                             <% if (documento.getFechaPublicacion() != null) { %>
                                             <%= formatoFecha.format(documento.getFechaPublicacion()) %>
                                             <% } else { %>
@@ -587,7 +586,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover tabla-moderna">
+                                <table id="tablaProyectos" class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
@@ -701,7 +700,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover tabla-moderna">
+                                <table id="tablaContrataciones" class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
@@ -717,7 +716,7 @@
                                         if (documentosContrataciones != null && !documentosContrataciones.isEmpty()) {
                                             for (DocumentoTransparenciaEntidad documento : documentosContrataciones) {
                                     %>
-                                    <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
+                                    <tr>
                                         <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
                                         <td class="col-descripcion"><%= documento.getDescripcion() %>
@@ -815,7 +814,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover tabla-moderna">
+                                <table id="tablaPersonal" class="table table-hover tabla-moderna">
                                     <thead>
                                     <tr>
                                         <th>Documento</th>
@@ -831,7 +830,7 @@
                                         if (documentosPersonal != null && !documentosPersonal.isEmpty()) {
                                             for (DocumentoTransparenciaEntidad documento : documentosPersonal) {
                                     %>
-                                    <tr<%= documento.getEstado().equals("Pendiente") ? " class=\"table-warning\"" : "" %>>
+                                    <tr>
                                         <td class="col-titulo"><%= documento.getTitulo() %>
                                         </td>
                                         <td class="col-descripcion"><%= documento.getDescripcion() %>
@@ -1242,12 +1241,65 @@
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
 <script src="<%= request.getContextPath() %>/js/documento-visor.js"></script>
 <script src="<%= request.getContextPath() %>/js/transparencia-page.js"></script>
 <script>
     $(document).ready(function () {
+        // Código de diagnóstico para tablas
+        console.log("Diagnóstico de tablas iniciado...");
+
+        // No inicializar DataTables, solo diagnosticar estructuras
+        $('table').each(function (index) {
+            const tableId = $(this).attr('id') || 'tabla_' + index;
+            const theadCount = $(this).find('thead tr th').length;
+
+            console.log(`Tabla ${tableId}: ${theadCount} columnas en encabezado`);
+
+            // Verificar cada fila
+            $(this).find('tbody tr').each(function (rowIdx) {
+                const colCount = $(this).children('td').length;
+                const hasColspan = $(this).find('td[colspan]').length > 0;
+
+                if (!hasColspan && colCount !== theadCount) {
+                    console.error(`Problema en tabla ${tableId} fila ${rowIdx+1}: ${colCount} columnas (debería ser ${theadCount})`);
+                }
+            });
+        });
+
+        // Configuración básica de tablas HTML
+        $('table').addClass('table table-hover table-striped');
+
+        // Agregar navegación básica para las tablas
+        $('table').each(function () {
+            const $table = $(this);
+            const $tbody = $table.find('tbody');
+            const rows = $tbody.find('tr');
+            const rowsPerPage = 10;
+            const pageCount = Math.ceil(rows.length / rowsPerPage);
+            const $pagination = $('<div class="table-pagination"></div>');
+
+            if (pageCount > 1) {
+                for (let i = 0; i < pageCount; i++) {
+                    $('<button class="btn btn-sm btn-outline-secondary">' + (i + 1) + '</button>')
+                        .appendTo($pagination)
+                        .on('click', function () {
+                            const startIndex = i * rowsPerPage;
+                            const endIndex = startIndex + rowsPerPage;
+
+                            rows.hide();
+                            rows.slice(startIndex, endIndex).show();
+
+                            $pagination.find('button').removeClass('active');
+                            $(this).addClass('active');
+                        });
+                }
+
+                $pagination.insertAfter($table);
+                $pagination.find('button').first().click();
+            }
+        });
+
         // Manejar la eliminación de documentos
         $('#eliminarDocumentoModal').on('show.bs.modal', function (e) {
             // Aquí iría la lógica para eliminar el documento
@@ -1408,26 +1460,6 @@
             $('#ordenSeccion').val(seccionData.orden);
         });
 
-        // Inicializar DataTables en todas las tablas con la clase 'tabla-moderna'
-        $('table.tabla-moderna').each(function () {
-            if (!$.fn.DataTable.isDataTable(this)) {
-                $(this).DataTable({
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
-                    },
-                    "pageLength": 5,
-                    "lengthChange": false,
-                    "searching": true,
-                    "info": true,
-                    "paging": true,
-                    "dom": '<"table-header"f><"table-body"t><"table-footer"ip>',
-                    "initComplete": function (settings, json) {
-                        // Añadir clase adicional a la tabla
-                        $(this).addClass('initialized');
-                    }
-                });
-            }
-        });
 
         // Establecer la fecha actual por defecto en los campos de fecha
         const today = new Date();
