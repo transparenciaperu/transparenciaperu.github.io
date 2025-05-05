@@ -6,6 +6,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.HashMap" %>
+<%@ page import="pe.gob.transparencia.modelo.SolicitudAccesoModelo" %>
 <%
     HttpSession sesion = request.getSession(false);
     if (sesion == null || sesion.getAttribute("ciudadano") == null) {
@@ -15,81 +16,51 @@
     }
     CiudadanoEntidad ciudadano = (CiudadanoEntidad) sesion.getAttribute("ciudadano");
 
-    // Conexión a la base de datos para obtener datos dinámicos
-    Connection conn = null;
-    PreparedStatement pstmt = null;
-    ResultSet rs = null;
+    // Inicializar el modelo de solicitudes para obtener datos dinámicos
+    SolicitudAccesoModelo solicitudModelo = new SolicitudAccesoModelo();
 
-    // Datos para las estadísticas de solicitudes
+    // Obtener todas las solicitudes del ciudadano
+    List<pe.gob.transparencia.entidades.SolicitudAccesoEntidad> solicitudesCiudadano =
+            solicitudModelo.listarSolicitudesPorCiudadano(ciudadano.getId());
+
+    // Contar solicitudes por estado
     int solicitudesPendientes = 0;
     int solicitudesEnProceso = 0;
     int solicitudesAtendidas = 0;
 
+    for (pe.gob.transparencia.entidades.SolicitudAccesoEntidad solicitud : solicitudesCiudadano) {
+        switch (solicitud.getEstadoSolicitudId()) {
+            case 1: // Pendiente
+                solicitudesPendientes++;
+                break;
+            case 2: // En Proceso
+                solicitudesEnProceso++;
+                break;
+            case 3: // Atendida
+                solicitudesAtendidas++;
+                break;
+        }
+    }
+
     // Lista para almacenar las últimas solicitudes
     List<Map<String, Object>> ultimasSolicitudes = new ArrayList<>();
 
-    try {
-        conn = ConexionBD.getConexion();
+    // Obtener las 3 últimas solicitudes
+    int contador = 0;
+    for (pe.gob.transparencia.entidades.SolicitudAccesoEntidad solicitud : solicitudesCiudadano) {
+        if (contador >= 3) break;
 
-        // Obtener estadísticas de solicitudes
-        String sqlEstadisticas = "SELECT e.nombre, COUNT(s.id) as cantidad " +
-                "FROM SolicitudAcceso s " +
-                "JOIN EstadoSolicitud e ON s.estadoSolicitudId = e.id " +
-                "WHERE s.ciudadanoId = ? " +
-                "GROUP BY e.nombre";
+        Map<String, Object> solicitudMap = new HashMap<>();
+        solicitudMap.put("id", solicitud.getId());
+        solicitudMap.put("fecha", solicitud.getFechaSolicitud());
+        solicitudMap.put("entidad", solicitud.getEntidadPublica() != null ?
+                solicitud.getEntidadPublica().getNombre() : "No especificada");
+        solicitudMap.put("descripcion", solicitud.getDescripcion());
+        solicitudMap.put("estado", solicitud.getEstadoSolicitud().getNombre());
+        solicitudMap.put("fechaRespuesta", solicitud.getFechaRespuesta());
 
-        pstmt = conn.prepareStatement(sqlEstadisticas);
-        pstmt.setInt(1, ciudadano.getId());
-        rs = pstmt.executeQuery();
-
-        while (rs.next()) {
-            String estado = rs.getString("nombre");
-            int cantidad = rs.getInt("cantidad");
-
-            if (estado.equals("Pendiente")) {
-                solicitudesPendientes = cantidad;
-            } else if (estado.equals("En Proceso")) {
-                solicitudesEnProceso = cantidad;
-            } else if (estado.equals("Atendida")) {
-                solicitudesAtendidas = cantidad;
-            }
-        }
-
-        // Obtener las últimas solicitudes
-        String sqlUltimasSolicitudes = "SELECT s.id, s.fechaSolicitud, e.nombre as entidad, " +
-                "s.descripcion, es.nombre as estado, s.fechaRespuesta " +
-                "FROM SolicitudAcceso s " +
-                "JOIN EstadoSolicitud es ON s.estadoSolicitudId = es.id " +
-                "JOIN EntidadPublica e ON s.entidadPublicaId = e.id " +
-                "WHERE s.ciudadanoId = ? " +
-                "ORDER BY s.fechaSolicitud DESC LIMIT 3";
-
-        pstmt = conn.prepareStatement(sqlUltimasSolicitudes);
-        pstmt.setInt(1, ciudadano.getId());
-        rs = pstmt.executeQuery();
-
-        while (rs.next()) {
-            Map<String, Object> solicitud = new HashMap<>();
-            solicitud.put("id", rs.getInt("id"));
-            solicitud.put("fecha", rs.getDate("fechaSolicitud"));
-            solicitud.put("entidad", rs.getString("entidad"));
-            solicitud.put("descripcion", rs.getString("descripcion"));
-            solicitud.put("estado", rs.getString("estado"));
-            solicitud.put("fechaRespuesta", rs.getDate("fechaRespuesta"));
-
-            ultimasSolicitudes.add(solicitud);
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    } finally {
-        try {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        ultimasSolicitudes.add(solicitudMap);
+        contador++;
     }
 %>
 <!DOCTYPE html>
