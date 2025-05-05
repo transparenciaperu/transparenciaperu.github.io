@@ -1,5 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="pe.gob.transparencia.entidades.UsuarioEntidad" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="pe.gob.transparencia.db.MySQLConexion" %>
 <%
     // Verificar si el usuario está en sesión y es admin
     HttpSession sesion = request.getSession(false);
@@ -119,16 +123,6 @@
                             <i class="bi bi-file-earmark-text me-1"></i> Solicitudes
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="informes.jsp">
-                            <i class="bi bi-graph-up me-1"></i> Informes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="configuracion.jsp">
-                            <i class="bi bi-gear me-1"></i> Configuración
-                        </a>
-                    </li>
                 </ul>
             </div>
         </nav>
@@ -174,7 +168,26 @@
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                         Usuarios del Sistema
                                     </div>
-                                    <h1 class="display-4">12</h1>
+                                    <%
+                                        int totalUsuarios = 0;
+                                        try {
+                                            Connection con = MySQLConexion.getConexion();
+                                            if (con != null) {
+                                                PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) AS total FROM usuario");
+                                                ResultSet rs = ps.executeQuery();
+                                                if (rs.next()) {
+                                                    totalUsuarios = rs.getInt("total");
+                                                }
+                                                rs.close();
+                                                ps.close();
+                                                con.close();
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    %>
+                                    <h1 class="display-4"><%= totalUsuarios %>
+                                    </h1>
                                     <p class="card-text">Total de funcionarios y administradores.</p>
                                     <a href="<%= request.getContextPath() %>/admin.do?accion=listarUsuarios"
                                        class="btn btn-primary">Ver detalles</a>
@@ -194,7 +207,26 @@
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                         Ciudadanos Registrados
                                     </div>
-                                    <h1 class="display-4">847</h1>
+                                    <%
+                                        int totalCiudadanos = 0;
+                                        try {
+                                            Connection con = MySQLConexion.getConexion();
+                                            if (con != null) {
+                                                PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) AS total FROM Ciudadano");
+                                                ResultSet rs = ps.executeQuery();
+                                                if (rs.next()) {
+                                                    totalCiudadanos = rs.getInt("total");
+                                                }
+                                                rs.close();
+                                                ps.close();
+                                                con.close();
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    %>
+                                    <h1 class="display-4"><%= totalCiudadanos %>
+                                    </h1>
                                     <p class="card-text">Total de ciudadanos registrados en el portal.</p>
                                     <a href="<%= request.getContextPath() %>/admin.do?accion=listarCiudadanos"
                                        class="btn btn-primary">Ver detalles</a>
@@ -214,7 +246,28 @@
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                         Solicitudes Pendientes
                                     </div>
-                                    <h1 class="display-4">15</h1>
+                                    <%
+                                        int solicitudesPendientes = 0;
+                                        try {
+                                            Connection con = MySQLConexion.getConexion();
+                                            if (con != null) {
+                                                // Asumiendo que en EstadoSolicitud existe un estado "Pendiente" con id 1
+                                                PreparedStatement ps = con.prepareStatement(
+                                                        "SELECT COUNT(*) AS total FROM SolicitudAcceso WHERE estadoSolicitudId = 1");
+                                                ResultSet rs = ps.executeQuery();
+                                                if (rs.next()) {
+                                                    solicitudesPendientes = rs.getInt("total");
+                                                }
+                                                rs.close();
+                                                ps.close();
+                                                con.close();
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    %>
+                                    <h1 class="display-4"><%= solicitudesPendientes %>
+                                    </h1>
                                     <p class="card-text">Solicitudes que requieren atención.</p>
                                     <a href="<%= request.getContextPath() %>/admin.do?accion=listarSolicitudes"
                                        class="btn btn-primary">Ver detalles</a>
@@ -240,36 +293,42 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <%
+                        try {
+                            Connection con = MySQLConexion.getConexion();
+                            if (con != null) {
+                                // Esta consulta es un ejemplo y deberá adaptarse según la estructura real de tu base de datos
+                                // Podría ser una tabla de auditoría o actividades recientes
+                                PreparedStatement ps = con.prepareStatement(
+                                        "SELECT sa.id, c.nombres, c.apellidos, es.nombre as accion, sa.fechaSolicitud " +
+                                                "FROM SolicitudAcceso sa " +
+                                                "JOIN Ciudadano c ON sa.ciudadanoId = c.id " +
+                                                "JOIN EstadoSolicitud es ON sa.estadoSolicitudId = es.id " +
+                                                "ORDER BY sa.fechaSolicitud DESC LIMIT 5");
+
+                                ResultSet rs = ps.executeQuery();
+                                while (rs.next()) {
+                    %>
                     <tr>
-                        <td>1001</td>
-                        <td>Juan Pérez</td>
-                        <td>Actualización de presupuesto</td>
-                        <td>2024-04-30</td>
+                        <td><%= rs.getInt("id") %>
+                        </td>
+                        <td><%= rs.getString("nombres") + " " + rs.getString("apellidos") %>
+                        </td>
+                        <td><%= rs.getString("accion") %>
+                        </td>
+                        <td><%= rs.getDate("fechaSolicitud") %>
+                        </td>
                     </tr>
-                    <tr>
-                        <td>1002</td>
-                        <td>María García</td>
-                        <td>Respuesta a solicitud</td>
-                        <td>2024-04-29</td>
-                    </tr>
-                    <tr>
-                        <td>1003</td>
-                        <td>Admin</td>
-                        <td>Creación de usuario</td>
-                        <td>2024-04-28</td>
-                    </tr>
-                    <tr>
-                        <td>1004</td>
-                        <td>Carlos Rojas</td>
-                        <td>Actualización de entidad</td>
-                        <td>2024-04-27</td>
-                    </tr>
-                    <tr>
-                        <td>1005</td>
-                        <td>Laura Mendoza</td>
-                        <td>Registro de proyecto</td>
-                        <td>2024-04-26</td>
-                    </tr>
+                    <%
+                                }
+                                rs.close();
+                                ps.close();
+                                con.close();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    %>
                     </tbody>
                 </table>
             </div>
