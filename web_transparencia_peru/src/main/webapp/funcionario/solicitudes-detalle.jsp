@@ -93,7 +93,6 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="#"><i class="bi bi-person me-1"></i> Perfil</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-1"></i> Configuración</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -126,11 +125,6 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="<%= request.getContextPath() %>/funcionario/solicitudes.jsp">
                             <i class="bi bi-envelope-open me-1"></i> Solicitudes de Información
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/reportes.jsp">
-                            <i class="bi bi-bar-chart me-1"></i> Reportes
                         </a>
                     </li>
                 </ul>

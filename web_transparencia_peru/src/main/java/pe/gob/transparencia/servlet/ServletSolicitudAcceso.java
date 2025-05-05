@@ -497,17 +497,8 @@ public class ServletSolicitudAcceso extends HttpServlet {
                 return;
             }
 
-            // Actualizar la observación (preservar observaciones existentes si hay)
-            String observacionesActuales = solicitud.getObservaciones();
-            String nuevasObservaciones;
-
-            if (observacionesActuales != null && !observacionesActuales.trim().isEmpty()) {
-                nuevasObservaciones = observacionesActuales + "\n\n" + observacion;
-            } else {
-                nuevasObservaciones = observacion;
-            }
-
-            solicitud.setObservaciones(nuevasObservaciones);
+            // Actualizar la observación (reemplazar las existentes)
+            solicitud.setObservaciones(observacion);
 
             // Actualizar en base de datos
             int resultadoActualizacion = modelo.actualizarSolicitud(solicitud);
