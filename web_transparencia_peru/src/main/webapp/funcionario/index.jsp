@@ -154,7 +154,6 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="#"><i class="bi bi-person me-1"></i> Perfil</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-1"></i> Configuración</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -187,11 +186,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="solicitudes.jsp">
                             <i class="bi bi-envelope-open me-1"></i> Solicitudes de Información
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="reportes.jsp">
-                            <i class="bi bi-bar-chart me-1"></i> Reportes
                         </a>
                     </li>
                 </ul>
@@ -260,8 +254,28 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-8">
+                                    <%
+                                        int totalDocumentos = 0;
+                                        try {
+                                            Connection conn2 = ConexionBD.getConexion();
+                                            if (conn2 != null) {
+                                                PreparedStatement ps = conn2.prepareStatement("SELECT COUNT(*) AS total FROM DocumentoTransparencia WHERE entidadPublicaId = ?");
+                                                ps.setInt(1, entidadFuncionarioId);
+                                                ResultSet rs2 = ps.executeQuery();
+                                                if (rs2.next()) {
+                                                    totalDocumentos = rs2.getInt("total");
+                                                }
+                                                rs2.close();
+                                                ps.close();
+                                                conn2.close();
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    %>
                                     <div class="title">Documentos de Transparencia</div>
-                                    <div class="value">15</div>
+                                    <div class="value"><%= totalDocumentos %>
+                                    </div>
                                     <p class="card-text">Documentos publicados por su entidad.</p>
                                     <a href="transparencia.jsp" class="btn btn-primary">Gestionar documentos</a>
                                 </div>
@@ -360,51 +374,60 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <%
+                        try {
+                            Connection connSolicitudes = ConexionBD.getConexion();
+                            if (connSolicitudes != null) {
+                                PreparedStatement ps = connSolicitudes.prepareStatement(
+                                        "SELECT sa.id, c.nombres, c.apellidos, ts.nombre AS tipo, sa.fechaSolicitud, es.nombre AS estado " +
+                                                "FROM SolicitudAcceso sa " +
+                                                "JOIN Ciudadano c ON sa.ciudadanoId = c.id " +
+                                                "JOIN TipoSolicitud ts ON sa.tipoSolicitudId = ts.id " +
+                                                "JOIN EstadoSolicitud es ON sa.estadoSolicitudId = es.id " +
+                                                "WHERE sa.entidadPublicaId = ? " +
+                                                "ORDER BY sa.fechaSolicitud DESC LIMIT 5");
+                                ps.setInt(1, entidadFuncionarioId);
+                                ResultSet rsSolicitudes = ps.executeQuery();
+
+                                while (rsSolicitudes.next()) {
+                                    int idSolicitud = rsSolicitudes.getInt("id");
+                                    String solicitante = rsSolicitudes.getString("nombres") + " " + rsSolicitudes.getString("apellidos");
+                                    String tipo = rsSolicitudes.getString("tipo");
+                                    Date fecha = rsSolicitudes.getDate("fechaSolicitud");
+                                    String estado = rsSolicitudes.getString("estado");
+
+                                    String badgeClass = "bg-secondary";
+                                    if (estado.equalsIgnoreCase("Pendiente")) {
+                                        badgeClass = "bg-warning";
+                                    } else if (estado.equalsIgnoreCase("Atendida")) {
+                                        badgeClass = "bg-success";
+                                    } else if (estado.equalsIgnoreCase("En Proceso")) {
+                                        badgeClass = "bg-primary";
+                                    }
+                    %>
                     <tr>
-                        <td>2453</td>
-                        <td>Juan Rodríguez</td>
-                        <td>Información Presupuestal</td>
-                        <td>2024-04-30</td>
-                        <td><span class="badge bg-warning">Pendiente</span></td>
-                        <td><a href="solicitudes-detalle.jsp?id=2453" class="btn btn-sm btn-primary">Ver detalle</a>
+                        <td><%= idSolicitud %>
                         </td>
-                    </tr>
-                    <tr>
-                        <td>2452</td>
-                        <td>María Sánchez</td>
-                        <td>Información de Proyectos</td>
-                        <td>2024-04-29</td>
-                        <td><span class="badge bg-warning">Pendiente</span></td>
-                        <td><a href="solicitudes-detalle.jsp?id=2452" class="btn btn-sm btn-primary">Ver detalle</a>
+                        <td><%= solicitante %>
                         </td>
-                    </tr>
-                    <tr>
-                        <td>2451</td>
-                        <td>Carlos Torres</td>
-                        <td>Información de Contrataciones</td>
-                        <td>2024-04-28</td>
-                        <td><span class="badge bg-success">Atendida</span></td>
-                        <td><a href="solicitudes-detalle.jsp?id=2451" class="btn btn-sm btn-primary">Ver detalle</a>
+                        <td><%= tipo %>
                         </td>
-                    </tr>
-                    <tr>
-                        <td>2450</td>
-                        <td>Laura Flores</td>
-                        <td>Información de Personal</td>
-                        <td>2024-04-27</td>
-                        <td><span class="badge bg-secondary">En proceso</span></td>
-                        <td><a href="solicitudes-detalle.jsp?id=2450" class="btn btn-sm btn-primary">Ver detalle</a>
+                        <td><%= fecha %>
                         </td>
+                        <td><span class="badge <%= badgeClass %>"><%= estado %></span></td>
+                        <td><a href="solicitudes-detalle.jsp?id=<%= idSolicitud %>" class="btn btn-sm btn-primary">Ver
+                            detalle</a></td>
                     </tr>
-                    <tr>
-                        <td>2449</td>
-                        <td>Pedro González</td>
-                        <td>Información General</td>
-                        <td>2024-04-26</td>
-                        <td><span class="badge bg-success">Atendida</span></td>
-                        <td><a href="solicitudes-detalle.jsp?id=2449" class="btn btn-sm btn-primary">Ver detalle</a>
-                        </td>
-                    </tr>
+                    <%
+                                }
+                                rsSolicitudes.close();
+                                ps.close();
+                                connSolicitudes.close();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    %>
                     </tbody>
                 </table>
             </div>
