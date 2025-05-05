@@ -9,10 +9,15 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 import pe.gob.transparencia.entidades.EntidadPublicaEntidad;
 import pe.gob.transparencia.modelo.EntidadPublicaModelo;
+import pe.gob.transparencia.db.MySQLConexion;
 
 @WebServlet(name = "EntidadesAjaxServlet", urlPatterns = {"/entidades.do"})
 public class EntidadesAjaxServlet extends HttpServlet {
@@ -133,8 +138,35 @@ public class EntidadesAjaxServlet extends HttpServlet {
                     }
 
                     Integer regionId = null;
-                    if (request.getParameter("regionId") != null && !request.getParameter("regionId").isEmpty()) {
-                        regionId = Integer.parseInt(request.getParameter("regionId"));
+                    // Buscar todos los posibles nombres de parámetros para regionId
+                    String[] posiblesParametrosRegion = {
+                            "regionId", "hiddenRegionId", "fixed_regionId", "respaldo_regionId",
+                            "nacional_regionId", "region_id", "region"
+                    };
+                    String valorRegionUsado = null;
+
+                    // Si no es nivel nacional, buscar el regionId en los parámetros
+                    for (String paramName : posiblesParametrosRegion) {
+                        String paramValue = request.getParameter(paramName);
+                        if (paramValue != null && !paramValue.isEmpty()) {
+                            try {
+                                regionId = Integer.parseInt(paramValue);
+                                valorRegionUsado = paramName;
+                                System.out.println("Usando valor de regionId desde parámetro: " + paramName + " = " + regionId);
+                                break; // Usar el primer valor válido que encontremos
+                            } catch (NumberFormatException e) {
+                                System.out.println("Error al parsear " + paramName + ": " + e.getMessage());
+                            }
+                        }
+                    }
+
+                    // Para depuración, mostrar todos los parámetros de la solicitud
+                    System.out.println("Parámetros de la solicitud:");
+                    java.util.Enumeration<String> paramNames = request.getParameterNames();
+                    while (paramNames.hasMoreElements()) {
+                        String paramName = paramNames.nextElement();
+                        String paramValue = request.getParameter(paramName);
+                        System.out.println("  " + paramName + " = " + paramValue);
                     }
 
                     String direccion = request.getParameter("direccion");
@@ -148,6 +180,15 @@ public class EntidadesAjaxServlet extends HttpServlet {
                     System.out.println("tipo: " + tipo);
                     System.out.println("nivelGobiernoId: " + nivelGobiernoId);
                     System.out.println("regionId: " + regionId);
+                    System.out.println("direccion: " + direccion);
+                    System.out.println("telefono: " + telefono);
+                    System.out.println("email: " + email);
+                    System.out.println("sitioWeb: " + sitioWeb);
+
+                    // Verificando el valor de regionId recibido
+                    String regionIdParam = request.getParameter("regionId");
+                    System.out.println("regionId (parámetro crudo): '" + regionIdParam + "'");
+                    System.out.println("regionId (parseado): " + regionId);
                     System.out.println("direccion: " + direccion);
                     System.out.println("telefono: " + telefono);
                     System.out.println("email: " + email);
@@ -170,27 +211,66 @@ public class EntidadesAjaxServlet extends HttpServlet {
                             break;
                         }
 
-                        // Si no es nivel nacional (id=1), la región es obligatoria
-                        if (nivelGobiernoId != 1 && (regionId == null || regionId == 0)) {
-                            mensaje = "Debe seleccionar una región para este nivel de gobierno";
-                            break;
-                        }
-
                         // Crear entidad y guardar
                         EntidadPublicaEntidad entidad = new EntidadPublicaEntidad();
                         entidad.setNombre(nombre);
                         entidad.setTipo(tipo);
                         entidad.setNivelGobiernoId(nivelGobiernoId);
-                        entidad.setRegionId(regionId != null ? regionId : 0);
+
+                        // Asegurar que regionId sea el valor seleccionado
+                        if (regionId != null) {
+                            entidad.setRegionId(regionId);
+                            System.out.println("Establecido regionId=" + regionId + " para entidad");
+                        } else if (nivelGobiernoId == 1) {
+                            entidad.setRegionId(0); // Para nivel nacional, siempre es 0
+                            System.out.println("Establecido regionId=0 para entidad nacional");
+                        }
+
                         entidad.setDireccion(direccion);
                         entidad.setTelefono(telefono);
                         entidad.setEmail(email);
                         entidad.setSitioWeb(sitioWeb);
 
+                        // Mostrar objeto antes de guardarlo
+                        System.out.println("EntidadesAjaxServlet - registrar - Entidad a guardar:");
+                        System.out.println("ID: " + entidad.getId());
+                        System.out.println("Nombre: " + entidad.getNombre());
+                        System.out.println("Tipo: " + entidad.getTipo());
+                        System.out.println("NivelGobiernoId: " + entidad.getNivelGobiernoId());
+                        System.out.println("RegionId: " + entidad.getRegionId());
+
                         // Log antes de registrar
                         System.out.println("EntidadesAjaxServlet - registrar - Intentando registrar entidad: " + entidad.getNombre());
 
-                        resultado = modelo.registrarEntidad(entidad);
+                        try {
+                            // MODO DEBUG - Crear registro de región Nacional si no existe
+                            if (entidad.getNivelGobiernoId() == 1) {
+                                System.out.println("EntidadesAjaxServlet - Verificando si existe región Nacional (ID=0)");
+                                Connection con = MySQLConexion.getConexion();
+                                if (con != null) {
+                                    try {
+                                        Statement stmt = con.createStatement();
+                                        ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM Region WHERE id = 0");
+                                        if (rs.next() && rs.getInt(1) == 0) {
+                                            System.out.println("EntidadesAjaxServlet - Creando región Nacional faltante");
+                                            stmt.executeUpdate("INSERT INTO Region (id, nombre, codigo) VALUES (0, 'Nacional', 'NAC')");
+                                            System.out.println("EntidadesAjaxServlet - Región Nacional creada correctamente");
+                                        }
+                                        rs.close();
+                                        stmt.close();
+                                        con.close();
+                                    } catch (Exception e) {
+                                        System.out.println("Error comprobando/creando región Nacional: " + e.getMessage());
+                                    }
+                                }
+                            }
+
+                            resultado = modelo.registrarEntidad(entidad);
+                        } catch (Exception e) {
+                            System.out.println("ERROR CRÍTICO AL REGISTRAR ENTIDAD: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+
                         System.out.println("EntidadesAjaxServlet - registrar - Resultado: " + resultado);
 
                         if (resultado > 0) {
@@ -198,6 +278,12 @@ public class EntidadesAjaxServlet extends HttpServlet {
                             tipoMensaje = "success";
                         } else {
                             mensaje = "Error al registrar la entidad. Verifique que todos los campos obligatorios estén completos.";
+                            System.out.println("DIAGNOSTICO: Registro de entidad falló. Verificando valores obligatorios:");
+                            System.out.println("- Nombre: " + (entidad.getNombre() != null && !entidad.getNombre().isEmpty()));
+                            System.out.println("- Tipo: " + (entidad.getTipo() != null && !entidad.getTipo().isEmpty()));
+                            System.out.println("- NivelGobiernoId: " + entidad.getNivelGobiernoId() + " (debe ser > 0)");
+                            System.out.println("- RegionId: " + entidad.getRegionId() + " (debe ser > 0)");
+                            System.out.println("La entidad NO fue registrada en la base de datos.");
                         }
                     } catch (Exception e) {
                         System.out.println("EntidadesAjaxServlet - registrar - Error: " + e.getMessage());
@@ -237,9 +323,21 @@ public class EntidadesAjaxServlet extends HttpServlet {
 
                     regionId = null;
                     if (request.getParameter("regionId") != null && !request.getParameter("regionId").isEmpty()) {
-                        regionId = Integer.parseInt(request.getParameter("regionId"));
+                        try {
+                            regionId = Integer.parseInt(request.getParameter("regionId"));
+                        } catch (NumberFormatException e) {
+                            mensaje = "Valor de región inválido";
+                            break;
+                        }
                     }
 
+                    // Si es nivel nacional, asegurar que regionId sea 0
+                    if (nivelGobiernoId == 1) {
+                        regionId = 0;
+                        System.out.println("Actualización: Nivel nacional detectado. Estableciendo regionId=0.");
+                    }
+
+                    // Reutilizar variables ya declaradas
                     direccion = request.getParameter("direccion");
                     telefono = request.getParameter("telefono");
                     email = request.getParameter("email");

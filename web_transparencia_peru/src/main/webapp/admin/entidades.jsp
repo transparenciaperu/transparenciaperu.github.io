@@ -195,6 +195,7 @@
                                 <option value="<%= region.getId() %>"><%= region.getNombre() %>
                                 </option>
                                 <% } %>
+                                <option value="0">Nacional</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -377,14 +378,14 @@
                             <div class="invalid-feedback">Debe seleccionar un nivel de gobierno</div>
                         </div>
                         <div class="col-md-6" id="div-region" style="display:none;">
-                            <label for="regionId" class="form-label">Región <span
-                                    class="region-required"></span></label>
-                            <select class="form-select" id="regionId" name="regionId">
+                            <label for="regionId" class="form-label">Región <span class="text-danger">*</span></label>
+                            <select class="form-select" id="regionId" name="regionId" required>
                                 <option value="">Seleccione región</option>
                                 <% for (RegionEntidad region : regiones) { %>
                                 <option value="<%= region.getId() %>"><%= region.getNombre() %>
                                 </option>
                                 <% } %>
+                                <option value="0">Nacional</option>
                             </select>
                             <div class="invalid-feedback">Debe seleccionar una región</div>
                         </div>
@@ -476,13 +477,14 @@
                         </div>
                         <div class="col-md-6" id="editdiv-region">
                             <label for="editRegionId" class="form-label">Región <span
-                                    class="edit-region-required"></span></label>
-                            <select class="form-select" id="editRegionId" name="regionId">
+                                    class="text-danger">*</span></label>
+                            <select class="form-select" id="editRegionId" name="regionId" required>
                                 <option value="">Seleccione región</option>
                                 <% for (RegionEntidad region : regiones) { %>
                                 <option value="<%= region.getId() %>"><%= region.getNombre() %>
                                 </option>
                                 <% } %>
+                                <option value="0">Nacional</option>
                             </select>
                             <div class="invalid-feedback">Debe seleccionar una región</div>
                         </div>
@@ -641,14 +643,19 @@
         var regionRequired = document.querySelector(idSelect === 'nivelGobiernoId' ? '.region-required' : '.edit-region-required');
 
         if (nivelGobierno === '1') { // Nacional
-            divRegion.style.display = 'none';
-            selectRegion.value = '';
-            selectRegion.required = false;
+            // Para nivel nacional, permitimos seleccionar cualquier región
+            divRegion.style.display = 'block'; // Mantener visible
+            selectRegion.disabled = false; // Permitir cambiar
+            selectRegion.required = false; // No es obligatorio para nivel nacional
+
             if (regionRequired) regionRequired.innerHTML = '';
+            console.log("Nivel nacional seleccionado. Se permite seleccionar cualquier región.");
         } else { // Regional o Municipal
             divRegion.style.display = 'block';
+            selectRegion.disabled = false; // Habilitar para permitir selección
             selectRegion.required = true;
             if (regionRequired) regionRequired.innerHTML = '<span class="text-danger">*</span>';
+            console.log("Nivel NO nacional seleccionado. Se requiere seleccionar una región.");
         }
     }
 
@@ -673,6 +680,31 @@
         document.getElementById('editEmail').value = entidad.email;
         document.getElementById('editSitioWeb').value = entidad.sitioWeb;
 
+        // Verificar si se mostró correctamente la región para depuración
+        console.log("ID de región establecido en formulario de edición: " + entidad.regionId);
+        console.log("Valor actual del select de región: " + document.getElementById('editRegionId').value);
+
+        // Asegurar que la región se seleccione correctamente
+        var regionSelect = document.getElementById('editRegionId');
+        var regionEncontrada = false;
+
+        // Buscar si existe la opción con el valor de la región
+        for (var i = 0; i < regionSelect.options.length; i++) {
+            if (regionSelect.options[i].value == entidad.regionId) {
+                regionSelect.selectedIndex = i;
+                regionEncontrada = true;
+                console.log("Región encontrada en la posición " + i);
+                break;
+            }
+        }
+
+        if (!regionEncontrada) {
+            console.log("ADVERTENCIA: No se encontró la opción para la región ID " + entidad.regionId);
+        }
+
+        // Llamar a mostrarOcultarRegion para ajustar la visibilidad y requerimiento de la región según el nivel de gobierno seleccionado
+        mostrarOcultarRegion('editNivelGobiernoId');
+
         var editarModal = new bootstrap.Modal(document.getElementById('editarEntidadModal'));
         editarModal.show();
     }
@@ -680,6 +712,12 @@
     // Función para validar el formulario antes de enviar
     function validarFormulario(form) {
         console.log("Validando formulario...");
+
+        // Habilitar campos deshabilitados para que sus valores sean enviados
+        var camposDeshabilitados = form.querySelectorAll('select:disabled');
+        camposDeshabilitados.forEach(function (campo) {
+            campo.disabled = false;
+        });
 
         // Resetear validaciones previas
         var campos = form.querySelectorAll('.form-control, .form-select');
@@ -692,6 +730,13 @@
         var tipo = form.tipo.value;
         var nivelGobiernoId = form.nivelGobiernoId.value;
         var regionId = form.regionId.value;
+
+        // Si es nivel nacional, aseguramos que regionId tenga un valor por defecto
+        if (nivelGobiernoId === "1") {
+            form.regionId.value = "0"; // Asignamos 0 como valor por defecto para nivel Nacional
+            regionId = "0";
+            console.log("Validación: Nivel Nacional detectado, forzando regionId=0");
+        }
 
         console.log("Datos del formulario:", {
             nombre: nombre,
@@ -755,6 +800,30 @@
         var formNuevaEntidad = document.getElementById('formNuevaEntidad');
         var formEditarEntidad = document.getElementById('formEditarEntidad');
 
+        // Configuración inicial de la región según el nivel de gobierno
+        var nivelGobiernoSelect = document.getElementById('nivelGobiernoId');
+        if (nivelGobiernoSelect) {
+            // Ejecutar mostrarOcultarRegion al inicio por si hay un valor predeterminado
+            mostrarOcultarRegion('nivelGobiernoId');
+
+            // Y también al cambiar
+            nivelGobiernoSelect.addEventListener('change', function () {
+                console.log("Nivel de gobierno cambiado a: " + this.value);
+                mostrarOcultarRegion('nivelGobiernoId');
+            });
+        }
+
+        // Lo mismo para el formulario de edición
+        var editNivelGobiernoSelect = document.getElementById('editNivelGobiernoId');
+        if (editNivelGobiernoSelect) {
+            mostrarOcultarRegion('editNivelGobiernoId');
+
+            editNivelGobiernoSelect.addEventListener('change', function () {
+                console.log("Nivel de gobierno (edición) cambiado a: " + this.value);
+                mostrarOcultarRegion('editNivelGobiernoId');
+            });
+        }
+
         // Añadir validación en tiempo real para nueva entidad
         if (formNuevaEntidad) {
             var campos = formNuevaEntidad.querySelectorAll('.form-control, .form-select');
@@ -781,8 +850,34 @@
                     }
                 });
             });
+
+            // Añadir evento de envío para habilitar campos deshabilitados
+            formEditarEntidad.addEventListener('submit', function () {
+                var camposDeshabilitados = this.querySelectorAll('select:disabled');
+                camposDeshabilitados.forEach(function (campo) {
+                    campo.disabled = false;
+                });
+                return true;
+            });
         }
     });
+
+    // Debug function
+    function debug() {
+        console.log("Iniciando depuración...");
+        $.ajax({
+            url: '<%= request.getContextPath() %>/debug.do',
+            method: 'GET',
+            success: function (data) {
+                console.log("Respuesta del servidor:", data);
+                alert("Consulta el log del servidor y la consola del navegador.");
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", error);
+                alert("Error al ejecutar la depuración.");
+            }
+        });
+    }
 </script>
 </body>
 </html>

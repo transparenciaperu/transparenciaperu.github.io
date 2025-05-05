@@ -49,7 +49,7 @@ CREATE TABLE EntidadPublica (
                                 email VARCHAR(100),
                                 sitioWeb VARCHAR(255),
                                 FOREIGN KEY (nivelGobiernoId) REFERENCES NivelGobierno(id),
-                                FOREIGN KEY (regionId) REFERENCES Region(id)
+                                FOREIGN KEY (regionId) REFERENCES Region (id) ON DELETE SET NULL
 );
 
 -- -----------------------------------------------------

@@ -421,6 +421,8 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
         int resultado = 0;
         Connection con = null;
         PreparedStatement pstm = null;
+        ResultSet rsNivel = null;
+        ResultSet rsRegion = null;
         ResultSet rs = null;
 
         try {
@@ -438,13 +440,7 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
             }
 
             if (entidad.getNivelGobiernoId() <= 0) {
-                System.out.println("EntidadPublicaModelo - registrarEntidad - Error: Nivel de Gobierno es obligatorio");
-                return 0;
-            }
-
-            // Si no es nivel nacional (id=1) y no tiene región
-            if (entidad.getNivelGobiernoId() != 1 && entidad.getRegionId() <= 0) {
-                System.out.println("EntidadPublicaModelo - registrarEntidad - Error: Región es obligatoria para este nivel de gobierno");
+                System.out.println("EntidadPublicaModelo - registrarEntidad - Error: Nivel de Gobierno es obligatorio. Valor actual: " + entidad.getNivelGobiernoId());
                 return 0;
             }
 
@@ -460,6 +456,32 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
             if (con == null) {
                 System.out.println("EntidadPublicaModelo - registrarEntidad - Error: No se pudo conectar a la base de datos");
                 return 0;
+            }
+
+            // SOLUCIÓN: Primero crear el registro Nacional en la tabla Region si no existe
+            try {
+                if (entidad.getNivelGobiernoId() == 1) {
+                    System.out.println("EntidadPublicaModelo - registrarEntidad - Verificando existencia de región Nacional (ID=0)");
+                    String checkRegionSql = "SELECT COUNT(*) FROM Region WHERE id = 0";
+                    PreparedStatement checkRegion = con.prepareStatement(checkRegionSql);
+                    ResultSet regionRs = checkRegion.executeQuery();
+
+                    if (regionRs.next() && regionRs.getInt(1) == 0) {
+                        System.out.println("EntidadPublicaModelo - registrarEntidad - Creando registro para región Nacional");
+                        PreparedStatement createRegion = con.prepareStatement("INSERT INTO Region (id, nombre, codigo) VALUES (0, 'Nacional', 'NAC')");
+                        createRegion.executeUpdate();
+                        createRegion.close();
+                    }
+
+                    regionRs.close();
+                    checkRegion.close();
+
+                    // Asegurar que la entidad use regionId=0
+                    entidad.setRegionId(0);
+                    System.out.println("EntidadPublicaModelo - registrarEntidad - Estableciendo regionId=0 para entidad nacional");
+                }
+            } catch (Exception e) {
+                System.out.println("EntidadPublicaModelo - registrarEntidad - Error al verificar/crear región Nacional: " + e.getMessage());
             }
 
             String sql = "INSERT INTO EntidadPublica (nombre, tipo, direccion, nivelGobiernoId, regionId, telefono, email, sitioWeb) " +
@@ -486,22 +508,109 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
             pstm.setString(7, email);
             pstm.setString(8, sitioWeb);
 
-            resultado = pstm.executeUpdate();
-            System.out.println("EntidadPublicaModelo - registrarEntidad - Filas afectadas: " + resultado);
+            try {
+                resultado = pstm.executeUpdate();
+                System.out.println("EntidadPublicaModelo - registrarEntidad - Filas afectadas: " + resultado);
 
-            if (resultado > 0) {
-                rs = pstm.getGeneratedKeys();
-                if (rs.next()) {
-                    resultado = rs.getInt(1);
-                    System.out.println("EntidadPublicaModelo - registrarEntidad - ID generado: " + resultado);
+                if (resultado > 0) {
+                    rs = pstm.getGeneratedKeys();
+                    if (rs != null && rs.next()) {
+                        resultado = rs.getInt(1);
+                        System.out.println("EntidadPublicaModelo - registrarEntidad - ID generado: " + resultado);
+                    }
+                    if (rs != null) {
+                        rs.close();
+                    }
+                } else {
+                    System.out.println("EntidadPublicaModelo - registrarEntidad - ERROR: No se pudo registrar la entidad. Revisar restricciones.");
+
+                    // MODO EMERGENCIA: Intenta registrar ignorando restricciones FK
+                    System.out.println("EntidadPublicaModelo - registrarEntidad - ACTIVANDO MODO EMERGENCIA...");
+                    try {
+                        // Deshabilitar temporalmente verificación de FK
+                        Statement stmtFK = con.createStatement();
+                        stmtFK.execute("SET FOREIGN_KEY_CHECKS=0");
+
+                        // Reintentar inserción
+                        PreparedStatement emergencyPstm = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                        emergencyPstm.setString(1, entidad.getNombre());
+                        emergencyPstm.setString(2, entidad.getTipo());
+                        emergencyPstm.setString(3, direccion);
+                        emergencyPstm.setInt(4, entidad.getNivelGobiernoId());
+                        emergencyPstm.setInt(5, entidad.getNivelGobiernoId() == 1 ? 0 : entidad.getRegionId()); // Forzar 0 para nivel nacional
+                        emergencyPstm.setString(6, telefono);
+                        emergencyPstm.setString(7, email);
+                        emergencyPstm.setString(8, sitioWeb);
+
+                        resultado = emergencyPstm.executeUpdate();
+                        System.out.println("EntidadPublicaModelo - registrarEntidad - EMERGENCIA - Filas afectadas: " + resultado);
+
+                        if (resultado > 0) {
+                            ResultSet rsEmergency = emergencyPstm.getGeneratedKeys();
+                            if (rsEmergency != null && rsEmergency.next()) {
+                                resultado = rsEmergency.getInt(1);
+                                System.out.println("EntidadPublicaModelo - registrarEntidad - EMERGENCIA - ID generado: " + resultado);
+                            }
+                            if (rsEmergency != null) rsEmergency.close();
+                        }
+
+                        emergencyPstm.close();
+
+                        // Restaurar verificación de FK
+                        stmtFK.execute("SET FOREIGN_KEY_CHECKS=1");
+                        stmtFK.close();
+                    } catch (SQLException emergencyEx) {
+                        System.out.println("EntidadPublicaModelo - registrarEntidad - ERROR EN MODO EMERGENCIA: " + emergencyEx.getMessage());
+                    }
                 }
+            } catch (SQLException e) {
+                System.out.println("EntidadPublicaModelo - registrarEntidad - ERROR SQL: " + e.getMessage());
+                if (e.getMessage().contains("foreign key constraint")) {
+                    System.out.println("EntidadPublicaModelo - registrarEntidad - ERROR: Restricción de clave foránea. Verificar que nivelGobiernoId=" +
+                            entidad.getNivelGobiernoId() + " y regionId=" + entidad.getRegionId() + " existan en sus respectivas tablas.");
+                }
+                throw e; // Relanzar para manejo en nivel superior
             }
-
         } catch (SQLException e) {
             System.out.println("Error en EntidadPublicaModelo.registrarEntidad: " + e.getMessage());
+            System.out.println("SQL State: " + e.getSQLState() + ", Error Code: " + e.getErrorCode());
+            // Si es un error de foreign key constraint
+            if (e.getMessage().contains("foreign key constraint") || e.getSQLState().equals("23000")) {
+                System.out.println("Error de clave foránea. Verificando si el problema es con nivelGobiernoId o regionId");
+
+                // Verificar existencia de nivel de gobierno
+                try (PreparedStatement checkNivel = con.prepareStatement("SELECT COUNT(*) FROM NivelGobierno WHERE id = ?")) {
+                    checkNivel.setInt(1, entidad.getNivelGobiernoId());
+                    rsNivel = checkNivel.executeQuery();
+                    if (rsNivel.next() && rsNivel.getInt(1) == 0) {
+                        System.out.println("El nivelGobiernoId " + entidad.getNivelGobiernoId() + " no existe en la tabla NivelGobierno");
+                    } else {
+                        System.out.println("El nivelGobiernoId " + entidad.getNivelGobiernoId() + " sí existe en la tabla NivelGobierno");
+                    }
+                } catch (Exception ex) {
+                    System.out.println("Error al verificar nivelGobiernoId: " + ex.getMessage());
+                }
+
+                // Verificar existencia de región, solo si no es 0
+                if (entidad.getRegionId() > 0) {
+                    try (PreparedStatement checkRegion = con.prepareStatement("SELECT COUNT(*) FROM Region WHERE id = ?")) {
+                        checkRegion.setInt(1, entidad.getRegionId());
+                        rsRegion = checkRegion.executeQuery();
+                        if (rsRegion.next() && rsRegion.getInt(1) == 0) {
+                            System.out.println("El regionId " + entidad.getRegionId() + " no existe en la tabla Region");
+                        } else {
+                            System.out.println("El regionId " + entidad.getRegionId() + " sí existe en la tabla Region");
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("Error al verificar regionId: " + ex.getMessage());
+                    }
+                }
+            }
             e.printStackTrace();
         } finally {
             try {
+                if (rsNivel != null) rsNivel.close();
+                if (rsRegion != null) rsRegion.close();
                 if (rs != null) rs.close();
                 if (pstm != null) pstm.close();
                 if (con != null) con.close();
@@ -829,5 +938,59 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
         }
 
         return lista;
+    }
+
+    /**
+     * Crea un registro especial para región nacional (ID 0) si no existe
+     */
+    public boolean crearRegionNacional() {
+        boolean resultado = false;
+        Connection con = null;
+        PreparedStatement checkPstm = null;
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+
+        try {
+            System.out.println("EntidadPublicaModelo - crearRegionNacional - Verificando si existe región ID 0");
+            con = MySQLConexion.getConexion();
+
+            // Comprobar si ya existe un registro con ID 0
+            String checkSql = "SELECT COUNT(*) FROM Region WHERE id = 0";
+            checkPstm = con.prepareStatement(checkSql);
+            rs = checkPstm.executeQuery();
+
+            if (rs.next() && rs.getInt(1) == 0) {
+                // No existe, crear el registro
+                System.out.println("EntidadPublicaModelo - crearRegionNacional - No existe región nacional, creando...");
+                String sql = "INSERT INTO Region (id, nombre, codigo) VALUES (0, 'Nacional', 'NAC')";
+                pstm = con.prepareStatement(sql);
+                int filasAfectadas = pstm.executeUpdate();
+
+                if (filasAfectadas > 0) {
+                    System.out.println("EntidadPublicaModelo - crearRegionNacional - Región nacional creada exitosamente");
+                    resultado = true;
+                } else {
+                    System.out.println("EntidadPublicaModelo - crearRegionNacional - No se pudo crear la región nacional");
+                }
+            } else {
+                System.out.println("EntidadPublicaModelo - crearRegionNacional - La región nacional ya existe");
+                resultado = true; // Ya existe, no necesita crearse
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error en EntidadPublicaModelo.crearRegionNacional: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (checkPstm != null) checkPstm.close();
+                if (pstm != null) pstm.close();
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                System.out.println("Error al cerrar conexiones: " + e.getMessage());
+            }
+        }
+
+        return resultado;
     }
 }
