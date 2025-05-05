@@ -131,22 +131,22 @@
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/index.jsp">
                             <i class="bi bi-house me-1"></i> Inicio
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="transparencia.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/transparencia.jsp">
                             <i class="bi bi-file-earmark-text me-1"></i> Gestión de Transparencia
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="solicitudes.jsp">
+                        <a class="nav-link active" href="<%= request.getContextPath() %>/funcionario/solicitudes.jsp">
                             <i class="bi bi-envelope-open me-1"></i> Solicitudes de Información
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="reportes.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/reportes.jsp">
                             <i class="bi bi-bar-chart me-1"></i> Reportes
                         </a>
                     </li>

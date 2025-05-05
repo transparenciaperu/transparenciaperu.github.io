@@ -89,8 +89,13 @@
                         <i class="bi bi-person-circle me-1"></i><%= usuario.getNombreCompleto() %>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-1"></i> Perfil</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-1"></i> Configuración</a></li>
+                        <li><a class="dropdown-item" href="<%= request.getContextPath() %>/funcionario/perfil.jsp">
+                            <i class="bi bi-person me-1"></i> Perfil
+                        </a></li>
+                        <li><a class="dropdown-item"
+                               href="<%= request.getContextPath() %>/funcionario/configuracion.jsp">
+                            <i class="bi bi-gear me-1"></i> Configuración
+                        </a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -111,22 +116,22 @@
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/index.jsp">
                             <i class="bi bi-house me-1"></i> Inicio
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="transparencia.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/transparencia.jsp">
                             <i class="bi bi-file-earmark-text me-1"></i> Gestión de Transparencia
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="solicitudes.jsp">
+                        <a class="nav-link active" href="<%= request.getContextPath() %>/funcionario/solicitudes.jsp">
                             <i class="bi bi-envelope-open me-1"></i> Solicitudes de Información
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="reportes.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/reportes.jsp">
                             <i class="bi bi-bar-chart me-1"></i> Reportes
                         </a>
                     </li>
@@ -140,7 +145,7 @@
                 <h1 class="h2">Responder Solicitud #<%= solicitud.getId() %>
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a href="<%= request.getContextPath() %>/solicitud.do?accion=listar"
+                    <a href="<%= request.getContextPath() %>/funcionario/solicitudes.jsp"
                        class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Volver a la lista
                     </a>
@@ -240,7 +245,8 @@
                     <h6 class="m-0 font-weight-bold">Formulario de Respuesta</h6>
                 </div>
                 <div class="card-body">
-                    <form id="formRespuesta" method="post" action="<%= request.getContextPath() %>/solicitud.do"
+                    <form id="formRespuesta" method="post"
+                          action="<%= request.getContextPath() %>/solicitud.do"
                           enctype="multipart/form-data">
                         <input type="hidden" name="accion" value="responder">
                         <input type="hidden" name="solicitudId" value="<%= solicitud.getId() %>">

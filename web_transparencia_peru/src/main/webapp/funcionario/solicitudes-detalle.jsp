@@ -114,22 +114,22 @@
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/index.jsp">
                             <i class="bi bi-house me-1"></i> Inicio
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="transparencia.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/transparencia.jsp">
                             <i class="bi bi-file-earmark-text me-1"></i> Gestión de Transparencia
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="solicitudes.jsp">
+                        <a class="nav-link active" href="<%= request.getContextPath() %>/funcionario/solicitudes.jsp">
                             <i class="bi bi-envelope-open me-1"></i> Solicitudes de Información
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="reportes.jsp">
+                        <a class="nav-link" href="<%= request.getContextPath() %>/funcionario/reportes.jsp">
                             <i class="bi bi-bar-chart me-1"></i> Reportes
                         </a>
                     </li>
@@ -143,7 +143,7 @@
                 <h1 class="h2">Detalle de Solicitud #<%= solicitud.getId() %>
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a href="<%= request.getContextPath() %>/solicitud.do?accion=listar"
+                    <a href="<%= request.getContextPath() %>/funcionario/solicitudes.jsp"
                        class="btn btn-sm btn-outline-secondary me-2">
                         <i class="bi bi-arrow-left me-1"></i> Volver a Solicitudes
                     </a>
@@ -328,7 +328,7 @@
                                         <button class="btn btn-sm btn-primary">
                                             <i class="bi bi-eye"></i> Ver
                                         </button>
-                                        <a href="<%= request.getContextPath() %>/descargar?archivo=<%= respuesta.getRutaArchivo() %>"
+                                        <a href="<%= request.getContextPath() %>/funcionario/descargar?archivo=<%= respuesta.getRutaArchivo() %>"
                                            class="btn btn-sm btn-secondary">
                                             <i class="bi bi-download"></i> Descargar
                                         </a>
@@ -354,7 +354,7 @@
                                         <button class="btn btn-sm btn-primary">
                                             <i class="bi bi-eye"></i> Ver
                                         </button>
-                                        <a href="<%= request.getContextPath() %>/descargar?archivo=<%= respuesta.getRutaArchivo() %>"
+                                        <a href="<%= request.getContextPath() %>/funcionario/descargar?archivo=<%= respuesta.getRutaArchivo() %>"
                                            class="btn btn-sm btn-secondary">
                                             <i class="bi bi-download"></i> Descargar
                                         </a>
@@ -463,7 +463,7 @@
                 </div>
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
-                        <a href="<%= request.getContextPath() %>/solicitud.do?accion=listar" class="btn btn-secondary">
+                        <a href="<%= request.getContextPath() %>/funcionario/solicitudes.jsp" class="btn btn-secondary">
                             <i class="bi bi-arrow-left me-1"></i> Volver
                         </a>
                         <% if (solicitud.getEstadoSolicitudId() != 3 && solicitud.getEstadoSolicitudId() != 5) { %>

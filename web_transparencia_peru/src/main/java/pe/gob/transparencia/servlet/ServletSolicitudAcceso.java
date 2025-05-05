@@ -378,7 +378,7 @@ public class ServletSolicitudAcceso extends HttpServlet {
 
             // Redirigir según rol
             if ("FUNCIONARIO".equals(usuario.getCodRol())) {
-                response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=listar");
+                response.sendRedirect(request.getContextPath() + "/solicitud.do?accion=detalle&id=" + solicitudId);
             } else {
                 response.sendRedirect(request.getContextPath() + "/admin/solicitudes.jsp");
             }
