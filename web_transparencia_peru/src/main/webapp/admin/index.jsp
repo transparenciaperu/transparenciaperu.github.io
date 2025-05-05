@@ -73,7 +73,6 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="#"><i class="bi bi-person me-1"></i> Perfil</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-1"></i> Configuración</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -131,18 +130,6 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom title-section">
                 <h1 class="h2">Panel de Control</h1>
-                <div class="btn-toolbar">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="tooltip"
-                                data-bs-placement="bottom" title="Configuración del sistema">
-                            <i class="bi bi-gear me-1"></i> Configuración
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip"
-                                data-bs-placement="bottom" title="Generar reportes">
-                            <i class="bi bi-file-earmark-arrow-down me-1"></i> Reportes
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <%
