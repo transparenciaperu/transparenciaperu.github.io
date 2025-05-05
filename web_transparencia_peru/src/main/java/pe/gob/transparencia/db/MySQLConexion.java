@@ -34,14 +34,22 @@ public class MySQLConexion {
             }
         } catch (ClassNotFoundException e) {
             System.out.println("Error >> Driver no Instalado!! " + e.getMessage());
+            System.out.println("Por favor asegúrese de que el driver JDBC esté en el classpath");
             e.printStackTrace();
             dbDisponible = false;
         } catch (SQLException e) {
             System.out.println("Error >> de conexión con la BD " + e.getMessage());
+            System.out.println("Código de error SQL: " + e.getErrorCode());
+            System.out.println("Estado SQL: " + e.getSQLState());
+            System.out.println("Verifique que la base de datos esté en ejecución y que las credenciales sean correctas");
             e.printStackTrace();
             dbDisponible = false;
         } catch (Exception e) {
             System.out.println("Error >> general : " + e.getMessage());
+            System.out.println("Tipo de excepción: " + e.getClass().getName());
+            if (e.getCause() != null) {
+                System.out.println("Causa: " + e.getCause().getMessage());
+            }
             e.printStackTrace();
             dbDisponible = false;
         }

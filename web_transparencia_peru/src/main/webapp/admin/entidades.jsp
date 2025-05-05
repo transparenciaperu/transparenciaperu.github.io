@@ -338,16 +338,18 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <form action="<%= request.getContextPath() %>/entidades.do" method="post" id="formNuevaEntidad">
+            <form action="<%= request.getContextPath() %>/entidades.do" method="post" id="formNuevaEntidad"
+                  onsubmit="return validarFormulario(this)">
                 <input type="hidden" name="accion" value="registrar">
                 <div class="modal-body">
                     <div class="row mb-3">
                         <div class="col-md-8">
-                            <label for="nombre" class="form-label">Nombre de Entidad</label>
+                            <label for="nombre" class="form-label">Nombre de Entidad <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            <div class="invalid-feedback">El nombre de la entidad es obligatorio</div>
                         </div>
                         <div class="col-md-4">
-                            <label for="tipo" class="form-label">Tipo</label>
+                            <label for="tipo" class="form-label">Tipo <span class="text-danger">*</span></label>
                             <select class="form-select" id="tipo" name="tipo" required>
                                 <option value="">Seleccione tipo</option>
                                 <option value="Ministerio">Ministerio</option>
@@ -357,12 +359,13 @@
                                 <option value="Organismo Supervisor">Organismo Supervisor</option>
                                 <option value="Otro">Otro</option>
                             </select>
+                            <div class="invalid-feedback">Debe seleccionar un tipo de entidad</div>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="nivelGobiernoId" class="form-label">Nivel de Gobierno</label>
+                            <label for="nivelGobiernoId" class="form-label">Nivel de Gobierno <span class="text-danger">*</span></label>
                             <select class="form-select" id="nivelGobiernoId" name="nivelGobiernoId" required
                                     onchange="mostrarOcultarRegion('nivelGobiernoId')">
                                 <option value="">Seleccione nivel</option>
@@ -371,9 +374,11 @@
                                 </option>
                                 <% } %>
                             </select>
+                            <div class="invalid-feedback">Debe seleccionar un nivel de gobierno</div>
                         </div>
                         <div class="col-md-6" id="div-region" style="display:none;">
-                            <label for="regionId" class="form-label">Región</label>
+                            <label for="regionId" class="form-label">Región <span
+                                    class="region-required"></span></label>
                             <select class="form-select" id="regionId" name="regionId">
                                 <option value="">Seleccione región</option>
                                 <% for (RegionEntidad region : regiones) { %>
@@ -381,6 +386,7 @@
                                 </option>
                                 <% } %>
                             </select>
+                            <div class="invalid-feedback">Debe seleccionar una región</div>
                         </div>
                     </div>
 
@@ -434,11 +440,13 @@
 
                     <div class="row mb-3">
                         <div class="col-md-8">
-                            <label for="editNombre" class="form-label">Nombre de Entidad</label>
+                            <label for="editNombre" class="form-label">Nombre de Entidad <span
+                                    class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="editNombre" name="nombre" required>
+                            <div class="invalid-feedback">El nombre de la entidad es obligatorio</div>
                         </div>
                         <div class="col-md-4">
-                            <label for="editTipo" class="form-label">Tipo</label>
+                            <label for="editTipo" class="form-label">Tipo <span class="text-danger">*</span></label>
                             <select class="form-select" id="editTipo" name="tipo" required>
                                 <option value="">Seleccione tipo</option>
                                 <option value="Ministerio">Ministerio</option>
@@ -448,12 +456,14 @@
                                 <option value="Organismo Supervisor">Organismo Supervisor</option>
                                 <option value="Otro">Otro</option>
                             </select>
+                            <div class="invalid-feedback">Debe seleccionar un tipo de entidad</div>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="editNivelGobiernoId" class="form-label">Nivel de Gobierno</label>
+                            <label for="editNivelGobiernoId" class="form-label">Nivel de Gobierno <span
+                                    class="text-danger">*</span></label>
                             <select class="form-select" id="editNivelGobiernoId" name="nivelGobiernoId" required
                                     onchange="mostrarOcultarRegion('editNivelGobiernoId')">
                                 <option value="">Seleccione nivel</option>
@@ -462,9 +472,11 @@
                                 </option>
                                 <% } %>
                             </select>
+                            <div class="invalid-feedback">Debe seleccionar un nivel de gobierno</div>
                         </div>
                         <div class="col-md-6" id="editdiv-region">
-                            <label for="editRegionId" class="form-label">Región</label>
+                            <label for="editRegionId" class="form-label">Región <span
+                                    class="edit-region-required"></span></label>
                             <select class="form-select" id="editRegionId" name="regionId">
                                 <option value="">Seleccione región</option>
                                 <% for (RegionEntidad region : regiones) { %>
@@ -472,6 +484,7 @@
                                 </option>
                                 <% } %>
                             </select>
+                            <div class="invalid-feedback">Debe seleccionar una región</div>
                         </div>
                     </div>
 
@@ -519,8 +532,8 @@
             </div>
             <div class="modal-body">
                 <p>¿Está seguro que desea eliminar la entidad <strong id="nombreEntidadEliminar"></strong>?</p>
-                <p>Esta acción no se puede deshacer y podría afectar a presupuestos, solicitudes y otros datos
-                    relacionados.</p>
+                <p>Esta acción no se puede deshacer. Si la entidad está siendo utilizada en presupuestos,
+                    solicitudes u otros registros, no se podrá eliminar.</p>
             </div>
             <div class="modal-footer">
                 <form action="<%= request.getContextPath() %>/entidades.do" method="post">
@@ -529,6 +542,24 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-danger">Eliminar</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Alertas -->
+<div class="modal fade" id="modalAlerta" tabindex="-1" aria-labelledby="modalAlertaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="modalAlertaLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atención
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalAlertaBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
             </div>
         </div>
     </div>
@@ -607,14 +638,17 @@
         var nivelGobierno = document.getElementById(idSelect).value;
         var divRegion = document.getElementById(idSelect === 'nivelGobiernoId' ? 'div-region' : 'editdiv-region');
         var selectRegion = document.getElementById(idSelect === 'nivelGobiernoId' ? 'regionId' : 'editRegionId');
+        var regionRequired = document.querySelector(idSelect === 'nivelGobiernoId' ? '.region-required' : '.edit-region-required');
 
         if (nivelGobierno === '1') { // Nacional
             divRegion.style.display = 'none';
             selectRegion.value = '';
             selectRegion.required = false;
+            if (regionRequired) regionRequired.innerHTML = '';
         } else { // Regional o Municipal
             divRegion.style.display = 'block';
             selectRegion.required = true;
+            if (regionRequired) regionRequired.innerHTML = '<span class="text-danger">*</span>';
         }
     }
 
@@ -628,6 +662,7 @@
     }
 
     function editarEntidad(entidad) {
+        console.log("Datos de entidad a editar:", entidad);
         document.getElementById('editId').value = entidad.id;
         document.getElementById('editNombre').value = entidad.nombre;
         document.getElementById('editTipo').value = entidad.tipo;
@@ -641,6 +676,113 @@
         var editarModal = new bootstrap.Modal(document.getElementById('editarEntidadModal'));
         editarModal.show();
     }
+
+    // Función para validar el formulario antes de enviar
+    function validarFormulario(form) {
+        console.log("Validando formulario...");
+
+        // Resetear validaciones previas
+        var campos = form.querySelectorAll('.form-control, .form-select');
+        campos.forEach(function (campo) {
+            campo.classList.remove('is-invalid');
+        });
+
+        // Obtener valores de los campos
+        var nombre = form.nombre.value.trim();
+        var tipo = form.tipo.value;
+        var nivelGobiernoId = form.nivelGobiernoId.value;
+        var regionId = form.regionId.value;
+
+        console.log("Datos del formulario:", {
+            nombre: nombre,
+            tipo: tipo,
+            nivelGobiernoId: nivelGobiernoId,
+            regionId: regionId,
+            direccion: form.direccion.value,
+            telefono: form.telefono.value,
+            email: form.email.value,
+            sitioWeb: form.sitioWeb.value
+        });
+
+        var errores = [];
+
+        // Validaciones básicas
+        if (nombre === "") {
+            form.nombre.classList.add('is-invalid');
+            errores.push("El nombre de la entidad es obligatorio");
+        }
+
+        if (tipo === "") {
+            form.tipo.classList.add('is-invalid');
+            errores.push("Debe seleccionar un tipo de entidad");
+        }
+
+        if (nivelGobiernoId === "") {
+            form.nivelGobiernoId.classList.add('is-invalid');
+            errores.push("Debe seleccionar un nivel de gobierno");
+        }
+
+        // Si no es nivel nacional (id=1), la región es obligatoria
+        if (nivelGobiernoId !== "1" && regionId === "") {
+            form.regionId.classList.add('is-invalid');
+            errores.push("Debe seleccionar una región para este nivel de gobierno");
+        }
+
+        // Si hay errores, mostrarlos y detener el envío
+        if (errores.length > 0) {
+            var mensajeError = "Por favor corrija los siguientes errores:<br><ul>";
+            errores.forEach(function (error) {
+                mensajeError += "<li>" + error + "</li>";
+            });
+            mensajeError += "</ul>";
+
+            mostrarAlerta(mensajeError);
+            return false;
+        }
+
+        return true;
+    }
+
+    // Función para mostrar alerta con mensaje personalizado
+    function mostrarAlerta(mensaje) {
+        document.getElementById('modalAlertaBody').innerHTML = mensaje;
+        var modal = new bootstrap.Modal(document.getElementById('modalAlerta'));
+        modal.show();
+    }
+
+    // Inicializar validación en cambio de campos
+    document.addEventListener('DOMContentLoaded', function () {
+        var formNuevaEntidad = document.getElementById('formNuevaEntidad');
+        var formEditarEntidad = document.getElementById('formEditarEntidad');
+
+        // Añadir validación en tiempo real para nueva entidad
+        if (formNuevaEntidad) {
+            var campos = formNuevaEntidad.querySelectorAll('.form-control, .form-select');
+            campos.forEach(function (campo) {
+                campo.addEventListener('change', function () {
+                    if (this.value.trim() === '') {
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                    }
+                });
+            });
+        }
+
+        // Añadir validación en tiempo real para editar entidad
+        if (formEditarEntidad) {
+            var camposEdit = formEditarEntidad.querySelectorAll('.form-control, .form-select');
+            camposEdit.forEach(function (campo) {
+                campo.addEventListener('change', function () {
+                    if (this.value.trim() === '') {
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                    }
+                });
+            });
+        }
+    });
 </script>
 </body>
 </html>

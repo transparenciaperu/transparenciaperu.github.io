@@ -111,13 +111,21 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
         ResultSet rs = null;
         
         try {
+            System.out.println("EntidadPublicaModelo - buscarPorId - Buscando entidad con ID: " + id);
+
             con = MySQLConexion.getConexion();
+            if (con == null) {
+                System.out.println("EntidadPublicaModelo - buscarPorId - Error: No se pudo conectar a la base de datos");
+                return null;
+            }
+
             String sql = "SELECT e.id, e.nombre, e.tipo, e.nivelGobiernoId, e.regionId, e.direccion, " +
                     "e.telefono, e.email, e.sitioWeb, e.ruc " +
                     "FROM EntidadPublica e " +
                     "WHERE e.id = ?";
 
-            System.out.println("EntidadPublicaModelo - buscarPorId - Buscando entidad con ID: " + id);
+            System.out.println("EntidadPublicaModelo - buscarPorId - Ejecutando SQL: " + sql + " con ID=" + id);
+
             pstm = con.prepareStatement(sql);
             pstm.setInt(1, id);
             rs = pstm.executeQuery();
@@ -142,6 +150,10 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
             
         } catch (SQLException e) {
             System.out.println("Error en EntidadPublicaModelo.buscarPorId: " + e.getMessage());
+            System.out.println("SQLException estado: " + e.getSQLState() + ", código: " + e.getErrorCode());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Error general en EntidadPublicaModelo.buscarPorId: " + e.getMessage());
             e.printStackTrace();
         } finally {
             try {
@@ -226,26 +238,132 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
         int resultado = 0;
         Connection con = null;
         PreparedStatement pstm = null;
+        PreparedStatement checkPstm = null;
+        ResultSet rs = null;
         
         try {
+            System.out.println("EntidadPublicaModelo.eliminar: Iniciando eliminación de entidad ID: " + id);
+
             con = MySQLConexion.getConexion();
-            String sql = "DELETE FROM EntidadPublica WHERE id = ?";
-            pstm = con.prepareStatement(sql);
-            pstm.setInt(1, id);
-            resultado = pstm.executeUpdate();
-            
+            if (con == null) {
+                System.out.println("EntidadPublicaModelo.eliminar: Error - No se pudo establecer conexión a la base de datos");
+                return 0;
+            }
+
+            // Primero intentamos eliminar directamente
+            try {
+                System.out.println("EntidadPublicaModelo.eliminar: Intentando eliminar directamente la entidad ID " + id);
+                String sql = "DELETE FROM EntidadPublica WHERE id = ?";
+                pstm = con.prepareStatement(sql);
+                pstm.setInt(1, id);
+                resultado = pstm.executeUpdate();
+
+                if (resultado > 0) {
+                    System.out.println("EntidadPublicaModelo.eliminar: Entidad con ID " + id + " eliminada correctamente. Filas afectadas: " + resultado);
+                    return resultado;
+                } else {
+                    System.out.println("EntidadPublicaModelo.eliminar: No se encontró entidad con ID " + id + " para eliminar.");
+                    return 0; // La entidad no existía
+                }
+            } catch (SQLException e) {
+                // Si hay error de clave foránea, verificamos las referencias
+                if (e.getMessage().toLowerCase().contains("foreign key") || e.getSQLState().equals("23000")) {
+                    System.out.println("EntidadPublicaModelo.eliminar: Error de clave foránea al eliminar entidad ID " + id);
+                    System.out.println("SQLState: " + e.getSQLState() + ", Error code: " + e.getErrorCode());
+
+                    // Verificar primero si la entidad existe
+                    String checkSql = "SELECT COUNT(*) FROM EntidadPublica WHERE id = ?";
+                    checkPstm = con.prepareStatement(checkSql);
+                    checkPstm.setInt(1, id);
+                    rs = checkPstm.executeQuery();
+
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        System.out.println("EntidadPublicaModelo.eliminar: La entidad existe pero no se puede eliminar por restricciones de clave foránea.");
+                        return -1; // Código especial: tiene referencias
+                    } else {
+                        System.out.println("EntidadPublicaModelo.eliminar: La entidad no existe en la base de datos.");
+                        return 0;
+                    }
+                } else {
+                    // Otro tipo de error SQL
+                    System.out.println("EntidadPublicaModelo.eliminar: Error SQL inesperado: " + e.getMessage());
+                    e.printStackTrace();
+                    return 0;
+                }
+            }
         } catch (SQLException e) {
-            System.out.println("Error en EntidadPublicaModelo.eliminar: " + e.getMessage());
+            System.out.println("EntidadPublicaModelo.eliminar: Error en operación de base de datos: " + e.getMessage());
+            System.out.println("SQL State: " + e.getSQLState());
+            System.out.println("Error Code: " + e.getErrorCode());
+            e.printStackTrace();
+            return 0;
         } finally {
             try {
+                if (rs != null) rs.close();
+                if (checkPstm != null) checkPstm.close();
                 if (pstm != null) pstm.close();
                 if (con != null) con.close();
             } catch (SQLException e) {
                 System.out.println("Error al cerrar conexiones: " + e.getMessage());
             }
         }
-        
-        return resultado;
+    }
+
+    /**
+     * Verifica si una entidad tiene referencias en otras tablas
+     *
+     * @param con Conexión activa a la base de datos
+     * @param id  ID de la entidad a verificar
+     * @return true si tiene referencias, false en caso contrario
+     */
+    private boolean verificarReferencias(Connection con, int id) throws SQLException {
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+        boolean tieneReferencias = false;
+
+        try {
+            // Verificar referencias en Presupuesto
+            String sql = "SELECT COUNT(*) as total FROM Presupuesto WHERE entidadPublicaId = ?";
+            pstm = con.prepareStatement(sql);
+            pstm.setInt(1, id);
+            rs = pstm.executeQuery();
+
+            if (rs.next() && rs.getInt("total") > 0) {
+                System.out.println("verificarReferencias: La entidad ID " + id + " tiene " + rs.getInt("total") + " referencias en Presupuesto");
+                return true;
+            }
+
+            // Verificar referencias en Solicitud
+            rs.close();
+            pstm.close();
+            sql = "SELECT COUNT(*) as total FROM Solicitud WHERE entidadPublicaId = ?";
+            pstm = con.prepareStatement(sql);
+            pstm.setInt(1, id);
+            rs = pstm.executeQuery();
+
+            if (rs.next() && rs.getInt("total") > 0) {
+                System.out.println("verificarReferencias: La entidad ID " + id + " tiene " + rs.getInt("total") + " referencias en Solicitud");
+                return true;
+            }
+
+            // Verificar referencias en DocumentoTransparencia
+            rs.close();
+            pstm.close();
+            sql = "SELECT COUNT(*) as total FROM DocumentoTransparencia WHERE entidadPublicaId = ?";
+            pstm = con.prepareStatement(sql);
+            pstm.setInt(1, id);
+            rs = pstm.executeQuery();
+
+            if (rs.next() && rs.getInt("total") > 0) {
+                System.out.println("verificarReferencias: La entidad ID " + id + " tiene " + rs.getInt("total") + " referencias en DocumentoTransparencia");
+                return true;
+            }
+
+            return false;
+        } finally {
+            if (rs != null) rs.close();
+            if (pstm != null) pstm.close();
+        }
     }
 
     public List<EntidadPublicaEntidad> listarEntidades() {
@@ -306,30 +424,82 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
         ResultSet rs = null;
 
         try {
+            System.out.println("EntidadPublicaModelo - registrarEntidad - Iniciando registro para entidad: " + entidad.getNombre());
+
+            // Validar datos de entrada
+            if (entidad.getNombre() == null || entidad.getNombre().trim().isEmpty()) {
+                System.out.println("EntidadPublicaModelo - registrarEntidad - Error: Nombre es obligatorio");
+                return 0;
+            }
+
+            if (entidad.getTipo() == null || entidad.getTipo().trim().isEmpty()) {
+                System.out.println("EntidadPublicaModelo - registrarEntidad - Error: Tipo es obligatorio");
+                return 0;
+            }
+
+            if (entidad.getNivelGobiernoId() <= 0) {
+                System.out.println("EntidadPublicaModelo - registrarEntidad - Error: Nivel de Gobierno es obligatorio");
+                return 0;
+            }
+
+            // Si no es nivel nacional (id=1) y no tiene región
+            if (entidad.getNivelGobiernoId() != 1 && entidad.getRegionId() <= 0) {
+                System.out.println("EntidadPublicaModelo - registrarEntidad - Error: Región es obligatoria para este nivel de gobierno");
+                return 0;
+            }
+
+            // Sanear datos opcionales para evitar problemas de NULL
+            String direccion = (entidad.getDireccion() != null) ? entidad.getDireccion() : "";
+            String telefono = (entidad.getTelefono() != null) ? entidad.getTelefono() : "";
+            String email = (entidad.getEmail() != null) ? entidad.getEmail() : "";
+            String sitioWeb = (entidad.getSitioWeb() != null) ? entidad.getSitioWeb() : "";
+
+            System.out.println("EntidadPublicaModelo - registrarEntidad - Conectando a BD...");
             con = MySQLConexion.getConexion();
+
+            if (con == null) {
+                System.out.println("EntidadPublicaModelo - registrarEntidad - Error: No se pudo conectar a la base de datos");
+                return 0;
+            }
+
             String sql = "INSERT INTO EntidadPublica (nombre, tipo, direccion, nivelGobiernoId, regionId, telefono, email, sitioWeb) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+            System.out.println("EntidadPublicaModelo - registrarEntidad - SQL a ejecutar: " + sql);
+            System.out.println("EntidadPublicaModelo - registrarEntidad - Parámetros: " +
+                    "nombre=" + entidad.getNombre() + ", " +
+                    "tipo=" + entidad.getTipo() + ", " +
+                    "direccion=" + direccion + ", " +
+                    "nivelGobiernoId=" + entidad.getNivelGobiernoId() + ", " +
+                    "regionId=" + entidad.getRegionId() + ", " +
+                    "telefono=" + telefono + ", " +
+                    "email=" + email + ", " +
+                    "sitioWeb=" + sitioWeb);
+
             pstm = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstm.setString(1, entidad.getNombre());
             pstm.setString(2, entidad.getTipo());
-            pstm.setString(3, entidad.getDireccion());
+            pstm.setString(3, direccion);
             pstm.setInt(4, entidad.getNivelGobiernoId());
             pstm.setInt(5, entidad.getRegionId());
-            pstm.setString(6, entidad.getTelefono());
-            pstm.setString(7, entidad.getEmail());
-            pstm.setString(8, entidad.getSitioWeb());
+            pstm.setString(6, telefono);
+            pstm.setString(7, email);
+            pstm.setString(8, sitioWeb);
 
             resultado = pstm.executeUpdate();
+            System.out.println("EntidadPublicaModelo - registrarEntidad - Filas afectadas: " + resultado);
 
             if (resultado > 0) {
                 rs = pstm.getGeneratedKeys();
                 if (rs.next()) {
                     resultado = rs.getInt(1);
+                    System.out.println("EntidadPublicaModelo - registrarEntidad - ID generado: " + resultado);
                 }
             }
 
         } catch (SQLException e) {
             System.out.println("Error en EntidadPublicaModelo.registrarEntidad: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             try {
                 if (rs != null) rs.close();
@@ -340,6 +510,13 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
             }
         }
 
+        return resultado;
+    }
+
+    public int registrar(EntidadPublicaEntidad entidad) {
+        System.out.println("EntidadPublicaModelo.registrar: Intentando registrar entidad: " + entidad.getNombre());
+        int resultado = registrarEntidad(entidad);
+        System.out.println("EntidadPublicaModelo.registrar: Resultado de registro: " + resultado);
         return resultado;
     }
 
@@ -432,7 +609,94 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
     }
 
     public int eliminarEntidad(int id) {
-        return this.eliminar(id);
+        System.out.println("EntidadPublicaModelo.eliminarEntidad: Intentando eliminar entidad con ID " + id);
+        int resultado = this.eliminar(id);
+        System.out.println("EntidadPublicaModelo.eliminarEntidad: Resultado de eliminación: " + resultado);
+        return resultado;
+    }
+
+    /**
+     * Elimina una entidad pública de forma forzada, incluso si tiene registros relacionados.
+     * ADVERTENCIA: Esta función puede causar inconsistencia en la base de datos. Usar con precaución.
+     *
+     * @param id El ID de la entidad a eliminar
+     * @return El número de registros afectados
+     */
+    public int eliminarEntidadForzado(int id) {
+        System.out.println("EntidadPublicaModelo.eliminarEntidadForzado: Intentando eliminar forzadamente la entidad con ID " + id);
+
+        int resultado = 0;
+        Connection con = null;
+        PreparedStatement pstm = null;
+        PreparedStatement checkPstm = null;
+        ResultSet rs = null;
+
+        try {
+            con = MySQLConexion.getConexion();
+
+            // Verificar si la entidad existe
+            String checkSql = "SELECT id FROM EntidadPublica WHERE id = ?";
+            checkPstm = con.prepareStatement(checkSql);
+            checkPstm.setInt(1, id);
+            rs = checkPstm.executeQuery();
+
+            if (!rs.next()) {
+                System.out.println("EntidadPublicaModelo.eliminarEntidadForzado: La entidad con ID " + id + " no existe.");
+                return 0;
+            }
+
+            // Implementamos eliminación forzada
+            try {
+                System.out.println("EntidadPublicaModelo.eliminarEntidadForzado: Eliminando forzadamente la entidad ID " + id);
+
+                // Deshabilitar restricciones de clave foránea temporalmente
+                String setForeignKeyChecks = "SET FOREIGN_KEY_CHECKS=0";
+                checkPstm = con.prepareStatement(setForeignKeyChecks);
+                checkPstm.executeUpdate();
+
+                // Eliminar la entidad
+                String sql = "DELETE FROM EntidadPublica WHERE id = ?";
+                pstm = con.prepareStatement(sql);
+                pstm.setInt(1, id);
+                resultado = pstm.executeUpdate();
+
+                // Habilitar nuevamente las restricciones de clave foránea
+                String resetForeignKeyChecks = "SET FOREIGN_KEY_CHECKS=1";
+                checkPstm = con.prepareStatement(resetForeignKeyChecks);
+                checkPstm.executeUpdate();
+
+                System.out.println("EntidadPublicaModelo.eliminarEntidadForzado: Entidad con ID " + id + " eliminada forzadamente.");
+            } catch (SQLException e) {
+                System.out.println("Error durante la eliminación forzada: " + e.getMessage());
+
+                // Asegurarnos de restablecer las restricciones de clave foránea
+                try {
+                    String resetForeignKeyChecks = "SET FOREIGN_KEY_CHECKS=1";
+                    checkPstm = con.prepareStatement(resetForeignKeyChecks);
+                    checkPstm.executeUpdate();
+                } catch (SQLException ex) {
+                    System.out.println("Error al restablecer verificación de claves foráneas: " + ex.getMessage());
+                }
+
+                // Propagar la excepción
+                throw e;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error en EntidadPublicaModelo.eliminarEntidadForzado: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (checkPstm != null) checkPstm.close();
+                if (pstm != null) pstm.close();
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                System.out.println("Error al cerrar conexiones: " + e.getMessage());
+            }
+        }
+
+        return resultado;
     }
 
     public String obtenerNombreRegion(int regionId) {

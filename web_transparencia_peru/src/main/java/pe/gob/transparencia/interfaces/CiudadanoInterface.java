@@ -5,7 +5,7 @@ import pe.gob.transparencia.entidades.CiudadanoEntidad;
 import java.util.List;
 
 public interface CiudadanoInterface {
-    public CiudadanoEntidad buscarPorCredenciales(String correo, String password);
+    CiudadanoEntidad buscarPorCredenciales(String correo, String password);
 
     public CiudadanoEntidad buscarPorId(int idCiudadano);
 
