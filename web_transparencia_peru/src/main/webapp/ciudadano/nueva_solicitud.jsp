@@ -2,7 +2,11 @@
 <%@ page import="pe.gob.transparencia.entidades.CiudadanoEntidad" %>
 <%@ page import="pe.gob.transparencia.modelo.SolicitudAccesoModelo" %>
 <%@ page import="pe.gob.transparencia.entidades.TipoSolicitudEntidad" %>
+<%@ page import="pe.gob.transparencia.modelo.EntidadPublicaModelo" %>
+<%@ page import="pe.gob.transparencia.entidades.EntidadPublicaEntidad" %>
+<%@ page import="pe.gob.transparencia.entidades.RegionEntidad" %>
 <%@ page import="java.util.List" %>
+
 <%
     HttpSession sesion = request.getSession(false);
     if (sesion == null || sesion.getAttribute("ciudadano") == null) {
@@ -223,12 +227,22 @@
                                     <label for="region" class="form-label">Región:</label>
                                     <select class="form-select" id="region" name="region">
                                         <option value="" selected>Seleccione una región</option>
-                                        <option value="1">Lima</option>
-                                        <option value="2">Arequipa</option>
-                                        <option value="3">Cusco</option>
-                                        <option value="4">La Libertad</option>
-                                        <option value="5">Piura</option>
-                                        <!-- Otras regiones -->
+                                        <%
+                                            try {
+                                                EntidadPublicaModelo epModelo = new EntidadPublicaModelo();
+                                                List<RegionEntidad> regiones = epModelo.listarRegiones();
+                                                if (regiones != null) {
+                                                    for (RegionEntidad region : regiones) {
+                                        %>
+                                        <option value="<%= region.getId() %>"><%= region.getNombre() %>
+                                        </option>
+                                        <%
+                                                    }
+                                                }
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        %>
                                     </select>
                                     <div class="invalid-feedback">Por favor seleccione una región.</div>
                                 </div>
@@ -386,38 +400,6 @@
                 </div>
             </div>
 
-            <!-- Modal de confirmación -->
-            <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="confirmacionModalLabel">Solicitud Enviada</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="text-center mb-4">
-                                <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
-                                <h4 class="mt-3">¡Solicitud enviada correctamente!</h4>
-                                <p>Su solicitud ha sido registrada con el número: <strong
-                                        id="numeroSolicitud">1020</strong></p>
-                            </div>
-
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle-fill me-2"></i> La entidad tiene un plazo de <strong>10 días
-                                hábiles</strong> para responder a su solicitud.
-                            </div>
-
-                            <p>Puede hacer seguimiento del estado de su solicitud en la sección "Mis Solicitudes".</p>
-                        </div>
-                        <div class="modal-footer">
-                            <a href="index.jsp" class="btn btn-secondary">Ir al inicio</a>
-                            <a href="mis_solicitudes.jsp" class="btn btn-primary">Ver mis solicitudes</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
 </div>
@@ -471,44 +453,32 @@
             const entidadSelect = $('#entidad');
             entidadSelect.empty().append('<option value="" selected>Cargando entidades...</option>');
 
-            // Simulación de carga de datos desde el servidor
-            setTimeout(function () {
-                entidadSelect.empty().append('<option value="" selected>Seleccione una entidad</option>');
+            // Cargar datos desde el servidor usando AJAX
+            $.ajax({
+                url: '<%= request.getContextPath() %>/entidades.do',
+                type: 'GET',
+                data: {
+                    nivel: nivel,
+                    region: region
+                },
+                dataType: 'json',
+                success: function (data) {
+                    // Limpiar el selector
+                    entidadSelect.empty().append('<option value="" selected>Seleccione una entidad</option>');
 
-                // Datos de ejemplo según el nivel
-                if (nivel === '1') { // Nacional
-                    entidadSelect.append('<option value="1">Ministerio de Economía y Finanzas</option>');
-                    entidadSelect.append('<option value="2">Ministerio de Educación</option>');
-                    entidadSelect.append('<option value="3">Ministerio de Salud</option>');
-                    entidadSelect.append('<option value="9">OSINERGMIN</option>');
-                    entidadSelect.append('<option value="10">SUNASS</option>');
-                } else if (nivel === '2') { // Regional
-                    if (region === '1') { // Lima
-                        entidadSelect.append('<option value="15">Gobierno Regional de Lima</option>');
-                    } else if (region === '2') { // Arequipa
-                        entidadSelect.append('<option value="11">Gobierno Regional de Arequipa</option>');
-                    } else {
-                        entidadSelect.append('<option value="11">Gobierno Regional de Arequipa</option>');
-                        entidadSelect.append('<option value="12">Gobierno Regional de Cusco</option>');
-                        entidadSelect.append('<option value="13">Gobierno Regional de La Libertad</option>');
-                    }
-                } else if (nivel === '3') { // Municipal
-                    if (region === '1') { // Lima
-                        entidadSelect.append('<option value="19">Municipalidad Provincial de Lima</option>');
-                        entidadSelect.append('<option value="24">Municipalidad Distrital de Miraflores</option>');
-                        entidadSelect.append('<option value="25">Municipalidad Distrital de San Isidro</option>');
-                    } else if (region === '2') { // Arequipa
-                        entidadSelect.append('<option value="20">Municipalidad Provincial de Arequipa</option>');
-                    } else {
-                        entidadSelect.append('<option value="20">Municipalidad Provincial de Arequipa</option>');
-                        entidadSelect.append('<option value="21">Municipalidad Provincial de Cusco</option>');
-                        entidadSelect.append('<option value="22">Municipalidad Provincial de Trujillo</option>');
-                    }
+                    // Llenar con los datos recibidos
+                    $.each(data, function (index, entidad) {
+                        entidadSelect.append('<option value="' + entidad.id + '">' + entidad.nombre + '</option>');
+                    });
+
+                    // Recargar Select2 para reflejar los cambios
+                    entidadSelect.trigger('change');
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar entidades:", error);
+                    entidadSelect.empty().append('<option value="" selected>Error al cargar entidades</option>');
                 }
-
-                // Recargar Select2 para reflejar los cambios
-                entidadSelect.trigger('change');
-            }, 500);
+            });
         }
 
         // Validación del formulario
@@ -520,15 +490,11 @@
                 event.stopPropagation();
                 form.classList.add('was-validated');
             } else {
-                // Si el formulario es válido, mostrar el modal de confirmación
-                event.preventDefault();
-                // Aquí normalmente enviaríamos los datos por AJAX
-                // Simulamos una respuesta exitosa
-                $('#numeroSolicitud').text(Math.floor(1000 + Math.random() * 9000));
-                $('#confirmacionModal').modal('show');
+                // Es válido, simplemente continuar con el envío del formulario
+                return true;
             }
-
             form.classList.add('was-validated');
+            return false;
         }, false);
 
         // Contador de caracteres para la descripción

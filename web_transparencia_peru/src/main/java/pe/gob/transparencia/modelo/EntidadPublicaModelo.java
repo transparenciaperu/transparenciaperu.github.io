@@ -1,6 +1,7 @@
 package pe.gob.transparencia.modelo;
 
 import pe.gob.transparencia.entidades.EntidadPublicaEntidad;
+import pe.gob.transparencia.entidades.RegionEntidad;
 import pe.gob.transparencia.interfaces.EntidadPublicaInterface;
 import pe.gob.transparencia.db.MySQLConexion;
 
@@ -464,5 +465,105 @@ public class EntidadPublicaModelo implements EntidadPublicaInterface {
         }
 
         return nombreRegion;
+    }
+
+    public List<RegionEntidad> listarRegiones() {
+        List<RegionEntidad> lista = new ArrayList<>();
+        Connection con = null;
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+
+        try {
+            con = MySQLConexion.getConexion();
+            String sql = "SELECT id, nombre, codigo FROM Region ORDER BY nombre";
+            pstm = con.prepareStatement(sql);
+            rs = pstm.executeQuery();
+
+            while (rs.next()) {
+                RegionEntidad region = new RegionEntidad();
+                region.setId(rs.getInt("id"));
+                region.setNombre(rs.getString("nombre"));
+                region.setCodigo(rs.getString("codigo"));
+                lista.add(region);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error en EntidadPublicaModelo.listarRegiones: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstm != null) pstm.close();
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                System.out.println("Error al cerrar conexiones: " + e.getMessage());
+            }
+        }
+
+        return lista;
+    }
+
+    public List<EntidadPublicaEntidad> listarPorNivelYRegion(int nivelId, Integer regionId) {
+        List<EntidadPublicaEntidad> lista = new ArrayList<>();
+        Connection con = null;
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+
+        try {
+            con = MySQLConexion.getConexion();
+
+            String sql = "SELECT e.id, e.nombre, e.tipo, e.nivelGobiernoId, e.regionId, " +
+                    "r.nombre as region_nombre " +
+                    "FROM EntidadPublica e " +
+                    "LEFT JOIN Region r ON e.regionId = r.id " +
+                    "WHERE e.nivelGobiernoId = ?";
+
+            // Si se especifica una región, agregar el filtro
+            if (regionId != null && regionId > 0) {
+                sql += " AND e.regionId = ?";
+            }
+
+            sql += " ORDER BY e.nombre";
+
+            pstm = con.prepareStatement(sql);
+            pstm.setInt(1, nivelId);
+
+            if (regionId != null && regionId > 0) {
+                pstm.setInt(2, regionId);
+            }
+
+            rs = pstm.executeQuery();
+
+            while (rs.next()) {
+                EntidadPublicaEntidad entidad = new EntidadPublicaEntidad();
+                entidad.setId(rs.getInt("id"));
+                entidad.setNombre(rs.getString("nombre"));
+                entidad.setTipo(rs.getString("tipo"));
+                entidad.setNivelGobiernoId(rs.getInt("nivelGobiernoId"));
+                entidad.setRegionId(rs.getInt("regionId"));
+
+                // Agregar región si existe
+                String regionNombre = rs.getString("region_nombre");
+                if (regionNombre != null) {
+                    entidad.setRegion(regionNombre);
+                }
+
+                lista.add(entidad);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error en EntidadPublicaModelo.listarPorNivelYRegion: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstm != null) pstm.close();
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                System.out.println("Error al cerrar conexiones: " + e.getMessage());
+            }
+        }
+
+        return lista;
     }
 }
