@@ -157,7 +157,7 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label for="filtroEstado" class="form-label">Estado</label>
-                                    <select class="form-select" id="filtroEstado">
+                                    <select class="form-select" id="filtroEstado" name="filtroEstado">
                                         <option value="">Todos</option>
                                         <option value="pendiente">Pendiente</option>
                                         <option value="en-proceso">En Proceso</option>
@@ -168,19 +168,35 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label for="filtroEntidad" class="form-label">Entidad</label>
-                                    <select class="form-select" id="filtroEntidad">
+                                    <select class="form-select" id="filtroEntidad" name="filtroEntidad">
                                         <option value="">Todas</option>
-                                        <option value="1">Ministerio de Educación</option>
-                                        <option value="2">Ministerio de Salud</option>
-                                        <option value="3">Municipalidad de Lima</option>
-                                        <option value="4">OSINERGMIN</option>
+                                        <%
+                                            // Crear un conjunto único de entidades de las solicitudes
+                                            java.util.Set<Integer> entidadesIds = new java.util.HashSet<>();
+                                            java.util.Map<Integer, String> entidades = new java.util.HashMap<>();
+
+                                            for (SolicitudAccesoEntidad sol : solicitudes) {
+                                                if (sol.getEntidadPublica() != null && sol.getEntidadPublicaId() > 0) {
+                                                    if (!entidadesIds.contains(sol.getEntidadPublicaId())) {
+                                                        entidadesIds.add(sol.getEntidadPublicaId());
+                                                        entidades.put(sol.getEntidadPublicaId(), sol.getEntidadPublica().getNombre());
+                                                    }
+                                                }
+                                            }
+
+                                            // Mostrar las entidades en el dropdown
+                                            for (java.util.Map.Entry<Integer, String> entry : entidades.entrySet()) {
+                                        %>
+                                        <option value="<%= entry.getKey() %>"><%= entry.getValue() %>
+                                        </option>
+                                        <% } %>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="filtroFecha" class="form-label">Año</label>
-                                    <select class="form-select" id="filtroFecha">
+                                    <select class="form-select" id="filtroFecha" name="filtroFecha">
                                         <option value="">Todos</option>
-                                        <option value="2024" selected>2024</option>
+                                        <option value="2024">2024</option>
                                         <option value="2023">2023</option>
                                         <option value="2022">2022</option>
                                     </select>
@@ -263,245 +279,8 @@
                 </table>
             </div>
 
-            <!-- Modal para ver detalle de solicitud -->
-            <div class="modal fade" id="detalleModal" tabindex="-1" aria-labelledby="detalleModalLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detalleModalLabel">Detalle de la Solicitud</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <h6 class="fw-bold">Información de la Solicitud</h6>
-                                    <table class="table table-sm">
-                                        <tbody>
-                                        <tr>
-                                            <td class="fw-bold">ID:</td>
-                                            <td id="detalle-id">1018</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-bold">Fecha:</td>
-                                            <td id="detalle-fecha">28/04/2024</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-bold">Estado:</td>
-                                            <td id="detalle-estado"><span class="badge bg-warning">Pendiente</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-bold">Tipo:</td>
-                                            <td id="detalle-tipo">Información Presupuestal</td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6 class="fw-bold">Información de la Entidad</h6>
-                                    <table class="table table-sm">
-                                        <tbody>
-                                        <tr>
-                                            <td class="fw-bold">Entidad:</td>
-                                            <td id="detalle-entidad">Ministerio de Educación</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-bold">Tipo:</td>
-                                            <td id="detalle-tipo-entidad">Ministerio</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-bold">Nivel:</td>
-                                            <td id="detalle-nivel">Nacional</td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <h6 class="fw-bold">Descripción de la Solicitud</h6>
-                            <div class="p-3 bg-light rounded mb-3" id="detalle-descripcion">
-                                Solicito información detallada sobre los programas de becas estudiantiles implementados
-                                por el Ministerio de Educación durante el año 2024, incluyendo:
-                                <ol>
-                                    <li>Presupuesto asignado a cada programa</li>
-                                    <li>Número de beneficiarios por programa</li>
-                                    <li>Criterios de selección utilizados</li>
-                                    <li>Distribución de beneficiarios por región</li>
-                                </ol>
-                                Esta información es requerida con fines de investigación académica.
-                            </div>
-
-                            <div class="timeline mt-4">
-                                <h6 class="fw-bold">Seguimiento de la Solicitud</h6>
-                                <ul class="list-group">
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between">
-                                            <span><i class="bi bi-circle-fill text-success me-2"></i> Solicitud recibida</span>
-                                            <small>28/04/2024</small>
-                                        </div>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between">
-                                            <span><i class="bi bi-circle-fill text-warning me-2"></i> En proceso de evaluación</span>
-                                            <small>Pendiente</small>
-                                        </div>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between">
-                                            <span><i class="bi bi-circle-fill text-secondary me-2"></i> Respuesta enviada</span>
-                                            <small>Pendiente</small>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <a href="nueva_solicitud.jsp" class="btn btn-primary">Nueva Solicitud</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal para ver respuesta -->
-            <div class="modal fade" id="respuestaModal" tabindex="-1" aria-labelledby="respuestaModalLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="respuestaModalLabel">Respuesta a su Solicitud</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="alert alert-success">
-                                <i class="bi bi-check-circle-fill me-2"></i> Su solicitud ha sido atendida
-                                satisfactoriamente.
-                            </div>
-
-                            <div class="mb-3">
-                                <h6 class="fw-bold">Información de la Respuesta</h6>
-                                <table class="table">
-                                    <tbody>
-                                    <tr>
-                                        <td width="30%" class="fw-bold">Fecha de respuesta:</td>
-                                        <td id="respuesta-fecha">25/04/2024</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Respondido por:</td>
-                                        <td id="respuesta-funcionario">Carlos Morales - Director de Transparencia</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="mb-3">
-                                <h6 class="fw-bold">Respuesta:</h6>
-                                <div class="p-3 bg-light rounded" id="respuesta-contenido">
-                                    <p>Estimado ciudadano,</p>
-                                    <p>En atención a su solicitud de acceso a la información sobre planos urbanos del
-                                        distrito de San Isidro, le remitimos la siguiente información:</p>
-                                    <ol>
-                                        <li>Se adjunta archivo PDF con los planos solicitados</li>
-                                        <li>Se incluye información sobre zonificación actualizada</li>
-                                        <li>Se proporciona link para acceso a visualizador de mapas online</li>
-                                    </ol>
-                                    <p>Para acceder al visualizador online, ingrese a: <a href="#" class="text-primary">http://gis.munlima.gob.pe/mapa</a>
-                                    </p>
-                                    <p>Quedamos a su disposición para cualquier consulta adicional.</p>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <h6 class="fw-bold">Archivos adjuntos:</h6>
-                                <ul class="list-group">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i class="bi bi-file-pdf me-2 text-danger"></i> Planos_SanIsidro_2024.pdf
-                                        </div>
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-download"></i> Descargar
-                                        </button>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i class="bi bi-file-excel me-2 text-success"></i>
-                                            Zonificación_SanIsidro_2024.xlsx
-                                        </div>
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-download"></i> Descargar
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-primary" id="btnDescargarTodo">
-                                <i class="bi bi-download me-1"></i> Descargar todo
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal para motivo de rechazo -->
-            <div class="modal fade" id="rechazoModal" tabindex="-1" aria-labelledby="rechazoModalLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="rechazoModalLabel">Solicitud Rechazada</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Su solicitud no pudo ser atendida.
-                            </div>
-
-                            <div class="mb-3">
-                                <h6 class="fw-bold">Motivo del rechazo:</h6>
-                                <div class="p-3 bg-light rounded" id="rechazo-motivo">
-                                    <p>La solicitud no pudo ser atendida por los siguientes motivos:</p>
-                                    <ol>
-                                        <li>La información solicitada contiene datos sensibles protegidos por la Ley de
-                                            Protección de Datos Personales (Ley N° 29733)
-                                        </li>
-                                        <li>Los contratos específicos solicitados están bajo investigación fiscal y su
-                                            divulgación podría afectar el proceso investigatorio
-                                        </li>
-                                    </ol>
-                                    <p>Base legal: Artículo 17 del TUO de la Ley de Transparencia y Acceso a la
-                                        Información Pública.</p>
-                                    <p>Tiene derecho a presentar un recurso de apelación ante el Tribunal de
-                                        Transparencia y Acceso a la Información Pública en un plazo de 15 días
-                                        hábiles.</p>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <h6 class="fw-bold">Alternativas:</h6>
-                                <ul>
-                                    <li>Puede reformular su solicitud excluyendo la información de carácter
-                                        confidencial
-                                    </li>
-                                    <li>Puede solicitar información estadística agregada sobre el tema</li>
-                                    <li>Puede consultar la información pública ya disponible en el portal de
-                                        transparencia
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <a href="nueva_solicitud.jsp" class="btn btn-primary">
-                                <i class="bi bi-pencil-square me-1"></i> Reformular solicitud
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Nota: En lugar de usar modales para mostrar detalles, respuestas o rechazos, 
+                 se utiliza redirección directa a páginas dedicadas mediante los botones "Ver" y "Respuesta" -->
         </main>
     </div>
 </div>
@@ -545,13 +324,20 @@
                 }
 
                 // Filtro por entidad
-                if (filtroEntidad && filtroEntidad !== "" && !entidad.includes(filtroEntidad)) {
-                    return false;
+                if (filtroEntidad && filtroEntidad !== "") {
+                    // Busca el ID de la entidad en el texto (que contiene nombre y más información)
+                    if (entidad.indexOf("ID: " + filtroEntidad) === -1) {
+                        return false;
+                    }
                 }
 
                 // Filtro por año
-                if (filtroFecha && filtroFecha !== "" && !fecha.includes(filtroFecha)) {
-                    return false;
+                if (filtroFecha && filtroFecha !== "") {
+                    // Extrae el año de la fecha (formato dd/mm/yyyy)
+                    let anio = fecha.split('/')[2];
+                    if (anio !== filtroFecha) {
+                        return false;
+                    }
                 }
 
                 return true;

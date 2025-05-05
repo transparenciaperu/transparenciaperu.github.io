@@ -26,6 +26,7 @@
     String filtroFechaDesde = (String) request.getAttribute("filtroFechaDesde");
     String filtroFechaHasta = (String) request.getAttribute("filtroFechaHasta");
     String filtroBusqueda = (String) request.getAttribute("filtroBusqueda");
+    String filtroVencidas = (String) request.getAttribute("filtroVencidas");
 
     try {
         SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
@@ -580,7 +581,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary">
+                            <button type="button" class="btn btn-primary" id="btnExportar">
                                 <i class="bi bi-download me-1"></i> Exportar
                             </button>
                         </div>
@@ -721,6 +722,14 @@
             // Aquí se puede implementar la carga del historial mediante AJAX
             // Por ahora, redirigimos a la página de detalle que incluya el historial
             window.location.href = '<%= request.getContextPath() %>/solicitud.do?accion=detalle&id=' + id + '&tab=historial';
+        });
+
+        // Manejo del botón de exportación
+        $('#btnExportar').click(function () {
+            // Aquí iría la lógica para exportar los datos
+            // Por ahora solo mostramos un mensaje
+            alert('Funcionalidad de exportación no implementada');
+            $('#exportarModal').modal('hide');
         });
     });
 </script>

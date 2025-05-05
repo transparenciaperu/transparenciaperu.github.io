@@ -2,6 +2,8 @@
 <%@ page import="pe.gob.transparencia.entidades.CiudadanoEntidad" %>
 <%@ page import="pe.gob.transparencia.entidades.SolicitudAccesoEntidad" %>
 <%@ page import="pe.gob.transparencia.modelo.SolicitudAccesoModelo" %>
+<%@ page import="pe.gob.transparencia.entidades.RespuestaSolicitudEntidad" %>
+
 <%
     // Verificar si el ciudadano está en sesión
     HttpSession sesion = request.getSession(false);
@@ -181,7 +183,8 @@
                             <table class="table table-borderless">
                                 <tr>
                                     <th width="40%">Entidad:</th>
-                                    <td>[Nombre de Entidad]</td>
+                                    <td><%= solicitud.getEntidadPublica() != null ? solicitud.getEntidadPublica().getNombre() : "No especificada" %>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th>Estado Actual:</th>
@@ -240,7 +243,10 @@
             </div>
 
             <%-- Respuesta si existe --%>
-            <% if (tieneRespuesta) { %>
+            <% if (tieneRespuesta) {
+                SolicitudAccesoModelo modelo = new SolicitudAccesoModelo();
+                RespuestaSolicitudEntidad respuesta = modelo.buscarRespuestaPorSolicitudId(solicitud.getId());
+            %>
             <div class="card shadow mb-4 fade-in">
                 <div class="card-header py-3 bg-<%= solicitud.getEstadoSolicitudId() == 3 ? "success" : "danger" %> text-white">
                     <h6 class="m-0 font-weight-bold">Respuesta a su Solicitud</h6>
@@ -250,7 +256,15 @@
                         <div class="col-md-6">
                             <p><strong>Fecha de Respuesta:</strong> <%= solicitud.getFechaRespuesta() %>
                             </p>
-                            <p><strong>Funcionario Responsable:</strong> [Nombre del Funcionario]</p>
+                            <p><strong>Funcionario Responsable:</strong>
+                                <%
+                                String funcionarioNombre = "No especificado";
+                                    if (respuesta != null) {
+                                        funcionarioNombre = (respuesta.getUsuarioId() > 0) ? "Funcionario ID: " + respuesta.getUsuarioId() : "No especificado";
+                                    }
+                                %>
+                                <%= funcionarioNombre %>
+                            </p>
                         </div>
                         <div class="col-md-6">
                             <% if (solicitud.getEstadoSolicitudId() == 5) { %>
@@ -266,26 +280,15 @@
                         <%= solicitud.getObservaciones() != null ? solicitud.getObservaciones() : "No se proporcionaron detalles adicionales." %>
                     </div>
 
-                    <%-- 
-                    <% if (respuesta.getArchivoAdjunto() != null && !respuesta.getArchivoAdjunto().isEmpty()) { %>
+                    <% if (respuesta != null && respuesta.getRutaArchivo() != null && !respuesta.getRutaArchivo().isEmpty()) { %>
                     <h6 class="mb-2">Documentos Adjuntos</h6>
                     <div class="list-group mb-3">
-                        <a href="<%= request.getContextPath() %>/descargar?archivo=<%= respuesta.getArchivoAdjunto() %>"
+                        <a href="<%= request.getContextPath() %>/descargar?archivo=<%= respuesta.getRutaArchivo() %>"
                            class="list-group-item list-group-item-action">
-                            <i class="bi bi-file-earmark-pdf me-2"></i> <%= respuesta.getArchivoAdjunto() %>
+                            <i class="bi bi-file-earmark me-2"></i> <%= respuesta.getRutaArchivo() %>
                         </a>
                     </div>
                     <% } %>
-                    --%>
-                    <%-- Comentado porque no tenemos la función de archivos adjuntos implementada
-                    <h6 class="mb-2">Documentos Adjuntos</h6>
-                    <div class="list-group mb-3">
-                        <a href="<%= request.getContextPath() %>/descargar?archivo=nombreArchivo.pdf"
-                           class="list-group-item list-group-item-action">
-                            <i class="bi bi-file-earmark-pdf me-2"></i> nombreArchivo.pdf
-                        </a>
-                    </div>
-                    --%>
                 </div>
             </div>
             <% } %>
